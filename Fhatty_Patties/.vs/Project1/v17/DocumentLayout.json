@@ -1,9 +1,13 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\diyas\\source\\repos\\Sem2\\Solo_Project_1\\",
+  "WorkspaceRootPath": "C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{624246E8-05BC-49BA-BA05-ED693DE52043}|Project1\\Project1.vcxproj|C:\\Users\\diyas\\source\\repos\\Sem2\\Solo_Project_1\\Source\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{624246E8-05BC-49BA-BA05-ED693DE52043}|Project1\\Project1.vcxproj|C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\Project1\\game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{624246E8-05BC-49BA-BA05-ED693DE52043}|Project1\\Project1.vcxproj|solutionrelative:Project1\\game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{624246E8-05BC-49BA-BA05-ED693DE52043}|Project1\\Project1.vcxproj|C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\Source\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{624246E8-05BC-49BA-BA05-ED693DE52043}|Project1\\Project1.vcxproj|solutionrelative:Source\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -14,21 +18,34 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "game.cpp",
+              "DocumentMoniker": "C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\Project1\\game.cpp",
+              "RelativeDocumentMoniker": "Project1\\game.cpp",
+              "ToolTip": "C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\Project1\\game.cpp",
+              "RelativeToolTip": "Project1\\game.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-01-21T03:27:54.973Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Main.cpp",
-              "DocumentMoniker": "C:\\Users\\diyas\\source\\repos\\Sem2\\Solo_Project_1\\Source\\Main.cpp",
+              "DocumentMoniker": "C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\Source\\Main.cpp",
               "RelativeDocumentMoniker": "Source\\Main.cpp",
-              "ToolTip": "C:\\Users\\diyas\\source\\repos\\Sem2\\Solo_Project_1\\Source\\Main.cpp",
+              "ToolTip": "C:\\SIT\\sem2\\Game Dev Burger Game\\The-Phatties\\Fhatty_Patties\\Source\\Main.cpp",
               "RelativeToolTip": "Source\\Main.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJQAAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAACcAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-01-05T11:43:18.276Z",
               "EditorCaption": ""
