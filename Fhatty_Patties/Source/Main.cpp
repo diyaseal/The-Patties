@@ -3,10 +3,13 @@
 
 #include <crtdbg.h> // To check for memory leaks
 #include "AEEngine.h"
-#include <math.h>   // Added for cosf and sinf
+#include "GameStateManager.h"
 
 // ---------------------------------------------------------------------------
 // main
+void (*gameInit)();
+void (*gameUpdate)();
+void (*gameExit)();
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,   
@@ -30,12 +33,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// reset the system modules
 	AESysReset();
 
+	// GSM initialize - Initialize Game State Manager with starting state (Level 1)
+	GSM_Initialize(GS_LEVEL1);
+
 	// Game Loop
 	while (gGameRunning)
 	{
 		// Informing the system about the loop's start
 		AESysFrameStart();
 
+
+		gameUpdate();
 		// Check for exit
 		if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist())
 			gGameRunning = 0;
@@ -57,4 +65,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	// free the system
 	AESysExit();
+}
+
+
+void InitState(init, update, exit) {
+	gameExit = exit;
+	gameInit = init;
+	gameUpdate = update;
+	gameinit();
+}
+
+void ChangeState(init, update, exit) {
+	gameExit();
+	gameExit = exit;
+	gameInit = init;
+	gameUpdate = update;
+	gameinit();
 }
