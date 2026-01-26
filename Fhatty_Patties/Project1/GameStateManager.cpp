@@ -12,23 +12,19 @@ Technology is prohibited.
 */
 /* End Header **************************************************************************/
 #include "pch.h"
-#include "GameStateManager.h"
-#include "GameStateList.h"
-#include "game.h"
-#include <cstdio>  
 
 // Global state variables - track previous, current, and next game states
 int current = 0, previous = 0, next = 0;
 
 // Function pointers for the six state operations
-FP fpLoad = nullptr, fpInitialize = nullptr, fpUpdate = nullptr,
+FP fpLoad = nullptr, fpInit = nullptr, fpUpdate = nullptr,
 fpDraw = nullptr, fpFree = nullptr, fpUnload = nullptr;
 
 // ----------------------------------------------------------------------------
 // Initializes the Game State Manager with a starting state
 // \param startingState - The initial game state (usually GS_LEVEL1)
 // ----------------------------------------------------------------------------
-void GSM_Initialize(int startingState)
+void GSM_Init(int startingState)
 {
     printf("GSM:Initialize\n");
     // Set all state trackers to the starting state
@@ -45,10 +41,26 @@ void GSM_Update()
     // Set function pointers based on the current game state
     switch (current)
     {
+    case GS_SCH_CRED:
+        fpLoad = School_Credits_Load;              // Add this line
+        fpInit = School_Credits_Init;
+        fpUpdate = School_Credits_Update;
+        fpDraw = School_Credits_Draw;
+        fpFree = School_Credits_Free;
+        fpUnload = School_Credits_Unload;
+        break;
+    case GS_TEAM_CRED:
+        fpLoad = Team_Credits_Load;              // Add this line
+        fpInit = Team_Credits_Init;
+        fpUpdate = Team_Credits_Update;
+        fpDraw = Team_Credits_Draw;
+        fpFree = Team_Credits_Free;
+        fpUnload = Team_Credits_Unload;
+        break;
     case GS_LEVEL1:
         // Level 1 function pointers
         fpLoad = Game_Load;              // Add this line
-        fpInitialize = Game_Initialize;
+        fpInit = Game_Init;
         fpUpdate = Game_Update;
         fpDraw = Game_Draw;
         fpFree = Game_Free;

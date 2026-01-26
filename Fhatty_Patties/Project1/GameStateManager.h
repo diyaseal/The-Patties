@@ -25,10 +25,10 @@ typedef void(*FP)(void);
 extern int current, previous, next;  // Current, previous, and next game states
 
 // External declarations for state function pointers
-extern FP fpLoad, fpInitialize, fpUpdate, fpDraw, fpFree, fpUnload;
+extern FP fpLoad, fpInit, fpUpdate, fpDraw, fpFree, fpUnload;
 
 // Function prototype for initializing the Game State Manager
-void GSM_Initialize(int startingState);
+void GSM_Init(int startingState);
 
 // Function prototype for updating Game State Manager function pointers
 void GSM_Update();

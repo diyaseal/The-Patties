@@ -1,9 +1,6 @@
 // ---------------------------------------------------------------------------
 // includes
-#include <crtdbg.h> // To check for memory leaks
-#include "AEEngine.h"
-#include "GameStateManager.h"
-#include "GameStateList.h"
+#include "pch.h"
 
 // ---------------------------------------------------------------------------
 // main
@@ -28,7 +25,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     AESysReset();
 
     // GSM initialize - Initialize Game State Manager with starting state (Level 1)
-    GSM_Initialize(GS_LEVEL1);
+    GSM_Init(GS_SCH_CRED);
+    AEFrameRateControllerReset();
     GSM_Update();
 
     // Call the Load function for the current state
@@ -36,13 +34,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         fpLoad();
 
     // Call the Initialize function for the current state
-    if (fpInitialize)
-        fpInitialize();
+    if (fpInit)
+        fpInit();
 
     // Game Loop
     while (gGameRunning)
     {
         // Informing the system about the loop's start
+        AEFrameRateControllerStart();
         AESysFrameStart();
 
         // Check for exit
@@ -57,11 +56,37 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (fpDraw)
             fpDraw();
 
-        // Informing the system about the loop's end
-        AESysFrameEnd();
+    // Clean up - call Free and Unload
+    if (next != current)
+    {
+        // Clean up old state
+        if (fpFree)
+            fpFree();
+
+        if (fpUnload)
+            fpUnload();
+
+        previous = current;
+        current = next;
+
+        // Update GSM function pointers
+        GSM_Update();
+
+        // Load & init new state
+        if (fpLoad)
+            fpLoad();
+        if (fpInit)
+            fpInit();
     }
 
-    // Clean up - call Free and Unload
+    if (fpDraw)
+        fpDraw();
+
+    // Informing the system about the loop's end
+    AESysFrameEnd();
+
+    }
+
     if (fpFree)
         fpFree();
 

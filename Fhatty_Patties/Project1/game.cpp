@@ -43,11 +43,6 @@ void Game_Load() {
     printf("Square mesh created\n");
 }
 
-void Game_Initialize() {
-    printf("Game_Initialize called\n");
-    printf("Hello World\n");
-}
-
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc.
