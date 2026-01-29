@@ -6,6 +6,7 @@
 // Global variables for School Credits
 
 static float totalElapsedTime = 0.0f;            // Timer for screen duration
+static s8 fontId = -1;                           // Font ID
 
 // ---------------------------------------------------------------------------
 // Button Struct
@@ -25,20 +26,15 @@ static AEGfxVertexList* pButtonMesh = nullptr;
 
 void MainMenu_Load()
 {
- //Create a button mesh
-	AEGfxMeshStart();
-    AEGfxTriAdd(
-        -0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 1.0f,
-        0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f
-    );
+ //Load font
+    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
+    if (fontId < 0)
+        printf("ERROR: Failed to load font!\n");
+    else
+        printf("SUCCESS: Font loaded, ID = %d\n", fontId);
 
-    AEGfxTriAdd(
-        0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f,
-        0.5f, 0.5f, 0xFFFFFFFF, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f
-    );
-	pButtonMesh = AEGfxMeshEnd();
+ //Create a button mesh
+	pButtonMesh = CreateSquareMesh(0.5f,0.5f);
 }
 
 void MainMenu_Init()
@@ -101,6 +97,21 @@ void MainMenu_Draw()
 
 	//Draw button mesh
 	AEGfxMeshDraw(pButtonMesh, AE_GFX_MDM_TRIANGLES);
+
+    //Button Text
+    if (fontId >= 0)
+    {
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+        AEGfxPrint(
+            fontId,
+            "Play",
+            -0.05f,   // X (normalized)
+            -0.03f,    // Y (normalized)
+            0.9f,     // Scale
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
 }
 
 void MainMenu_Free()
