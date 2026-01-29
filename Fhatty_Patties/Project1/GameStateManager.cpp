@@ -57,6 +57,14 @@ void GSM_Update()
         fpFree = Team_Credits_Free;
         fpUnload = Team_Credits_Unload;
         break;
+    case GS_MAINMENU:
+        fpLoad = MainMenu_Load;              // Add this line
+        fpInit = MainMenu_Init;
+        fpUpdate = MainMenu_Update;
+        fpDraw = MainMenu_Draw;
+        fpFree = MainMenu_Free;
+        fpUnload = MainMenu_Unload;
+		break;
     case GS_LEVEL1:
         // Level 1 function pointers
         fpLoad = Game_Load;              // Add this line

@@ -24,6 +24,7 @@ enum GS_STATES
 {
 	GS_SCH_CRED = 0,
 	GS_TEAM_CRED,
+	GS_MAINMENU,   // Main menu game state
 	GS_LEVEL1,  // Level 1 game state
 	GS_LEVEL2,      // Level 2 game state
 

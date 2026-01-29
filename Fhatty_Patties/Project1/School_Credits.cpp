@@ -64,7 +64,7 @@ void School_Credits_Update()
     totalElapsedTime += dt;
 
     if (totalElapsedTime > 3.0f)
-        next = GS_LEVEL1;
+        next = GS_MAINMENU;
 }
 
 void School_Credits_Draw()

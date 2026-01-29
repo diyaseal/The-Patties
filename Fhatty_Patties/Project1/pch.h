@@ -29,5 +29,6 @@ Technology is prohibited.
 #include "game.h"
 #include "School_Credits.h"
 #include "Team_Credits.h"
+#include "MainMenu.h"
 
 #endif //PCH_H
