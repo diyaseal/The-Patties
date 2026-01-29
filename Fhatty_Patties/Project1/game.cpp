@@ -4,6 +4,7 @@
 #include "AEEngine.h"
 #include "GameStateManager.h"
 #include "game.h"
+#include "GraphicManager.hpp"
 
 // ---------------------------------------------------------------------------
 // Global variables for Game State
@@ -23,23 +24,7 @@ void Game_Load() {
     // -------------------------------------------------------------------
     // CREATE THE SQUARE MESH
     // -------------------------------------------------------------------
-    AEGfxMeshStart();
-
-    // Create a square using two triangles
-    AEGfxTriAdd(
-        -0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 0.0f,  // Bottom-left
-        0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 0.0f,   // Bottom-right
-        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f    // Top-left
-    );
-    AEGfxTriAdd(
-        0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 0.0f,   // Bottom-right
-        0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f,    // Top-right
-        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f    // Top-left
-    );
-
-    // Finish creating square mesh
-    pMesh = AEGfxMeshEnd();
-
+    pMesh = CreateSquareMesh(4.0f, 4.0f);
     printf("Square mesh created\n");
 }
 

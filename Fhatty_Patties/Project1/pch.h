@@ -30,5 +30,6 @@ Technology is prohibited.
 #include "School_Credits.h"
 #include "Team_Credits.h"
 #include "MainMenu.h"
+#include "GraphicManager.hpp"
 
 #endif //PCH_H
