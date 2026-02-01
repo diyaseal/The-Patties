@@ -1,6 +1,7 @@
 #include "pch.h"
 #include <cmath> 
 
+
 AEGfxVertexList* CreateTableMesh(float x, float y) {
     AEGfxMeshStart();
 
@@ -21,6 +22,7 @@ AEGfxVertexList* CreateTableMesh(float x, float y) {
     // Finish creating square mesh
     return AEGfxMeshEnd();
 }
+
 
 AEGfxVertexList* CreatePlateMesh(float radius, int segments)
 {

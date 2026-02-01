@@ -1,10 +1,6 @@
 // ---------------------------------------------------------------------------
 // includes
-#include <crtdbg.h> // To check for memory leaks
-#include "AEEngine.h"
-#include "GameStateManager.h"
-#include "game.h"
-#include "GraphicManager.hpp"
+#include "pch.h"
 
 // ---------------------------------------------------------------------------
 // Global variables for Game State
