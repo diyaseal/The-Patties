@@ -24,8 +24,9 @@ void Game_Load() {
     // -------------------------------------------------------------------
     // CREATE THE SQUARE MESH
     // -------------------------------------------------------------------
-    pMesh = CreateSquareMesh(4.0f, 4.0f);
-    printf("Square mesh created\n");
+    pMesh = CreatePlateMesh(2.0f, 2);
+    pMesh = CreateTableMesh(6.0f, 2.0f);
+    printf("Rectangle mesh created\n");
 }
 
 void Game_Update() {

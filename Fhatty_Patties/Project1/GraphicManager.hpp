@@ -1,4 +1,5 @@
 #pragma once
 
 
-AEGfxVertexList* CreateSquareMesh(float x, float y);
+AEGfxVertexList* CreateTableMesh(float x, float y);
+AEGfxVertexList* CreatePlateMesh(float radius, int segments);
