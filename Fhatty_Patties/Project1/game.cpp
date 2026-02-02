@@ -13,6 +13,7 @@ static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, Plate
 
 void Game_Init() {
     printf("Game_Init called\n");
+	Customer_Init();
 }
 
 void Game_Load() {
@@ -27,6 +28,8 @@ void Game_Load() {
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc.
+	float dt = AEFrameRateControllerGetFrameTime();
+	Customer_Update(dt);
 }
 
 void Game_Draw() {
@@ -36,6 +39,11 @@ void Game_Draw() {
     AEGfxSetBackgroundColor(0.5f, 0.5f, 0.5f); // Gray background
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+    // -------------------------------------------------------------------
+    // DRAW CUSTOMERS (draw first so they appear behind counter)
+    // -------------------------------------------------------------------
+    Customer_Draw();
 
     // -------------------------------------------------------------------
     // DRAW SQUARE
@@ -127,6 +135,7 @@ void Game_Draw() {
 
 void Game_Free() {
     printf("Game_Free called\n");
+	Customer_Free();
     // Free any dynamic memory here
 }
 
