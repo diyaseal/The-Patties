@@ -1,4 +1,4 @@
-#include "pch.hpp"
+#include "pch.hpp "
 #include <cmath> 
 
 
@@ -76,5 +76,61 @@ AEGfxVertexList* IngredientMesh(float x, float y) {
     );
 
     // Finish creating square mesh
+    return AEGfxMeshEnd();
+}
+AEGfxVertexList* StarMesh(float outerRadius, float innerRadius)
+{
+    AEGfxMeshStart();
+
+    const float cPI = 3.14159265359f;
+    const int numPoints = 5; // 5-pointed star
+
+    // Center point
+    float cx = 0.0f;
+    float cy = 0.0f;
+
+    // Calculate angle between points (360 / 5 = 72 degrees)
+    float angleStep = (2.0f * cPI) / numPoints;
+
+    // Start from top point (rotate -90 degrees to point upward)
+    float startAngle = -cPI / 2.0f;
+
+    // Create 5 triangles from center to outer points
+    for (int i = 0; i < numPoints; ++i)
+    {
+        // Outer point angle
+        float outerAngle = startAngle + (i * angleStep);
+
+        // Inner point angles (between outer points)
+        float innerAngle1 = outerAngle + (angleStep / 2.0f);
+        float innerAngle2 = outerAngle - (angleStep / 2.0f);
+
+        // Outer point coordinates
+        float outerX = outerRadius * cosf(outerAngle);
+        float outerY = outerRadius * sinf(outerAngle);
+
+        // Inner point coordinates (for the valley between star points)
+        float innerX1 = innerRadius * cosf(innerAngle1);
+        float innerY1 = innerRadius * sinf(innerAngle1);
+
+        float innerX2 = innerRadius * cosf(innerAngle2);
+        float innerY2 = innerRadius * sinf(innerAngle2);
+
+        // Create triangle from center to outer point
+        // Triangle 1: center -> inner point (previous valley) -> outer point
+        AEGfxTriAdd(
+            cx, cy, 0xFFFFFFFF, 0.0f, 0.0f,           // Center
+            innerX2, innerY2, 0xFFFFFFFF, 0.0f, 0.0f, // Previous valley
+            outerX, outerY, 0xFFFFFFFF, 0.0f, 0.0f    // Outer point
+        );
+
+        // Triangle 2: center -> outer point -> inner point (next valley)
+        AEGfxTriAdd(
+            cx, cy, 0xFFFFFFFF, 0.0f, 0.0f,           // Center
+            outerX, outerY, 0xFFFFFFFF, 0.0f, 0.0f,   // Outer point
+            innerX1, innerY1, 0xFFFFFFFF, 0.0f, 0.0f  // Next valley
+        );
+    }
+
     return AEGfxMeshEnd();
 }

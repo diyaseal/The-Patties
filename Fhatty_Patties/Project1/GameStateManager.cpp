@@ -74,15 +74,6 @@ void GSM_Update()
         fpFree = Game_Free;
         fpUnload = Game_Unload;
         break;
-    case GS_POINTS:
-        // Level 1 function pointers
-        fpLoad = Game_Load;              // Add this line
-        fpInit = Game_Init;
-        fpUpdate = Game_Update;
-        fpDraw = Game_Draw;
-        fpFree = Game_Free;
-        fpUnload = Game_Unload;
-        break;
     case GS_RESTART:
         // No function pointers for restart - handled in main loop
         break;
