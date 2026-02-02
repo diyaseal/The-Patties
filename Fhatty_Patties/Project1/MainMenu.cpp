@@ -34,7 +34,7 @@ void MainMenu_Load()
         printf("SUCCESS: Font loaded, ID = %d\n", fontId);
 
  //Create a button mesh
-	pButtonMesh = CreateTableMesh(0.5f,0.5f);
+	pButtonMesh = SquareMesh(0.5f,0.5f);
 }
 
 void MainMenu_Init()

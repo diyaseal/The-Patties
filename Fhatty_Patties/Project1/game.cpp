@@ -4,8 +4,9 @@
 
 // ---------------------------------------------------------------------------
 // Global variables for Game State
-static AEGfxVertexList* pMesh = nullptr;  // Square mesh
-static AEMtx33 transform, scale, translate;  // Transformation matrices
+static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
+static AEGfxVertexList* PlateMesh = nullptr;  //
+static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale;  // Transformation matrices
 
 // ---------------------------------------------------------------------------
 // Game State Functions
@@ -20,8 +21,6 @@ void Game_Load() {
     // -------------------------------------------------------------------
     // CREATE THE SQUARE MESH
     // -------------------------------------------------------------------
-    pMesh = CreatePlateMesh(2.0f, 2);
-    pMesh = CreateTableMesh(6.0f, 2.0f);
     printf("Rectangle mesh created\n");
 }
 
@@ -41,17 +40,29 @@ void Game_Draw() {
     // -------------------------------------------------------------------
     // DRAW SQUARE
     // -------------------------------------------------------------------
+    
+    TableMesh = SquareMesh(8.0f, 2.5f);
     // Set color (maroon)
     AEGfxSetColorToMultiply(0.5f, 0.0f, 0.0f, 1.0f); // Maroon color
-
     // Create transformation: scale then translate
-    AEMtx33Scale(&scale, 100.0f, 100.0f);           // 100x100 pixel square
-    AEMtx33Trans(&translate, 0.0f, 0.0f);          // Center of screen
-    AEMtx33Concat(&transform, &translate, &scale);
-
+    AEMtx33Scale(&TableScale, 100.0f, 100.0f);           // 100x100 pixel square
+    AEMtx33Trans(&TableTranslate, 0.0f, -225.0f);          // Center of screen
+    AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
     // Apply transformation and draw
-    AEGfxSetTransform(transform.m);
-    AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetTransform(TableTransform.m);
+    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+
+    PlateMesh = CircleMesh(2.0f, 32);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    // Create transformation: scale then translate
+    AEMtx33Scale(&PlateScale, 100.0f, 50.0f);           // 100x100 pixel square
+    AEMtx33Trans(&PlateTranslate, 400.0f, -225.0f);          // Center of screen
+    AEMtx33Concat(&PlateTransform, &PlateTranslate, &PlateScale);
+    // Apply transformation and draw
+    AEGfxSetTransform(PlateTransform.m);
+    AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
+
+
 }
 
 void Game_Free() {
@@ -63,9 +74,9 @@ void Game_Unload() {
     printf("Game_Unload called\n");
 
     // Clean up mesh
-    if (pMesh) {
-        AEGfxMeshFree(pMesh);
-        pMesh = nullptr;
+    if (TableMesh) {
+        AEGfxMeshFree(TableMesh);
+        TableMesh = nullptr;
         printf("Square mesh freed\n");
     }
 }

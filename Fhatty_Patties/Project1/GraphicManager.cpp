@@ -2,7 +2,7 @@
 #include <cmath> 
 
 
-AEGfxVertexList* CreateTableMesh(float x, float y) {
+AEGfxVertexList* SquareMesh(float x, float y) {
     AEGfxMeshStart();
 
     // Create a square using two triangles
@@ -24,7 +24,7 @@ AEGfxVertexList* CreateTableMesh(float x, float y) {
 }
 
 
-AEGfxVertexList* CreatePlateMesh(float radius, int segments)
+AEGfxVertexList* CircleMesh(float radius, int segments)
 {
     AEGfxMeshStart();
 
