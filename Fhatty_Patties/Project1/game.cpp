@@ -52,16 +52,6 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
 
-    PlateMesh = CircleMesh(2.0f, 32);
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-    // Create transformation: scale then translate
-    AEMtx33Scale(&PlateScale, 100.0f, 50.0f);           // 100x100 pixel square
-    AEMtx33Trans(&PlateTranslate, 400.0f, -225.0f);          // Center of screen
-    AEMtx33Concat(&PlateTransform, &PlateTranslate, &PlateScale);
-    // Apply transformation and draw
-    AEGfxSetTransform(PlateTransform.m);
-    AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
-
     //Food tray mesh 
     TableMesh = SquareMesh(3.0f, 6.0f);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
