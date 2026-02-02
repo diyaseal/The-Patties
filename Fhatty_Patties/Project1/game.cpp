@@ -51,8 +51,8 @@ void Game_Load() {
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc.
-	float dt = AEFrameRateControllerGetFrameTime();
-	Customer_Update(dt);
+    double dt = AEFrameRateControllerGetFrameTime();
+    Customer_Update(dt);
     Points_Update();
 }
 
@@ -218,28 +218,25 @@ void Game_Free() {
 void Game_Unload() {
     printf("Game_Unload called\n");
 
-
     // Clean up mesh
     if (TableMesh) {
         AEGfxMeshFree(TableMesh);
         TableMesh = nullptr;
-        printf("Square mesh freed\n");
+        printf("Table mesh freed\n");
     }
     if (PlateMesh) {
         AEGfxMeshFree(PlateMesh);
         PlateMesh = nullptr;
-        printf("Square mesh freed\n");
+        printf("Plate mesh freed\n");
     }
-}
 
-void Game_Unload() {
-    printf("Game_Unload called\n");
-   // 'Frees' the texture.
+    // Free texture
     if (Ingredients) {
         AEGfxTextureUnload(Ingredients);
         Ingredients = nullptr;
-        printf("Square mesh freed\n");
+        printf("Ingredients texture freed\n");
     }
-        Points_Unload();
+
+    Points_Unload();
 }
 
