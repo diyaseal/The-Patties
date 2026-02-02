@@ -321,6 +321,9 @@ void Game_Draw() {
     AEGfxSetTransform(PlateTransform.m);
     AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
 
+
+    Points_Draw();
+
     // -------------------------------------------------------------------
    // DRAW INGREDIENTS ON PLATE (STACKED)
    // -------------------------------------------------------------------
@@ -388,9 +391,6 @@ void Game_Draw() {
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
-
-
-    Points_Draw();
 
 }
 
