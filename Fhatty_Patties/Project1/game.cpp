@@ -40,7 +40,7 @@ void Game_Draw() {
     // -------------------------------------------------------------------
     // DRAW SQUARE
     // -------------------------------------------------------------------
-    
+
     TableMesh = SquareMesh(8.0f, 2.5f);
     // Set color (maroon)
     AEGfxSetColorToMultiply(0.5f, 0.0f, 0.0f, 1.0f); // Maroon color
@@ -53,7 +53,7 @@ void Game_Draw() {
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
 
     //Food tray mesh Burger Bun Top
-    TableMesh = SquareMesh(3.0f, 3.1f);
+    TableMesh = SquareMesh(3.0f, 3.15f);
     AEGfxSetColorToMultiply(0.96f, 0.96f, 0.86f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -600.0f, -129.0f);          // Center of screen
