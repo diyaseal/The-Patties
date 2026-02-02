@@ -11,7 +11,7 @@ without the prior written consent of DigiPen Institute of
 Technology is prohibited.
 */
 /* End Header **************************************************************************/
-#include "pch.h"
+#include "pch.hpp"
 
 // Global state variables - track previous, current, and next game states
 int current = 0, previous = 0, next = 0;
@@ -65,7 +65,16 @@ void GSM_Update()
         fpFree = MainMenu_Free;
         fpUnload = MainMenu_Unload;
 		break;
-    case GS_LEVEL1:
+    case GS_GAME:
+        // Level 1 function pointers
+        fpLoad = Game_Load;              // Add this line
+        fpInit = Game_Init;
+        fpUpdate = Game_Update;
+        fpDraw = Game_Draw;
+        fpFree = Game_Free;
+        fpUnload = Game_Unload;
+        break;
+    case GS_POINTS:
         // Level 1 function pointers
         fpLoad = Game_Load;              // Add this line
         fpInit = Game_Init;

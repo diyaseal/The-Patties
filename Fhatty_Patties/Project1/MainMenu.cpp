@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // includes
-#include "pch.h"
+#include "pch.hpp"
 
 // ---------------------------------------------------------------------------
 // Global variables for School Credits
@@ -72,7 +72,7 @@ void MainMenu_Update()
     if (playButton.isHovered && AEInputCheckTriggered(AEVK_LBUTTON))
     {
         playButton.isClicked = true;
-        next = GS_LEVEL1;  // Go to next level
+        next = GS_GAME;  // Go to next level
     }
 }
 

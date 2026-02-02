@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.hpp"
 #include <cmath> 
 
 
@@ -51,7 +51,7 @@ AEGfxVertexList* CircleMesh(float radius, int segments)
         AEGfxTriAdd(
             cx, cy, 0xFFFFFFFF, 0.0f, 0.0f,
             x1, y1, 0xFFFFFFFF, 0.0f, 0.0f,
-            x2, y2, 0xFFFFFFFF, 0.0f, 0.0f
+           a x2, y2, 0xFFFFFFFF, 0.0f, 0.0f
         );
     }
 

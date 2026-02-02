@@ -24,12 +24,13 @@ Technology is prohibited.
 #include <crtdbg.h> // To check for memory leaks
 #include <cstdio> 
 #include "AEEngine.h"
-#include "GameStateList.h"  // Game state enumeration header
-#include "GameStateManager.h"
-#include "game.h"
-#include "School_Credits.h"
-#include "Team_Credits.h"
-#include "MainMenu.h"
+#include "GameStateList.hpp"  // Game state enumeration header
+#include "GameStateManager.hpp"
+#include "game.hpp"
+#include "School_Credits.hpp"
+#include "Team_Credits.hpp"
+#include "MainMenu.hpp"
 #include "GraphicManager.hpp"
+#include "Points.hpp"
 
 #endif //PCH_H
