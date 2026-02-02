@@ -32,5 +32,6 @@ Technology is prohibited.
 #include "MainMenu.hpp"
 #include "GraphicManager.hpp"
 //#include "Points.hpp"
+#include "Utils.hpp"
 
 #endif //PCH_H
