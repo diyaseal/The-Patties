@@ -31,6 +31,6 @@ Technology is prohibited.
 #include "Team_Credits.hpp"
 #include "MainMenu.hpp"
 #include "GraphicManager.hpp"
-#include "Points.hpp"
+//#include "Points.hpp"
 
 #endif //PCH_H
