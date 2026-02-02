@@ -52,11 +52,51 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
 
-    //Food tray mesh 
+    //Food tray mesh Burger Bun
     TableMesh = SquareMesh(3.0f, 6.0f);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -600.0f, -225.0f);          // Center of screen
+    AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    // Apply transformation and draw
+    AEGfxSetTransform(TableTransform.m);
+    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+
+    //Food tray mesh square 1 Pattie
+    TableMesh = SquareMesh(3.0f, 3.0f);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
+    AEMtx33Trans(&TableTranslate, -350.0f, -129.0f);          // Center of screen
+    AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    // Apply transformation and draw
+    AEGfxSetTransform(TableTransform.m);
+    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+
+    //Food tray mesh square 2 Cheese
+    TableMesh = SquareMesh(3.0f, 3.0f);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
+    AEMtx33Trans(&TableTranslate, -100.0f, -129.0f);          // Center of screen
+    AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    // Apply transformation and draw
+    AEGfxSetTransform(TableTransform.m);
+    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+
+    //Food tray mesh square 3 Lettuce 
+    TableMesh = SquareMesh(3.0f, 3.0f);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
+    AEMtx33Trans(&TableTranslate, -100.0f, -325.0f);          // Center of screen
+    AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    // Apply transformation and draw
+    AEGfxSetTransform(TableTransform.m);
+    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+
+    //Food tray mesh square 4 tomato
+    TableMesh = SquareMesh(3.0f, 3.0f);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
+    AEMtx33Trans(&TableTranslate, -350.0f, -325.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
