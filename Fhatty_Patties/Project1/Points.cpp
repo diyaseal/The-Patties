@@ -30,7 +30,6 @@ void Points_Update() {
 }
 
 void Points_Draw() {
-    printf("Points_Draw called\n");
     // -------------------------------------------------------------------
     // DRAW POINT BAR
     // -------------------------------------------------------------------
@@ -45,8 +44,6 @@ void Points_Draw() {
     // Apply transformation and draw
     AEGfxSetTransform(BarTransform.m);
     AEGfxMeshDraw(BarMesh, AE_GFX_MDM_TRIANGLES);
-
-    printf("Draw Bar\n");
 
     // -------------------------------------------------------------------
     // DRAW STAR 1
@@ -64,8 +61,6 @@ void Points_Draw() {
     AEGfxSetTransform(StarTransform.m);
     AEGfxMeshDraw(s1Mesh, AE_GFX_MDM_TRIANGLES);
 
-    printf("Draw Star 1\n");
-
     // -------------------------------------------------------------------
     // DRAW STAR 2
     // -------------------------------------------------------------------
@@ -81,9 +76,6 @@ void Points_Draw() {
     // Apply transformation and draw
     AEGfxSetTransform(StarTransform.m);
     AEGfxMeshDraw(s2Mesh, AE_GFX_MDM_TRIANGLES);
-
-    printf("Draw Star 2\n");
-
     // -------------------------------------------------------------------
     // DRAW STAR 3
     // -------------------------------------------------------------------
@@ -99,8 +91,6 @@ void Points_Draw() {
     // Apply transformation and draw
     AEGfxSetTransform(StarTransform.m);
     AEGfxMeshDraw(s3Mesh, AE_GFX_MDM_TRIANGLES);
-
-    printf("Draw Star 3\n");
 }
 
 void Points_Free() {
