@@ -30,6 +30,7 @@ static bool lettuceOnPlate = false;  // Track if lettuce is on plate
 void Game_Init() {
     printf("Game_Init called\n");
 	Customer_Init();
+    Points_Init();
 }
 
 void Game_Load() {
@@ -46,6 +47,7 @@ void Game_Update() {
     // Example: Move the square, check collisions, etc.
 	float dt = AEFrameRateControllerGetFrameTime();
 	Customer_Update(dt);
+    Points_Update();
 }
 
 void Game_Draw() {
@@ -147,12 +149,15 @@ void Game_Draw() {
     AEGfxSetTransform(PlateTransform.m);
     AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
 
+    Points_Draw();
+
 }
 
 void Game_Free() {
     printf("Game_Free called\n");
 	Customer_Free();
     // Free any dynamic memory here
+    Points_Free();
 }
 
 void Game_Unload() {
@@ -164,4 +169,6 @@ void Game_Unload() {
         TableMesh = nullptr;
         printf("Square mesh freed\n");
     }
+
+    Points_Unload();
 }

@@ -102,6 +102,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="GraphicManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
+    <ClCompile Include="Points.cpp" />
     <ClCompile Include="School_Credits.cpp" />
     <ClCompile Include="Team_Credits.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -114,6 +115,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="GraphicManager.hpp" />
     <ClInclude Include="MainMenu.hpp" />
     <ClInclude Include="pch.hpp" />
+    <ClInclude Include="Points.hpp" />
     <ClInclude Include="School_Credits.hpp" />
     <ClInclude Include="Team_Credits.hpp" />
     <ClInclude Include="Utils.hpp" />

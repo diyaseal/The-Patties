@@ -27,12 +27,12 @@ Technology is prohibited.
 #include "GameStateList.hpp"  // Game state enumeration header
 #include "GameStateManager.hpp"
 #include "game.hpp"
+#include "utils.hpp"
 #include "School_Credits.hpp"
 #include "Team_Credits.hpp"
 #include "MainMenu.hpp"
+#include "Points.hpp"
 #include "GraphicManager.hpp"
-//#include "Points.hpp"
-#include "Utils.hpp"
 #include "Customer.hpp"
 
 #endif //PCH_H

@@ -26,7 +26,6 @@ enum GS_STATES
 	GS_TEAM_CRED,
 	GS_MAINMENU,   // Main menu game state
 	GS_GAME,  // Level 1 game state
-	GS_POINTS,      // Level 2 game state
 
 	GS_QUIT,        // Quit game state - signals program termination
 	GS_RESTART      // Restart state - signals level restart
