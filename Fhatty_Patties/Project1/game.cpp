@@ -5,8 +5,24 @@
 // ---------------------------------------------------------------------------
 // Global variables for Game State
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
-static AEGfxVertexList* PlateMesh = nullptr;  //
+static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
+static AEGfxTexture* BunTopTexture = nullptr; //BunTop
+static AEGfxTexture* BunBottomTexture = nullptr; //BunBottom
+static AEGfxTexture* PattieTexture = nullptr;  // Pattie 
+static AEGfxTexture* CheeseTexture = nullptr; //Cheese
+static AEGfxTexture* LettuceTexture = nullptr; //lettuce
+static AEGfxTexture* TomatoTexture = nullptr; //Tomato
+
+
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale;  // Transformation matrices
+
+// Green box (lettuce) position and size
+static float greenBoxX = -100.0f;
+static float greenBoxY = -325.0f;
+static float greenBoxWidth = 90.0f;  // 30.0f scale * 3.0f mesh size
+static float greenBoxHeight = 90.0f;
+
+static bool lettuceOnPlate = false;  // Track if lettuce is on plate
 
 // ---------------------------------------------------------------------------
 // Game State Functions
