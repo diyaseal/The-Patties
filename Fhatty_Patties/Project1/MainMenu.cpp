@@ -9,14 +9,6 @@ static float totalElapsedTime = 0.0f;            // Timer for screen duration
 static s8 fontId = -1;                           // Font ID
 
 // ---------------------------------------------------------------------------
-// Button Struct
-struct Button
-{
-    float x, y;         // Position
-    float width, height; // Size
-    bool isHovered;    // Hover state
-	bool isClicked;    // Click state
-};
 
 static Button playButton;
 static AEGfxVertexList* pButtonMesh = nullptr;
@@ -54,22 +46,11 @@ void MainMenu_Update()
 {
     float dt = (float)AEFrameRateControllerGetFrameTime();
 
-    // Get mouse position
-    s32 mouseX, mouseY;
-    AEInputGetCursorPosition(&mouseX, &mouseY);
+    // Use utility function to check hover state
+    playButton.isHovered = IsButtonHovered(playButton);
 
-    // Convert mouse position to world coordinates
-    float worldX = (float)mouseX - AEGfxGetWindowWidth() / 2.0f;
-    float worldY = -(float)mouseY + AEGfxGetWindowHeight() / 2.0f;
-
-    // Check if mouse is hovering over button
-    playButton.isHovered = (worldX >= playButton.x - playButton.width / 2.0f &&
-        worldX <= playButton.x + playButton.width / 2.0f &&
-        worldY >= playButton.y - playButton.height / 2.0f &&
-        worldY <= playButton.y + playButton.height / 2.0f);
-
-    // Check if button is clicked
-    if (playButton.isHovered && AEInputCheckTriggered(AEVK_LBUTTON))
+    // Use utility function to check if button is clicked
+    if (IsButtonClicked(playButton))
     {
         playButton.isClicked = true;
         next = GS_GAME;  // Go to next level
