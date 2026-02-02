@@ -12,9 +12,15 @@ static AEGfxTexture* PattieTexture = nullptr;  // Pattie
 static AEGfxTexture* CheeseTexture = nullptr; //Cheese
 static AEGfxTexture* LettuceTexture = nullptr; //lettuce
 static AEGfxTexture* TomatoTexture = nullptr; //Tomato
+AEGfxTexture* Ingredients = nullptr;
 
-
-static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale;  // Transformation matrices
+static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
+               PattieTransform, PattieScale, PattieTranslate,
+               CheeseTransform, CheeseScale, CheeseTranslate,
+               TomatoTransform, TomatoScale, TomatoTranslate,
+               LettuceTransform, LettuceScale, LettuceTranslate,
+               TBurgerTransform, TBurgerScale, TBurgerTranslate,
+               BBurgerTransform, BBurgerScale, BBurgerTranslate;  // Transformation matrices
 
 // Green box (lettuce) position and size
 static float greenBoxX = -100.0f;
@@ -55,6 +61,7 @@ void Game_Draw() {
     AEGfxSetBackgroundColor(0.5f, 0.5f, 0.5f); // Gray background
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
 
     // -------------------------------------------------------------------
     // DRAW CUSTOMERS (draw first so they appear behind counter)
@@ -82,61 +89,109 @@ void Game_Draw() {
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -600.0f, -129.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    AEMtx33Scale(&TBurgerScale, 200, 200);
+    AEMtx33Trans(&TBurgerTranslate, -600.0f, -129.0f);          // Center of screen
+    AEMtx33Concat(&TBurgerTransform, &TBurgerTranslate, &TBurgerScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxTextureSet(Ingredients, 3/4.f, 0);
+    AEGfxSetTransform(TBurgerTransform.m);
+    AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
     //Food tray mesh Burger Bun Bottom
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     TableMesh = SquareMesh(3.0f, 3.1f);
     AEGfxSetColorToMultiply(0.96f, 0.96f, 0.86f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -600.0f, -325.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    AEMtx33Scale(&BBurgerScale, 200, 200);           // 100x100 pixel square
+    AEMtx33Trans(&BBurgerTranslate, -600.0f, -325.0f);          // Center of screen
+    AEMtx33Concat(&BBurgerTransform, &BBurgerTranslate, &BBurgerScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxTextureSet(Ingredients, 3/4.f, 1/2.f);
+    AEGfxSetTransform(BBurgerTransform.m);
+    AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
     //Food tray mesh square 1 Pattie
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     TableMesh = SquareMesh(3.0f, 3.0f);
     AEGfxSetColorToMultiply(0.6f, 0.3f, 0.1f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -350.0f, -129.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    AEMtx33Scale(&PattieScale, 200.f, 200.f); 
+    AEMtx33Trans(&PattieTranslate, -350.0f, -129.0f);
+    AEMtx33Concat(&PattieTransform, &PattieTranslate, &PattieScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxTextureSet(Ingredients, 0, 0);
+    AEGfxSetTransform(PattieTransform.m);
+    AEGfxMeshDraw(IngredientMesh(0.5 ,0.5), AE_GFX_MDM_TRIANGLES);
 
     //Food tray mesh square 2 Cheese
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     TableMesh = SquareMesh(3.0f, 3.0f);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -100.0f, -129.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    AEMtx33Scale(&CheeseScale, 200, 200);           // 100x100 pixel square
+    AEMtx33Trans(&CheeseTranslate, -100.0f, -129.0f);          // Center of screen
+    AEMtx33Concat(&CheeseTransform, &CheeseTranslate, &CheeseScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxTextureSet(Ingredients, 0, 1/2.f);
+    AEGfxSetTransform(CheeseTransform.m);
+    AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
     //Food tray mesh square 3 Lettuce 
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     TableMesh = SquareMesh(3.0f, 3.0f);
     AEGfxSetColorToMultiply(0.0f, 1.0f, 0.0f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -100.0f, -325.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    AEMtx33Scale(&LettuceScale, 200, 200);           // 100x100 pixel square
+    AEMtx33Trans(&LettuceTranslate, -100.0f, -325.0f);          // Center of screen
+    AEMtx33Concat(&LettuceTransform, &LettuceTranslate, &LettuceScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxTextureSet(Ingredients, 2/4.f, 0);
+    AEGfxSetTransform(LettuceTransform.m);
+    AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
     //Food tray mesh square 4 tomato
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     TableMesh = SquareMesh(3.0f, 3.0f);
     AEGfxSetColorToMultiply(1.0f, 0.0f, 0.0f, 1.0f);
     AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
     AEMtx33Trans(&TableTranslate, -350.0f, -325.0f);          // Center of screen
     AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
+    AEMtx33Scale(&TomatoScale, 200, 200);           // 100x100 pixel square
+    AEMtx33Trans(&TomatoTranslate, -350.0f, -325.0f);          // Center of screen
+    AEMtx33Concat(&TomatoTransform, &TomatoTranslate, &TomatoScale);
     // Apply transformation and draw
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxTextureSet(Ingredients, 1/4.f, 0);
+    AEGfxSetTransform(TomatoTransform.m);
+    AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
     //Plate mesh
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     PlateMesh = CircleMesh(2.0f, 32);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     // Create transformation: scale then translate
@@ -153,15 +208,26 @@ void Game_Free() {
     printf("Game_Free called\n");
 	Customer_Free();
     // Free any dynamic memory here
-}
-
-void Game_Unload() {
-    printf("Game_Unload called\n");
 
     // Clean up mesh
     if (TableMesh) {
         AEGfxMeshFree(TableMesh);
         TableMesh = nullptr;
+        printf("Square mesh freed\n");
+    }
+    if (PlateMesh) {
+        AEGfxMeshFree(PlateMesh);
+        PlateMesh = nullptr;
+        printf("Square mesh freed\n");
+    }
+}
+
+void Game_Unload() {
+    printf("Game_Unload called\n");
+   // 'Frees' the texture.
+    if (Ingredients) {
+        AEGfxTextureUnload(Ingredients);
+        Ingredients = nullptr;
         printf("Square mesh freed\n");
     }
 }
