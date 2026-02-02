@@ -19,7 +19,7 @@ static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, Plate
 // Green box (lettuce) position and size
 static float greenBoxX = -100.0f;
 static float greenBoxY = -325.0f;
-static float greenBoxWidth = 90.0f;  // 30.0f scale * 3.0f mesh size
+static float greenBoxWidth = 90.0f;  // 30.0f scale * 3.0f mesh size ?
 static float greenBoxHeight = 90.0f;
 
 static bool lettuceOnPlate = false;  // Track if lettuce is on plate
