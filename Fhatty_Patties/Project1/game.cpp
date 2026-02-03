@@ -57,8 +57,7 @@ static bool cheeseOnPlate = false;
 static bool pattieOnPlate = false;
 static bool tomatoOnPlate = false;
 static bool bunTopOnPlate = false;
-static bool bunBottomOnPlate = false;
-
+static bool bunBottomOnPlate = false; 
 
 
 // ---------------------------------------------------------------------------
@@ -91,7 +90,6 @@ void Game_Load() {
     CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
 
     if (CustomerTexture) {
-        printf("Customer texture loaded successfully\n");
     }
     else {
         printf("ERROR: Failed to load testCharacter.png\n");
@@ -106,7 +104,6 @@ void Game_Update() {
     double dt = AEFrameRateControllerGetFrameTime();
     Customer_Update(dt);
     Points_Update();
-
 
     // Get mouse position
     s32 mouseX, mouseY;
@@ -182,6 +179,7 @@ void Game_Update() {
             bunBottomOnPlate = true;
             printf("Bun Bottom clicked! Adding to plate\n");
         }
+
     }
 }
 
@@ -193,6 +191,7 @@ void Game_Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
+    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
 
     // -------------------------------------------------------------------
     // DRAW CUSTOMERS (draw first so they appear behind counter)
@@ -333,7 +332,6 @@ void Game_Draw() {
     // Apply transformation and draw
     AEGfxSetTransform(PlateTransform.m);
     AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
-
 
     Points_Draw();
 
