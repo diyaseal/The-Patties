@@ -399,10 +399,6 @@ void Game_Free() {
 	Customer_Free();
     // Free any dynamic memory here
     Points_Free();
-}
-
-void Game_Unload() {
-    printf("Game_Unload called\n");
 
     // Clean up mesh
     if (TableMesh) {
@@ -415,6 +411,10 @@ void Game_Unload() {
         PlateMesh = nullptr;
         printf("Plate mesh freed\n");
     }
+}
+
+void Game_Unload() {
+    printf("Game_Unload called\n");
 
     // Free texture
     if (Ingredients) {
