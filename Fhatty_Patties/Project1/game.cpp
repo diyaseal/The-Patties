@@ -88,7 +88,7 @@ void Game_Load() {
     }
 
     // Load customer sprite sheet
-    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testCharacter.png");
+    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
 
     if (CustomerTexture) {
         printf("Customer texture loaded successfully\n");

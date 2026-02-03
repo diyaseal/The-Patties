@@ -45,13 +45,14 @@ void Customer_Spawn() {
     newCustomer.targetY = COUNTER_Y;
 
     // WALKING sprite (2nd row, 1st column)
-    newCustomer.frameX = 0; // column 1
-    newCustomer.frameY = 1; // row 2
-    newCustomer.flipHorizontal = true;
+    newCustomer.frameX = 1; 
+    newCustomer.frameY = 0; 
 
     // Properties
     newCustomer.speed = 100.0f + (rand() % 50);  // Random speed between 100-150
     newCustomer.isWalking = true;
+    // newCustomer.flipHorizontal = true;  
+    newCustomer.mesh = nullptr;
 
     // Initialize mesh to nullptr (we'll create it dynamically in Draw)
     newCustomer.mesh = nullptr;
@@ -85,8 +86,9 @@ void Customer_Update(float dt) {
         // Walking logic
         if (customer.isWalking) {
             // WALKING sprite
-            customer.frameX = 0; // column 1
-            customer.frameY = 1; // row 2
+            customer.frameX = 1; 
+            customer.frameY = 0;
+			customer.flipHorizontal = false; // Facing right
 
             // Calculate direction to target
             float dx = customer.targetX - customer.x;
@@ -108,9 +110,8 @@ void Customer_Update(float dt) {
                 printf("Customer reached target position!\n");
 
                 // IDLE sprite (1st row, 2nd column)
-                customer.frameX = 1; // column 2
-                customer.frameY = 0; // row 1
-                customer.flipHorizontal = false;
+                customer.frameX = 0;
+                customer.frameY = 0; 
             }
         }
     }
@@ -131,9 +132,9 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
         AEGfxVertexList* frameMesh = CustomerMesh(
             customer.frameX,
             customer.frameY,
-            4.0f,
-            3.0f,
-            customer.flipHorizontal  // NEW: Pass flip flag
+            2.0f,
+            1.0f,
+            customer.flipHorizontal 
         );
 
         // Set texture (no offset needed since UVs are in the mesh)
@@ -141,8 +142,8 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
 
         // Create transformation matrices
         AEMtx33 scale, translate;
-        AEMtx33Scale(&scale, 220.0f, 220.0f);
-        AEMtx33Trans(&translate, customer.x, customer.y);
+        AEMtx33Scale(&scale, 280.0f, 280.0f);
+        AEMtx33Trans(&translate, customer.x + 50.0f, customer.y);
         AEMtx33Concat(&customer.transform, &translate, &scale);
 
         // Draw customer sprite
