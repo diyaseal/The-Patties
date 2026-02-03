@@ -8,8 +8,8 @@ extern const float EXIT_X = 800.0f;
 // Global variables for Game State
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
-AEGfxTexture* Ingredients = nullptr;
-AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
+static AEGfxTexture* Ingredients = nullptr;
+static AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
                PattieTransform, PattieScale, PattieTranslate,
@@ -76,12 +76,12 @@ static bool bunBottomOnPlate = false;
 // Helper Functions
 
 // Helper function to check if burger is complete (has both buns)
-bool IsBurgerComplete() {
+static bool IsBurgerComplete() {
     return bunBottomOnPlate && bunTopOnPlate;
 }
 
 // Helper to reset drag state
-void ResetDragState() {
+static void ResetDragState() {
     isDragging = false;
     burgerIsBeingDragged = false;
     burgerDragX = 400.0f;  // Plate position
@@ -189,9 +189,6 @@ void Burger_ServeToCustomer() {
         // Clear burger for next order
         Burger_Clear();
 
-        // Add points (you can integrate with Points system later)
-        printf("+100 points!\n");
-
     }
     else {
         // FAILURE
@@ -211,7 +208,7 @@ void Burger_ServeToCustomer() {
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc.
-    double dt = AEFrameRateControllerGetFrameTime();
+    float dt = AEFrameRateControllerGetFrameTime();
     Customer_Update(dt);
     Points_Update();
 
@@ -380,7 +377,8 @@ void Game_Update() {
                             Burger_Clear();
 
                             // Add points (you can integrate with Points system later)
-                            printf("+100 points!\n");
+                            printf("+200 points!\n");
+                            Points_AddPoints(200.0f);
 
                         }
                         else {
@@ -426,8 +424,6 @@ void Game_Draw() {
     AEGfxSetBackgroundColor(0.5f, 0.5f, 0.5f); // Gray background
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-    Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
-    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
 
     // -------------------------------------------------------------------
     // DRAW CUSTOMERS (draw first so they appear behind counter)
@@ -676,6 +672,24 @@ void Game_Free() {
     // Free any dynamic memory here
     Points_Free();
 
+    // Free texture
+    if (Ingredients) {
+        AEGfxTextureUnload(Ingredients);
+        Ingredients = nullptr;
+        printf("Ingredients texture freed\n");
+    }
+
+    // Free customer texture
+    if (CustomerTexture) {
+        AEGfxTextureUnload(CustomerTexture);
+        CustomerTexture = nullptr;
+        printf("Customer texture freed\n");
+    }
+}
+
+void Game_Unload() {
+    printf("Game_Unload called\n");
+
     // Clean up mesh
     if (TableMesh) {
         AEGfxMeshFree(TableMesh);
@@ -687,10 +701,6 @@ void Game_Free() {
         PlateMesh = nullptr;
         printf("Plate mesh freed\n");
     }
-}
-
-void Game_Unload() {
-    printf("Game_Unload called\n");
 
     // Free texture
     if (Ingredients) {

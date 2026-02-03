@@ -156,14 +156,14 @@ void Customer_Update(float dt) {
             customer.flipHorizontal = false; // Facing right
 
             // Calculate direction to target
-            float dx = customer.targetX - customer.x;
-            float dy = customer.targetY - customer.y;
-            float distance = sqrt(dx * dx + dy * dy);
+            float dx = static_cast<float>(customer.targetX - customer.x);
+            float dy = static_cast<float>(customer.targetY - customer.y);
+            float distance = static_cast<float>(sqrt(dx * dx + dy * dy));
 
             if (distance > 0.01f) {
                 // Normalize direction and move
-                float moveX = (dx / distance) * customer.speed * dt;
-                float moveY = (dy / distance) * customer.speed * dt;
+                float moveX = static_cast<float>((dx / distance) * customer.speed * dt);
+                float moveY = static_cast<float>((dy / distance) * customer.speed * dt);
 
                 customer.x += moveX;
                 customer.y += moveY;
@@ -248,8 +248,8 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
 
         // Pass the flip parameter
         AEGfxVertexList* frameMesh = CustomerMesh(
-            customer.frameX,
-            customer.frameY,
+            static_cast<float>(customer.frameX),
+            static_cast<float>(customer.frameY),
             2.0f,
             1.0f,
             customer.flipHorizontal
