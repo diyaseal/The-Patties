@@ -78,6 +78,38 @@ AEGfxVertexList* IngredientMesh(float x, float y) {
     // Finish creating square mesh
     return AEGfxMeshEnd();
 }
+
+AEGfxVertexList* CustomerMesh(float frameX, float frameY, float column, float row, bool flipHorizontal) {
+    AEGfxMeshStart();
+    //for protoype, can remove once we have the customer with same spaces
+	const float UV_PADDING = 0.010f; // Small padding to prevent texture bleeding
+        
+    float uMin = (frameX / column) + UV_PADDING;
+    float uMax = ((frameX + 1) / column) - UV_PADDING;
+    float vMin = (frameY / row) + UV_PADDING;
+    float vMax = ((frameY + 1) / row) - UV_PADDING;
+
+    // If flipping, swap uMin and uMax
+    if (flipHorizontal) {
+        float temp = uMin;
+        uMin = uMax;
+        uMax = temp;
+    }
+
+    AEGfxTriAdd(
+        -0.5f, -0.5f, 0xFFFFFFFF, uMin,vMax,  // Bottom-left
+        0.5f, -0.5f, 0xFFFFFFFF, uMax, vMax,  // Bottom-right
+        0.5f, 0.5f, 0xFFFFFFFF, uMax, vMin   // Top-right
+    );
+
+    AEGfxTriAdd(
+        -0.5f, -0.5f, 0xFFFFFFFF, uMin,vMax,  // Bottom-left
+        0.5f, 0.5f, 0xFFFFFFFF, uMax,vMin,  // Top-right
+        -0.5f, 0.5f, 0xFFFFFFFF, uMin, vMin   // Top-left
+    );
+
+    return AEGfxMeshEnd();
+}
 AEGfxVertexList* StarMesh(float outerRadius, float innerRadius)
 {
     AEGfxMeshStart();

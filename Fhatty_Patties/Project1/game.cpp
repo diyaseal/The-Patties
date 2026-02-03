@@ -7,6 +7,7 @@
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 AEGfxTexture* Ingredients = nullptr;
+AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
                PattieTransform, PattieScale, PattieTranslate,
@@ -84,6 +85,16 @@ void Game_Load() {
     }
     else {
         printf("ERROR: Failed to load Ingredients.png\n");
+    }
+
+    // Load customer sprite sheet
+    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testCharacter.png");
+
+    if (CustomerTexture) {
+        printf("Customer texture loaded successfully\n");
+    }
+    else {
+        printf("ERROR: Failed to load testCharacter.png\n");
     }
 
     printf("Rectangle mesh created\n");
@@ -186,7 +197,9 @@ void Game_Draw() {
     // -------------------------------------------------------------------
     // DRAW CUSTOMERS (draw first so they appear behind counter)
     // -------------------------------------------------------------------
-    Customer_Draw();
+    Customer_Draw(CustomerTexture);
+
+	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
     // -------------------------------------------------------------------
     // DRAW SQUARE
@@ -421,6 +434,13 @@ void Game_Unload() {
         AEGfxTextureUnload(Ingredients);
         Ingredients = nullptr;
         printf("Ingredients texture freed\n");
+    }
+
+    // Free customer texture
+    if (CustomerTexture) {
+        AEGfxTextureUnload(CustomerTexture);
+        CustomerTexture = nullptr;
+        printf("Customer texture freed\n");
     }
 
     Points_Unload();
