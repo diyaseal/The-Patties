@@ -7,6 +7,7 @@
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 AEGfxTexture* Ingredients = nullptr;
+AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
                PattieTransform, PattieScale, PattieTranslate,
@@ -56,8 +57,7 @@ static bool cheeseOnPlate = false;
 static bool pattieOnPlate = false;
 static bool tomatoOnPlate = false;
 static bool bunTopOnPlate = false;
-static bool bunBottomOnPlate = false;
-
+static bool bunBottomOnPlate = false; 
 
 
 // ---------------------------------------------------------------------------
@@ -86,6 +86,15 @@ void Game_Load() {
         printf("ERROR: Failed to load Ingredients.png\n");
     }
 
+    // Load customer sprite sheet
+    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
+
+    if (CustomerTexture) {
+    }
+    else {
+        printf("ERROR: Failed to load testCharacter.png\n");
+    }
+
     printf("Rectangle mesh created\n");
 }
 
@@ -95,7 +104,6 @@ void Game_Update() {
     double dt = AEFrameRateControllerGetFrameTime();
     Customer_Update(dt);
     Points_Update();
-
 
     // Get mouse position
     s32 mouseX, mouseY;
@@ -171,6 +179,7 @@ void Game_Update() {
             bunBottomOnPlate = true;
             printf("Bun Bottom clicked! Adding to plate\n");
         }
+
     }
 }
 
@@ -182,11 +191,14 @@ void Game_Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
+    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
 
     // -------------------------------------------------------------------
     // DRAW CUSTOMERS (draw first so they appear behind counter)
     // -------------------------------------------------------------------
-    Customer_Draw();
+    Customer_Draw(CustomerTexture);
+
+	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
     // -------------------------------------------------------------------
     // DRAW SQUARE
@@ -321,7 +333,6 @@ void Game_Draw() {
     AEGfxSetTransform(PlateTransform.m);
     AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
 
-
     Points_Draw();
 
     // -------------------------------------------------------------------
@@ -421,6 +432,13 @@ void Game_Unload() {
         AEGfxTextureUnload(Ingredients);
         Ingredients = nullptr;
         printf("Ingredients texture freed\n");
+    }
+
+    // Free customer texture
+    if (CustomerTexture) {
+        AEGfxTextureUnload(CustomerTexture);
+        CustomerTexture = nullptr;
+        printf("Customer texture freed\n");
     }
 
     Points_Unload();

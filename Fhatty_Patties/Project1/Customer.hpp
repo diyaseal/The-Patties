@@ -7,6 +7,11 @@ struct Customer {
     float targetX, targetY;        // Target position (where they walk to)
     float speed;                   // Walking speed
     bool isWalking;                // Is the customer currently walking?
+
+    int frameX;
+    int frameY;
+	bool flipHorizontal;         // For sprite flipping
+
     AEGfxVertexList* mesh;         // The rectangle mesh
     AEMtx33 transform;             // Transformation matrix
 };
@@ -17,7 +22,7 @@ struct Customer {
 void Customer_Init();
 void Customer_Spawn();
 void Customer_Update(float dt);
-void Customer_Draw();
+void Customer_Draw(AEGfxTexture* customerTexture);
 void Customer_Free();
 
 // Helper functions
