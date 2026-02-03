@@ -1,6 +1,8 @@
 // ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
+extern std::vector<Customer> customers;
+extern const float EXIT_X = 800.0f;
 
 // ---------------------------------------------------------------------------
 // Global variables for Game State
@@ -19,6 +21,17 @@ static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, Plate
 
 // Ingredient positions on the plate
 static AEMtx33 PlateLettuceTransform, PlateLettuceScale, PlateLettuceTranslate;
+static std::vector<int> currentBurger;  // What player has built
+static bool burgerComplete = false;     // Is burger ready to serve?
+
+// Add near other static variables in game.cpp:
+// Drag-and-drop system
+static bool isDragging = false;
+static float dragOffsetX = 0.0f;
+static float dragOffsetY = 0.0f;
+static float burgerDragX = 0.0f;
+static float burgerDragY = 0.0f;
+static bool burgerIsBeingDragged = false;
 
 // Clickable box positions 
 static float BunTopX = -600.0f;
@@ -59,6 +72,21 @@ static bool tomatoOnPlate = false;
 static bool bunTopOnPlate = false;
 static bool bunBottomOnPlate = false; 
 
+// ---------------------------------------------------------------------------
+// Helper Functions
+
+// Helper function to check if burger is complete (has both buns)
+bool IsBurgerComplete() {
+    return bunBottomOnPlate && bunTopOnPlate;
+}
+
+// Helper to reset drag state
+void ResetDragState() {
+    isDragging = false;
+    burgerIsBeingDragged = false;
+    burgerDragX = 400.0f;  // Plate position
+    burgerDragY = -225.0f; // Plate position
+}
 
 // ---------------------------------------------------------------------------
 // Game State Functions
@@ -98,6 +126,88 @@ void Game_Load() {
     printf("Rectangle mesh created\n");
 }
 
+bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
+    const std::vector<int>& customerOrder) {
+
+    // Quick check: sizes must match
+    if (playerBurger.size() != customerOrder.size()) {
+        printf("FAIL: Different number of ingredients (%zu vs %zu)\n",
+            playerBurger.size(), customerOrder.size());
+        return false;
+    }
+
+    // Check each ingredient in order
+    for (size_t i = 0; i < customerOrder.size(); i++) {
+        if (playerBurger[i] != customerOrder[i]) {
+            printf("FAIL: Wrong ingredient at position %zu\n", i);
+            printf("  Player: %d, Customer wanted: %d\n", playerBurger[i], customerOrder[i]);
+            return false;
+        }
+    }
+
+    // All ingredients match!
+    printf("SUCCESS: Burger matches order perfectly!\n");
+    return true;
+}
+
+void Burger_ServeToCustomer() {
+    // Check if burger is complete (has top bun)
+    if (!burgerComplete) {
+        printf("Burger is not complete! Need top bun.\n");
+        return;
+    }
+
+    // Check if there's a customer
+    if (customers.empty()) {
+        printf("No customers to serve!\n");
+        return;
+    }
+
+    // Get the first customer
+    Customer& customer = customers[0];
+
+    // Check if customer is waiting for food
+    if (!customer.isWaitingForFood) {
+        printf("Customer is not at counter yet!\n");
+        return;
+    }
+
+    // Compare burger with customer's order
+    bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
+
+    if (isCorrect) {
+        // SUCCESS!
+        printf("Customer is happy! Order correct!\n");
+
+        // Make customer leave (walk off-screen)
+        customer.isWalking = true;
+        customer.isWaitingForFood = false;
+        customer.targetX = EXIT_X;
+        customer.targetY = customer.y;
+        customer.flipHorizontal = true;
+
+        // Clear burger for next order
+        Burger_Clear();
+
+        // Add points (you can integrate with Points system later)
+        printf("+100 points!\n");
+
+    }
+    else {
+        // FAILURE
+        printf("Customer is unhappy! Wrong order.\n");
+
+        // Decrease patience
+        customer.patience -= 30.0f;
+        if (customer.patience < 0) customer.patience = 0;
+
+        printf("Customer patience: %.0f/%.0f\n", customer.patience, customer.maxPatience);
+
+        // Let player remake the burger
+        Burger_Clear();
+    }
+}
+
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc.
@@ -127,7 +237,8 @@ void Game_Update() {
             worldMouseY <= LettuceY + LettuceHeight / 2.0f) {
 
             lettuceOnPlate = true;
-            printf("Lettuce clicked! Adding to plate\n");
+            currentBurger.push_back(LETTUCE); // Track ingredient
+            printf("Lettuce added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
         // Check if cheese was clicked
@@ -137,7 +248,8 @@ void Game_Update() {
             worldMouseY <= CheeseY + CheeseHeight / 2.0f) {
 
             cheeseOnPlate = true;
-            printf("Cheese clicked! Adding to plate\n");
+            currentBurger.push_back(CHEESE);  // Track ingredient
+            printf("Cheese added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
         // Check if pattie was clicked
@@ -147,7 +259,8 @@ void Game_Update() {
             worldMouseY <= PattieY + PattieHeight / 2.0f) {
 
             pattieOnPlate = true;
-            printf("Pattie clicked! Adding to plate\n");
+            currentBurger.push_back(PATTY);  // Track ingredient
+            printf("Patty added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
         // Check if tomato was clicked
@@ -157,7 +270,8 @@ void Game_Update() {
             worldMouseY <= TomatoY + TomatoHeight / 2.0f) {
 
             tomatoOnPlate = true;
-            printf("Tomato clicked! Adding to plate\n");
+            currentBurger.push_back(TOMATO);  // NEW: Track ingredient
+            printf("Tomato added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
         // Check if bun top was clicked
@@ -167,7 +281,9 @@ void Game_Update() {
             worldMouseY <= BunTopY + BunTopHeight / 2.0f) {
 
             bunTopOnPlate = true;
-            printf("Bun Top clicked! Adding to plate\n");
+            currentBurger.push_back(TOP_BUN);  // Track ingredient
+            burgerComplete = true;  // Burger is complete!
+            printf("Top bun added. Burger is complete and ready to serve!\n");
         }
 
         // Check if bun bottom was clicked
@@ -177,9 +293,129 @@ void Game_Update() {
             worldMouseY <= BunBottomY + BunBottomHeight / 2.0f) {
 
             bunBottomOnPlate = true;
-            printf("Bun Bottom clicked! Adding to plate\n");
+            currentBurger.push_back(BOTTOM_BUN);  // Track ingredient
+            printf("Bottom bun added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
+        // Check if player clicks on the plate (burger) to start dragging
+        float plateCenterX = 400.0f;
+        float plateCenterY = -225.0f;
+        float plateRadius = 100.0f;  // Approximate plate radius
+
+        // Calculate distance from mouse to plate center
+        float dx = worldMouseX - plateCenterX;
+        float dy = worldMouseY - plateCenterY;
+        float distanceSquared = dx * dx + dy * dy;
+
+        // Check if burger exists and mouse is over plate
+        if (!currentBurger.empty() && distanceSquared <= (plateRadius * plateRadius)) {
+            isDragging = true;
+            burgerIsBeingDragged = true;
+
+            // Calculate offset from burger center to mouse position
+            dragOffsetX = worldMouseX - plateCenterX;
+            dragOffsetY = worldMouseY - plateCenterY;
+
+            // Start position for dragging
+            burgerDragX = worldMouseX;
+            burgerDragY = worldMouseY;
+
+            printf("Started dragging burger!\n");
+        }
+    }
+
+    // Continuous drag update (if burger is being dragged)
+    if (isDragging && burgerIsBeingDragged) {
+        // Update burger position to follow mouse
+        s32 mouseX, mouseY;
+        AEInputGetCursorPosition(&mouseX, &mouseY);
+
+        // Convert to world coordinates
+        float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
+        float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
+
+        float worldMouseX = (float)mouseX - windowWidth / 2.0f;
+        float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
+
+        burgerDragX = worldMouseX;
+        burgerDragY = worldMouseY;
+    }
+
+    // Check for mouse release
+    if (AEInputCheckReleased(AEVK_LBUTTON)) {
+        if (isDragging && burgerIsBeingDragged) {
+            // Mouse released while dragging burger
+            isDragging = false;
+
+            // Check if burger was dropped on a customer
+            bool servedToCustomer = false;
+
+            for (Customer& customer : customers) {
+                if (customer.isWaitingForFood) {
+                    // Calculate distance from burger to customer
+                    float dx = burgerDragX - customer.x;
+                    float dy = burgerDragY - customer.y;
+                    float distanceSquared = dx * dx + dy * dy;
+
+                    // If burger is close enough to customer (within 150 pixels)
+                    if (distanceSquared <= 150.0f * 150.0f) {
+                        printf("Burger dropped on customer!\n");
+                        servedToCustomer = true;
+
+                        // Check if burger matches order
+                        bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
+
+                        if (isCorrect) {
+                            // SUCCESS!
+                            printf("Customer is happy! Order correct!\n");
+
+                            // Make customer leave with burger
+                            customer.isWalking = true;
+                            customer.isWaitingForFood = false;
+                            customer.targetX = EXIT_X;
+                            customer.targetY = customer.y;
+                            customer.flipHorizontal = true;
+
+                            // Clear burger for next order
+                            Burger_Clear();
+
+                            // Add points (you can integrate with Points system later)
+                            printf("+100 points!\n");
+
+                        }
+                        else {
+                            // FAILURE - Wrong order
+                            printf("Customer is unhappy! Wrong order.\n");
+
+                            // Decrease patience
+                            customer.patience -= 30.0f;
+                            if (customer.patience < 0) customer.patience = 0;
+
+                            printf("Customer patience: %.0f/%.0f\n",
+                                customer.patience, customer.maxPatience);
+
+                            // Burger returns to plate (we'll just clear and let player remake)
+                            Burger_Clear();
+                        }
+                        break; // Exit loop since we found a customer
+                    }
+                }
+            }
+
+            // If burger wasn't served to any customer, it returns to plate
+            if (!servedToCustomer) {
+                printf("Burger returned to plate.\n");
+                burgerIsBeingDragged = false;
+                // Burger stays on plate (no need to clear)
+            }
+            else {
+                burgerIsBeingDragged = false;
+            }
+        }
+    }
+
+    if (AEInputCheckTriggered(AEVK_R)) {
+        Burger_Clear();
     }
 }
 
@@ -227,7 +463,7 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxTextureSet(Ingredients, 3/4.f, 0);
+    AEGfxTextureSet(Ingredients, 3.f/4.f, 0.f );
     AEGfxSetTransform(TBurgerTransform.m);
     AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
@@ -245,7 +481,7 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxTextureSet(Ingredients, 3/4.f, 1/2.f);
+    AEGfxTextureSet(Ingredients, 3.f/4.f, 1.f/2.f);
     AEGfxSetTransform(BBurgerTransform.m);
     AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
@@ -263,7 +499,7 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxTextureSet(Ingredients, 0, 0);
+    AEGfxTextureSet(Ingredients, 0.f, 0.f);
     AEGfxSetTransform(PattieTransform.m);
     AEGfxMeshDraw(IngredientMesh(0.5 ,0.5), AE_GFX_MDM_TRIANGLES);
 
@@ -281,7 +517,7 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxTextureSet(Ingredients, 0, 1/2.f);
+    AEGfxTextureSet(Ingredients, 0.f, 1.f/2.f);
     AEGfxSetTransform(CheeseTransform.m);
     AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
@@ -299,7 +535,7 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxTextureSet(Ingredients, 2/4.f, 0);
+    AEGfxTextureSet(Ingredients, 2.f/4.f, 0.f);
     AEGfxSetTransform(LettuceTransform.m);
     AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
@@ -317,7 +553,7 @@ void Game_Draw() {
     AEGfxSetTransform(TableTransform.m);
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxTextureSet(Ingredients, 1/4.f, 0);
+    AEGfxTextureSet(Ingredients, 1.f/4.f, 0.f);
     AEGfxSetTransform(TomatoTransform.m);
     AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
 
@@ -343,30 +579,41 @@ void Game_Draw() {
     float plateY = -225.0f;
     float ingredientSize = 150.0f;
 
+    // Determine where to draw burger (plate or dragged position)
+    float drawX, drawY;
+    if (burgerIsBeingDragged) {
+        drawX = burgerDragX;
+        drawY = burgerDragY;
+    }
+    else {
+        drawX = 400.0f;    // Plate X
+        drawY = -225.0f;   // Plate Y
+    }
+
     // Draw ingredients on plate if clicked
     if (bunBottomOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 3 / 4.f, 1 / 2.f);  // Bun bottom sprite
+        AEGfxTextureSet(Ingredients, 3.f/4.f, 1.f/ 2.f);  // Bun bottom sprite
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, plateX, plateY - 20.0f);  // Below lettuce
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY - 20.0f);  // Below lettuce
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
     if (lettuceOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 2 / 4.f, 0);  // Lettuce sprite
+        AEGfxTextureSet(Ingredients, 2.f/ 4.f, 0.f);  // Lettuce sprite
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, plateX, plateY);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
     if (cheeseOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 0, 1 / 2.f);  // Cheese sprite
+        AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f);  // Cheese sprite
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, plateX, plateY + 20.0f);  // Slightly above lettuce
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 20.0f);  // Slightly above lettuce
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
@@ -374,9 +621,9 @@ void Game_Draw() {
 
     if (pattieOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 0, 0);  // Pattie sprite
+        AEGfxTextureSet(Ingredients, 0.f, 0.f);  // Pattie sprite
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, plateX, plateY + 40.0f);  // Above cheese
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 40.0f);  // Above cheese
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
@@ -384,9 +631,9 @@ void Game_Draw() {
 
     if (tomatoOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 1 / 4.f, 0);  // Tomato sprite
+        AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);  // Tomato sprite
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, plateX, plateY + 60.0f);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 60.0f);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
@@ -395,14 +642,32 @@ void Game_Draw() {
 
     if (bunTopOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 3 / 4.f, 0);  // Bun top sprite
+        AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);  // Bun top sprite
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, plateX, plateY + 80.0f);  // On top
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 80.0f);  // On top
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
 
+}
+
+void Burger_Clear() {
+    currentBurger.clear();
+    burgerComplete = false;
+
+    // Clear all plate flags
+    lettuceOnPlate = false;
+    cheeseOnPlate = false;
+    pattieOnPlate = false;
+    tomatoOnPlate = false;
+    bunTopOnPlate = false;
+    bunBottomOnPlate = false;
+
+    // Reset drag state
+    ResetDragState();
+
+    printf("Burger cleared. Ready to build new one.\n");
 }
 
 void Game_Free() {

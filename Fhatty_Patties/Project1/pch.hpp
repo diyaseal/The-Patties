@@ -23,7 +23,9 @@ Technology is prohibited.
 // Add headers that you want to pre-compile here
 #include <crtdbg.h> // To check for memory leaks
 #include <cstdio> 
+#include <vector>
 #include "AEEngine.h"
+#include "Customer.hpp"
 #include "GameStateList.hpp"  // Game state enumeration header
 #include "GameStateManager.hpp"
 #include "game.hpp"
@@ -33,6 +35,15 @@ Technology is prohibited.
 #include "MainMenu.hpp"
 #include "Points.hpp"
 #include "GraphicManager.hpp"
-#include "Customer.hpp"
+
+enum IngredientType {
+    BOTTOM_BUN,
+    TOP_BUN,
+    PATTY,
+    CHEESE,
+    LETTUCE,
+    TOMATO,
+    ONION,
+};
 
 #endif //PCH_H

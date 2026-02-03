@@ -6,29 +6,29 @@
 // ---------------------------------------------------------------------------
 // Customer System Variables
 // ---------------------------------------------------------------------------
-static std::vector<Customer> customers;
+std::vector<Customer> customers;
 static const int MAX_CUSTOMERS = 1;        // Only 1 customer for prototype
 static bool hasSpawned = false;            // Track if we've spawned the customer
 
-// Predefined positions
-static const float SPAWN_X = -700.0f;       // Customers spawn off-screen left
-static const float SPAWN_Y = 100.0f;
-static const float COUNTER_X = -200.0f;     // Where customers walk to (the counter)
-static const float COUNTER_Y = 100.0f;
-static const float EXIT_X = 800.0f;         // Off-screen right (where customer leaves)
+//// Predefined positions
+const float SPAWN_X = -700.0f;       // Customers spawn off-screen left
+const float SPAWN_Y = 100.0f;
+const float COUNTER_X = -200.0f;     // Where customers walk to (the counter)
+const float COUNTER_Y = 100.0f;
+const float EXIT_X = 800.0f;         // Off-screen right (where customer leaves)
 
 static AEGfxVertexList* DurationMesh = nullptr;
 
-typedef struct Duration {
-    f32 currentDuration;
-    f32 maxDuration;
+struct Duration {
+    f32 currentDuration{ 0.0f };
+    f32 maxDuration{ 0.0f };
 
     // Standard bar
-    f32 bar_width;
-    f32 bar_height;
-    f32 bar_pos_x, bar_pos_y;
+    f32 bar_width{ 0.0f };
+    f32 bar_height{ 0.0f };
+    f32 bar_pos_x{ 0.0f }, bar_pos_y{ 0.0f };
 
-    AEMtx33 transform; // final transformation matrix for rendering
+    AEMtx33 transform{}; // final transformation matrix for rendering
 };
 
 // Duration bar properties - tied to the customer
@@ -74,8 +74,55 @@ void Customer_Spawn() {
     newCustomer.isWalking = true;
     newCustomer.mesh = nullptr;
 
+    newCustomer.hasOrder = false;
+    newCustomer.isWaitingForFood = false;
+    //newCustomer.patience = 100.0f;
+    //newCustomer.maxPatience = 100.0f;
+
+    // Generate a random order (simple 3-ingredient burger for prototype)
+    RandomOrder(&newCustomer);
+
     customers.push_back(newCustomer);
     printf("Customer spawned! Total customers: %zu\n", customers.size());
+}
+// ---------------------------------------------------------------------------
+// Create a Random burger order from customer
+// ---------------------------------------------------------------------------
+void RandomOrder(Customer* customer) {
+    customer->order.clear();
+
+    // Always start with bottom bun
+    customer->order.push_back(BOTTOM_BUN);
+
+    // Random main ingredient (patty or cheese)
+    if (rand() % 2 == 0) {
+        customer->order.push_back(PATTY);
+    }
+    else {
+        customer->order.push_back(CHEESE);
+    }
+
+    // Random veggie (optional)
+    if (rand() % 2 == 0) {
+        if (rand() % 2 == 0) {
+            customer->order.push_back(LETTUCE);
+        }
+        else {
+            customer->order.push_back(TOMATO);
+        }
+    }
+
+    // Always end with top bun
+    customer->order.push_back(TOP_BUN);
+
+    customer->hasOrder = true;
+
+    // Print order for debugging
+    printf("Customer order: ");
+    for (int ingredient : customer->order) {
+        printf("%d ", ingredient);
+    }
+    printf("\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +191,23 @@ void Customer_Update(float dt) {
                 durationStarted = true;
                 duration.currentDuration = 100.0f;
                 duration.maxDuration = 100.0f;
+
+                // Customer is now waiting for food
+                customer.isWaitingForFood = true;
+
+                // Display the order (we'll add visual later)
+                printf("Customer wants: ");
+                for (int ing : customer.order) {
+                    switch (ing) {
+                    case BOTTOM_BUN: printf("Bottom Bun "); break;
+                    case TOP_BUN: printf("Top Bun "); break;
+                    case PATTY: printf("Patty "); break;
+                    case CHEESE: printf("Cheese "); break;
+                    case LETTUCE: printf("Lettuce "); break;
+                    case TOMATO: printf("Tomato "); break;
+                    }
+                }
+                printf("\n");
             }
         }
     }
