@@ -5,7 +5,7 @@ extern std::vector<Customer> customers;
 extern const float EXIT_X = 800.0f;
 
 // ---------------------------------------------------------------------------
-// Global variables for Game State
+// Global variables for Game State:Diya
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
@@ -28,7 +28,7 @@ static std::vector<int> currentBurger;  // What player has built
 static bool burgerComplete = false;     // Is burger ready to serve?
 
 // Add near other static variables in game.cpp:
-// Drag-and-drop system
+// Drag-and-drop system : Syakil 
 static bool isDragging = false;
 static float dragOffsetX = 0.0f;
 static float dragOffsetY = 0.0f;
@@ -36,54 +36,70 @@ static float burgerDragX = 0.0f;
 static float burgerDragY = 0.0f;
 static bool burgerIsBeingDragged = false;
 
-// Clickable box positions 
-static float BunTopX = -600.0f;
-static float BunTopY = -129.0f;
-static float BunTopWidth = 90.0f;
-static float BunTopHeight = 94.5f;  // 30.0f * 3.15f
+// This is the hitbox coordinates: using world map i found the 
+// clickable area and averaged it to find the centre coordinates X,Y 
+// then i put the hitbox area set to 100 : Diya 
+static float BunTopX = -523.0f;
+static float BunTopY = -81.0f;
+static float BunTopWidth = 100.0f;
+static float BunTopHeight = 100.0f;
 
-static float BunBottomX = -600.0f;
-static float BunBottomY = -325.0f;
+static float BunBottomX = -560.0f;  
+static float BunBottomY = -180.0f;  
 static float BunBottomWidth = 90.0f;
-static float BunBottomHeight = 93.0f;  // 30.0f * 3.1f
+static float BunBottomHeight = 90.0f; 
 
-static float PattieX = -350.0f;
-static float PattieY = -129.0f;
+static float PattieX = -275.0f; //updated hitbox
+static float PattieY = -110.0f;
 static float PattieWidth = 90.0f;
 static float PattieHeight = 90.0f;
 
-static float CheeseX = -100.0f;
-static float CheeseY = -129.0f;
+static float CheeseX = -150.0f; //updated hitbox
+static float CheeseY = -110.0f;
 static float CheeseWidth = 90.0f;
 static float CheeseHeight = 90.0f;
 
-static float LettuceX = -100.0f;
-static float LettuceY = -325.0f;
-static float LettuceWidth = 90.0f;
-static float LettuceHeight = 90.0f;
+static float LettuceX = -150.0f; //updated hitbox
+static float LettuceY = -170.0f;
+static float LettuceWidth = 110.0f;
+static float LettuceHeight = 110.0f;
 
-static float TomatoX = -350.0f;
-static float TomatoY = -325.0f;
-static float TomatoWidth = 90.0f;
-static float TomatoHeight = 90.0f;
+static float TomatoX = -300.0f;   //updated hitbox  
+static float TomatoY = -175.0f;     
+static float TomatoWidth = 90.0f;   
+static float TomatoHeight = 90.0f;  
 
-// Track what's on the plate
+// Add these with your other ingredient position variables
+static float OnionX = 3.0f;          // From click (3.00, -175.00)
+static float OnionY = -175.0f;
+static float OnionWidth = 90.0f;
+static float OnionHeight = 90.0f;
+
+static float CucumberX = -18.0f;      // From click (-18.00, -108.00)
+static float CucumberY = -108.0f;
+static float CucumberWidth = 90.0f;
+static float CucumberHeight = 90.0f;
+
+// Track what's on the plate: Set 
+// everything to false first :Diya
 static bool lettuceOnPlate = false;
 static bool cheeseOnPlate = false;
 static bool pattieOnPlate = false;
 static bool tomatoOnPlate = false;
+static bool onionOnPlate = false;      
+static bool cucumberOnPlate = false;   
 static bool bunTopOnPlate = false;
 static bool bunBottomOnPlate = false; 
 
 // ---------------------------------------------------------------------------
-// Helper Functions
+// Helper Functions Syakil 
 
 // Helper function to check if burger is complete (has both buns)
 static bool IsBurgerComplete() {
     return bunBottomOnPlate && bunTopOnPlate;
 }
 
-// Helper to reset drag state
+// Helper to reset drag state5 Syakil
 static void ResetDragState() {
     isDragging = false;
     burgerIsBeingDragged = false;
@@ -220,7 +236,7 @@ void Burger_ServeToCustomer() {
 
 void Game_Update() {
     // Your update logic goes here
-    // Example: Move the square, check collisions, etc.
+    // Example: Move the square, check collisions, etc. :Diya 
     float dt = AEFrameRateControllerGetFrameTime();
     Customer_Update(dt);
     Points_Update();
@@ -305,6 +321,28 @@ void Game_Update() {
             bunBottomOnPlate = true;
             currentBurger.push_back(BOTTOM_BUN);  // Track ingredient
             printf("Bottom bun added to burger. Total ingredients: %zu\n", currentBurger.size());
+        }
+
+        // Check if onion was clicked   UNLOCK INGREDIENTS 
+        if (worldMouseX >= OnionX - OnionWidth / 2.0f &&
+            worldMouseX <= OnionX + OnionWidth / 2.0f &&
+            worldMouseY >= OnionY - OnionHeight / 2.0f &&
+            worldMouseY <= OnionY + OnionHeight / 2.0f) {
+
+            onionOnPlate = true;
+            currentBurger.push_back(ONION);  // Make sure ONION is defined in your enum
+            printf("Onion added to burger. Total ingredients: %zu\n", currentBurger.size());
+        }
+
+        // Check if cucumber was clicked UUNLOCK INGREDIENTS 
+        if (worldMouseX >= CucumberX - CucumberWidth / 2.0f &&
+            worldMouseX <= CucumberX + CucumberWidth / 2.0f &&
+            worldMouseY >= CucumberY - CucumberHeight / 2.0f &&
+            worldMouseY <= CucumberY + CucumberHeight / 2.0f) {
+
+            cucumberOnPlate = true;
+            currentBurger.push_back(CUCUMBER);  // Make sure CUCUMBER is defined in your enum
+            printf("Cucumber added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
         // Check if player clicks on the plate (burger) to start dragging
@@ -459,139 +497,7 @@ void Game_Draw() {
 
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
-    // -------------------------------------------------------------------
-    // DRAW SQUARE
-    // -------------------------------------------------------------------
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //TableMesh = SquareMesh(8.0f, 2.5f);
-    //// Set color (maroon)
-    //AEGfxSetColorToMultiply(0.5f, 0.0f, 0.0f, 1.0f); // Maroon color
-    //// Create transformation: scale then translate
-    //AEMtx33Scale(&TableScale, 100.0f, 100.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, 0.0f, -225.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
 
-    ////Food tray mesh Burger Bun Top
-    //TableMesh = SquareMesh(3.0f, 3.15f);
-    //AEGfxSetColorToMultiply(0.96f, 0.96f, 0.86f, 1.0f);
-    //AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, -600.0f, -129.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //AEMtx33Scale(&TBurgerScale, 200, 200);
-    //AEMtx33Trans(&TBurgerTranslate, -600.0f, -129.0f);          // Center of screen
-    //AEMtx33Concat(&TBurgerTransform, &TBurgerTranslate, &TBurgerScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
-    //AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    //AEGfxTextureSet(Ingredients, 3.f/4.f, 0.f );
-    //AEGfxSetTransform(TBurgerTransform.m);
-    //AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
-
-    ////Food tray mesh Burger Bun Bottom
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //TableMesh = SquareMesh(3.0f, 3.1f);
-    //AEGfxSetColorToMultiply(0.96f, 0.96f, 0.86f, 1.0f);
-    //AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, -600.0f, -325.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //AEMtx33Scale(&BBurgerScale, 200, 200);           // 100x100 pixel square
-    //AEMtx33Trans(&BBurgerTranslate, -600.0f, -325.0f);          // Center of screen
-    //AEMtx33Concat(&BBurgerTransform, &BBurgerTranslate, &BBurgerScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
-    //AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    //AEGfxTextureSet(Ingredients, 3.f/4.f, 1.f/2.f);
-    //AEGfxSetTransform(BBurgerTransform.m);
-    //AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
-
-    ////Food tray mesh square 1 Pattie
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //TableMesh = SquareMesh(3.0f, 3.0f);
-    //AEGfxSetColorToMultiply(0.6f, 0.3f, 0.1f, 1.0f);
-    //AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, -350.0f, -129.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //AEMtx33Scale(&PattieScale, 200.f, 200.f); 
-    //AEMtx33Trans(&PattieTranslate, -350.0f, -129.0f);
-    //AEMtx33Concat(&PattieTransform, &PattieTranslate, &PattieScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
-    //AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    //AEGfxTextureSet(Ingredients, 0.f, 0.f);
-    //AEGfxSetTransform(PattieTransform.m);
-    //AEGfxMeshDraw(IngredientMesh(0.5 ,0.5), AE_GFX_MDM_TRIANGLES);
-
-    ////Food tray mesh square 2 Cheese
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //TableMesh = SquareMesh(3.0f, 3.0f);
-    //AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
-    //AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, -100.0f, -129.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //AEMtx33Scale(&CheeseScale, 200, 200);           // 100x100 pixel square
-    //AEMtx33Trans(&CheeseTranslate, -100.0f, -129.0f);          // Center of screen
-    //AEMtx33Concat(&CheeseTransform, &CheeseTranslate, &CheeseScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
-    //AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    //AEGfxTextureSet(Ingredients, 0.f, 1.f/2.f);
-    //AEGfxSetTransform(CheeseTransform.m);
-    //AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
-
-    ////Food tray mesh square 3 Lettuce 
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //TableMesh = SquareMesh(3.0f, 3.0f);
-    //AEGfxSetColorToMultiply(0.0f, 1.0f, 0.0f, 1.0f);
-    //AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, -100.0f, -325.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //AEMtx33Scale(&LettuceScale, 200, 200);           // 100x100 pixel square
-    //AEMtx33Trans(&LettuceTranslate, -100.0f, -325.0f);          // Center of screen
-    //AEMtx33Concat(&LettuceTransform, &LettuceTranslate, &LettuceScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
-    //AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    //AEGfxTextureSet(Ingredients, 2.f/4.f, 0.f);
-    //AEGfxSetTransform(LettuceTransform.m);
-    //AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
-
-    ////Food tray mesh square 4 tomato
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //TableMesh = SquareMesh(3.0f, 3.0f);
-    //AEGfxSetColorToMultiply(1.0f, 0.0f, 0.0f, 1.0f);
-    //AEMtx33Scale(&TableScale, 30.0f, 30.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&TableTranslate, -350.0f, -325.0f);          // Center of screen
-    //AEMtx33Concat(&TableTransform, &TableTranslate, &TableScale);
-    //AEMtx33Scale(&TomatoScale, 200, 200);           // 100x100 pixel square
-    //AEMtx33Trans(&TomatoTranslate, -350.0f, -325.0f);          // Center of screen
-    //AEMtx33Concat(&TomatoTransform, &TomatoTranslate, &TomatoScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(TableTransform.m);
-    //AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
-    //AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    //AEGfxTextureSet(Ingredients, 1.f/4.f, 0.f);
-    //AEGfxSetTransform(TomatoTransform.m);
-    //AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
-
-    ////Plate mesh
-    //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    //PlateMesh = CircleMesh(2.0f, 32);
-    //AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-    //// Create transformation: scale then translate
-    //AEMtx33Scale(&PlateScale, 100.0f, 50.0f);           // 100x100 pixel square
-    //AEMtx33Trans(&PlateTranslate, 400.0f, -225.0f);          // Center of screen
-    //AEMtx33Concat(&PlateTransform, &PlateTranslate, &PlateScale);
-    //// Apply transformation and draw
-    //AEGfxSetTransform(PlateTransform.m);
-    //AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
 
     Points_Draw();
 
@@ -614,65 +520,111 @@ void Game_Draw() {
         drawY = -225.0f;   // Plate Y
     }
 
-    // Draw ingredients on plate if clicked
+    /*
+    What it does: Creates a variable that keeps track of the burger's current height
+    Starts at 0: Bottom bun is at the baseGrows: 
+    Each ingredient adds to this height*/
+
+    float currentHeight = 0.0f;  // Track how tall our stack is
+
+    // Bottom Bun (always at the bottom)
     if (bunBottomOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 3.f/4.f, 1.f/ 2.f);  // Bun bottom sprite
+        AEGfxTextureSet(Ingredients, 3.f / 4.f, 1.f / 2.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY - 20.0f);  // Below lettuce
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY - 10.0f + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 15.0f;  // Bottom bun adds 15px height
     }
+
+    // Lettuce (thin, compresses easily)
     if (lettuceOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 2.f/ 4.f, 0.f);  // Lettuce sprite
+        AEGfxTextureSet(Ingredients, 2.f / 4.f, 0.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 8.0f;   // Lettuce adds only 8px (thin and compresses)
     }
+
+    // Cheese (melts, compresses)
     if (cheeseOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f);  // Cheese sprite
+        AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 20.0f);  // Slightly above lettuce
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 10.0f;  // Cheese adds 10px (melts a bit)
     }
 
+    // Patty (thick, doesn't compress much)
     if (pattieOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 0.f, 0.f);  // Pattie sprite
+        AEGfxTextureSet(Ingredients, 0.f, 0.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 40.0f);  // Above cheese
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 25.0f;  // Patty adds 25px (thick meat)
     }
 
+    // Tomato (slices, medium thickness)
     if (tomatoOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);  // Tomato sprite
+        AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 60.0f);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 18.0f;  // Tomato adds 18px
     }
 
-
-    if (bunTopOnPlate) {
+    // Cucumber (thin slices)
+    if (cucumberOnPlate) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);  // Bun top sprite
+        AEGfxTextureSet(Ingredients, 2.f / 4.f, 1.f / 2.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + 80.0f);  // On top
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
+        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
+        AEGfxSetTransform(PlateLettuceTransform.m);
+        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 8.0f;   // Cucumber adds 8px (thin)
+    }
+
+    // Onion (thin rings)
+    if (onionOnPlate) {
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxTextureSet(Ingredients, 1.f / 4.f, 1.f / 2.f);
+        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
+        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
+        AEGfxSetTransform(PlateLettuceTransform.m);
+        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        currentHeight += 8.0f;   // Onion adds 8px (thin)
+    }
+
+    // Top Bun (sits on top, compresses everything slightly)
+    if (bunTopOnPlate) {
+        // Top bun compresses the burger slightly
+        currentHeight -= 5.0f;   // Compression!
+
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);
+        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight + 15.0f);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
+
 
 }
 
@@ -685,6 +637,8 @@ void Burger_Clear() {
     cheeseOnPlate = false;
     pattieOnPlate = false;
     tomatoOnPlate = false;
+    onionOnPlate = false;     
+    cucumberOnPlate = false;  
     bunTopOnPlate = false;
     bunBottomOnPlate = false;
 
