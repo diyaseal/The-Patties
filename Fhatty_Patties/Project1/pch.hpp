@@ -17,6 +17,10 @@
 #include "MainMenu.hpp"
 #include "Points.hpp"
 #include "GraphicManager.hpp"
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 //enum of ingredient type used in game.cpp 
 //on click order :Syakil / diya 
