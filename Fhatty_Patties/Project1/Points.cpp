@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+ // ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -10,22 +10,19 @@ static AEGfxVertexList* s1Mesh = nullptr;  // Star mesh
 static AEGfxVertexList* s2Mesh = nullptr;  // Star mesh
 static AEGfxVertexList* s3Mesh = nullptr;  // Star mesh
 
-// FIXED: Removed duplicate declarations
+// Removed duplicate declarations
 static AEMtx33 BarTransform, BarScale, BarTranslate;  // Bar transformation matrices
 static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslate;  // Star transformation matrices
 
 // ---------------------------------------------------------------------------
-// Points Gained System
+// Points System System
 // ---------------------------------------------------------------------------
-static const f32 MAX_POINTS = 600.0f;       // Max points to fill the bar (3 stars * 200)
+static f32 MAX_POINTS = 600.0f;       // Max points to fill the bar (3 stars * 35)
 static f32 currentPoints = 0.0f;            // Current points earned
-static const f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
+static f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
 static const f32 BAR_HEIGHT = 40.0f;        // Same height as gray bar
 static const f32 BAR_POS_X = 0.0f;          // Same X as gray bar
 static const f32 BAR_POS_Y = 400.0f;        // Same Y as gray bar
-
-// Star thresholds: each star unlocks at 200 points
-static const f32 STAR_THRESHOLDS[3] = { 200.0f, 400.0f, 600.0f };
 
 // ---------------------------------------------------------------------------
 // Points State Functions
@@ -43,18 +40,33 @@ void Points_Update() {
 }
 
 // ---------------------------------------------------------------------------
-// Add points - call this when player serves a customer
+//@param retrives customer state
+
+//[happy] customer provides 35 pts
+//[angry] customer provides 20 pts
 // ---------------------------------------------------------------------------
 void Points_AddPoints(f32 amount) {
     currentPoints += amount;
     if (currentPoints > MAX_POINTS) {
         currentPoints = MAX_POINTS;
     }
+
+    for (int i = 0; i < 3; i++) {
+        if (currentPoints >= currentLevelData.starPositions[i]) {
+            currentLevelData.starStatus[i] = 1;
+        }
+    }
+
+    printf("Stars: %.1f %.1f %.1f\n",
+        currentLevelData.starPositions[0],
+        currentLevelData.starPositions[1],
+        currentLevelData.starPositions[2]);
+
     printf("Points added: %.0f | Total: %.0f\n", amount, currentPoints);
 }
 
+void Points_Draw(){
 
-void Points_Draw() {
     // -------------------------------------------------------------------
     // DRAW GRAY BAR (background)
     // -------------------------------------------------------------------
@@ -103,20 +115,20 @@ void Points_Draw() {
 
     // Calculate star positions based on bar position and thresholds
     for (int i = 0; i < 3; i++) {
-        // Calculate position along the bar (0% = left edge, 100% = right edge)
-        f32 thresholdPercentage = STAR_THRESHOLDS[i] / MAX_POINTS;
+
+        f32 threshold = currentLevelData.starPositions[i];
+        f32 thresholdPercentage = threshold / MAX_POINTS;
+
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
-        // Create star mesh
         AEGfxVertexList* starMesh = StarMesh(0.5f, 0.2f);
 
-        // Set color based on whether threshold is reached
-        if (currentPoints >= STAR_THRESHOLDS[i])
+        // Use star status from LevelManager
+        if (currentLevelData.starStatus[i] == 1)
             AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
         else
-            AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray (not earned)
+            AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
 
-        // Apply transformations
         AEMtx33Scale(&StarScale, STAR_SIZE, STAR_SIZE);
         AEMtx33RotDeg(&StarRotate, 180.0f);
         AEMtx33Trans(&StarTranslate, starX, STAR_Y_POS);
@@ -125,9 +137,6 @@ void Points_Draw() {
 
         AEGfxSetTransform(StarTransform.m);
         AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
-
-        // Free the mesh after drawing (optional, depends on your mesh management)
-        // AEGfxMeshFree(starMesh);
     }
 }
 

@@ -143,7 +143,7 @@ void RandomOrder(Customer* customer) {
 // ---------------------------------------------------------------------------
 // Draw Thought Bubble with Ingredients :Diya
 // ---------------------------------------------------------------------------
-void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
+static void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
     // Bubble position (above customer's head)
     float bubbleX = customerX + 50.0f;  // Slightly right of customer
     float bubbleY = customerY + 180.0f; // Above customer's head

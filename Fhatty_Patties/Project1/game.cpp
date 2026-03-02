@@ -112,6 +112,8 @@ static void ResetDragState() {
 
 void Game_Init() {
     printf("Game_Init called\n");
+    // Elizabeth : Set Level Number
+    Level_Manager_LoadLevel(1);
 	Customer_Init();
     Points_Init();
 }
@@ -240,8 +242,8 @@ void Burger_ServeToCustomer() {
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc. :Diya 
-    float dt = AEFrameRateControllerGetFrameTime();
-    Customer_Update(dt);
+    f64 dt = AEFrameRateControllerGetFrameTime();
+    Customer_Update(static_cast<float>(dt));
     Points_Update();
 
     // Get mouse position
@@ -428,8 +430,8 @@ void Game_Update() {
                             Burger_Clear();
 
                             // Add points (you can integrate with Points system later)
-                            printf("+200 points!\n");
-                            Points_AddPoints(200.0f);
+                            printf("+35 points!\n");
+                            Points_AddPoints(35.0f);
 
                         }
                         else {

@@ -6,10 +6,14 @@
 #include <crtdbg.h> // To check for memory leaks
 #include <cstdio> 
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include "AEEngine.h"
-#include "Customer.hpp"
 #include "GameStateList.hpp"  // Game state enumeration header
 #include "GameStateManager.hpp"
+#include "Level_Manager.hpp"
+#include "Customer.hpp"
 #include "game.hpp"
 #include "utils.hpp"
 #include "School_Credits.hpp"
@@ -17,10 +21,6 @@
 #include "MainMenu.hpp"
 #include "Points.hpp"
 #include "GraphicManager.hpp"
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
 #include "LevelComplete.hpp"
 
 //enum of ingredient type used in game.cpp 
@@ -34,7 +34,6 @@ enum IngredientType {
     TOMATO,
     ONION,
     CUCUMBER,
-
 };
 
 #endif //PCH_H
