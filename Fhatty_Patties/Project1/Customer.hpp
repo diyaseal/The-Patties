@@ -42,6 +42,14 @@ struct Customer {
     int frameY{ 0 };
     bool flipHorizontal{ false };                // For sprite flipping
 
+    //customer emotions
+    bool isSatisfied{ false };
+    bool isAngry{ false };
+    bool isLeaving{ false };
+    float emotionTimer{ 0.0f };
+    int slotIndex{ -1 };
+    int textureIndex{ 0 }; //to find which sprite sheet customer i want to use
+
     AEGfxVertexList* mesh{ nullptr };            // The rectangle mesh
     AEMtx33 transform{};                       // Transformation matrix
 
@@ -55,8 +63,12 @@ struct Customer {
 void Customer_Init();
 void Customer_Spawn();
 void RandomOrder(Customer* customer);
+void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order);
 void Customer_Update(float dt);
-void Customer_Draw(AEGfxTexture* customerTexture);
+void Customer_Draw(AEGfxTexture* customerTexture[]);
+void Customer_Satisfy(int index);
+bool Customer_IsAtTarget(Customer* customer);
+bool Customer_IsLevelComplete();  
 void Customer_Free();
 
 // Helper functions

@@ -11,7 +11,7 @@ static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
 static AEGfxTexture* GameplayBG = nullptr; // game BG
-static AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
+AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
                PattieTransform, PattieScale, PattieTranslate,
@@ -143,8 +143,11 @@ void Game_Load() {
         printf("ERROR: Failed to load Ingredients.png\n");
     }
 
-    // Load customer sprite sheet
-    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
+    // Load customer sprite sheet (T)
+    CustomerTexture[0] = AEGfxTextureLoad("Assets/Assets/syakilcust.png");
+    CustomerTexture[1] = AEGfxTextureLoad("Assets/Assets/elicust.png");
+    CustomerTexture[2] = AEGfxTextureLoad("Assets/Assets/tebcust.png");
+    CustomerTexture[3] = AEGfxTextureLoad("Assets/Assets/diyacust.png");
 
     if (CustomerTexture) {
     }
@@ -398,7 +401,8 @@ void Game_Update() {
             // Check if burger was dropped on a customer
             bool servedToCustomer = false;
 
-            for (Customer& customer : customers) {
+            for (int ci = 0; ci < (int)customers.size(); ci++) {
+                Customer& customer = customers[ci];
                 if (customer.isWaitingForFood) {
                     // Calculate distance from burger to customer
                     float dx = burgerDragX - customer.x;
@@ -418,11 +422,7 @@ void Game_Update() {
                             printf("Customer is happy! Order correct!\n");
 
                             // Make customer leave with burger
-                            customer.isWalking = true;
-                            customer.isWaitingForFood = false;
-                            customer.targetX = EXIT_X;
-                            customer.targetY = customer.y;
-                            customer.flipHorizontal = true;
+                            Customer_Satisfy(ci);
 
                             // Clear burger for next order
                             Burger_Clear();
@@ -465,6 +465,15 @@ void Game_Update() {
 
     if (AEInputCheckTriggered(AEVK_R)) {
         Burger_Clear();
+    }
+
+	//REMEMBER TO REMOVE THIS IS JUST CHECKING PURPOSESSSSS
+    if (AEInputCheckTriggered(AEVK_E)) {
+        next = GS_LVLCMP;
+    }
+
+    if (Customer_IsLevelComplete()) {
+        // switch to results screen / next state
     }
 }
 
@@ -662,10 +671,11 @@ void Game_Free() {
     }
 
     // Free customer texture
-    if (CustomerTexture) {
-        AEGfxTextureUnload(CustomerTexture);
-        CustomerTexture = nullptr;
-        printf("Customer texture freed\n");
+    for (int i = 0; i < 4; i++) {
+        if (CustomerTexture[i]) {
+            AEGfxTextureUnload(CustomerTexture[i]);
+            CustomerTexture[i] = nullptr;
+        }
     }
 }
 
@@ -692,10 +702,11 @@ void Game_Unload() {
     }
 
     // Free customer texture
-    if (CustomerTexture) {
-        AEGfxTextureUnload(CustomerTexture);
-        CustomerTexture = nullptr;
-        printf("Customer texture freed\n");
+    for (int i = 0; i < 4; i++) {
+        if (CustomerTexture[i]) {
+            AEGfxTextureUnload(CustomerTexture[i]);
+            CustomerTexture[i] = nullptr;
+        }
     }
 
     Points_Unload();

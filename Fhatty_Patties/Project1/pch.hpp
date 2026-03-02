@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "LevelComplete.hpp"
 
 //enum of ingredient type used in game.cpp 
 //on click order :Syakil / diya 
