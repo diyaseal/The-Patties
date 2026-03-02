@@ -1,0 +1,42 @@
+[
+  {
+    "level": 1,
+    "customer": 5,
+    "ingredients": [ "top_bun","bottom_bun", "patty", "cheese"],
+    "duration_multiplier": 1,
+    "points": [ 1500, 1700, 1850 ],
+    "star": [ 0, 0, 0 ]
+  },
+  {
+    "level": 2,
+    "customer": 6,
+    "ingredients": [ "top_bun", "bottom_bun", "patty", "cheese", "lettuce", "tomato" ],
+    "duration_multiplier": 1.1,
+    "points": [ 1800, 2150, 2300 ],
+    "star": [ 0, 0, 0 ]
+  },
+  {
+    "level": 3,
+    "customer": 9,
+    "ingredients": [ "top_bun", "bottom_bun", "patty", "cheese", "lettuce", "tomato", "drink" ],
+    "duration_multiplier": 1.25,
+    "points": [ 2000, 2250, 2500 ],
+    "star": [ 0, 0, 0 ]
+  },
+  {
+    "level": 4,
+    "customer": 13,
+    "ingredients": [ "top_bun", "bottom_bun", "patty", "cheese", "lettuce", "onion", "tomato", "drink" ],
+    "duration_multiplier": 1.3,
+    "points": [ 2000, 2400, 2700 ],
+    "star": [ 0, 0, 0 ]
+  },
+  {
+    "level": 5,
+    "customer": 15,
+    "ingredients": [ "top_bun", "bottom_bun", "patty", "cheese", "lettuce", "tomato", "onion", "cucumber", "drink" ],
+    "duration_multiplier": 1.5,
+    "points": [ 2000, 2400, 2700 ],
+    "star": [ 0, 0, 0 ]
+  }
+]
