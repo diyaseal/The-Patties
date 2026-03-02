@@ -9,7 +9,7 @@ extern const float EXIT_X = 800.0f;
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
-static AEGfxTexture* Ingredients = nullptr; // Ingredients
+AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
 static AEGfxTexture* GameplayBG = nullptr; // game BG
 static AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
 

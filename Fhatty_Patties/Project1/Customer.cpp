@@ -9,6 +9,7 @@
 std::vector<Customer> customers;
 static const int MAX_CUSTOMERS = 1;        // Only 1 customer for prototype
 static bool hasSpawned = false;            // Track if we've spawned the customer
+extern AEGfxTexture* Ingredients;          // Customer Bubble Ingredient Texture 
 
 //// Predefined positions
 const float SPAWN_X = -700.0f;       // Customers spawn off-screen left
@@ -124,7 +125,100 @@ void RandomOrder(Customer* customer) {
     }
     printf("\n");
 }
+// ---------------------------------------------------------------------------
+// Draw Thought Bubble with Ingredients :Diya
+// ---------------------------------------------------------------------------
+void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
+    // Bubble position (above customer's head)
+    float bubbleX = customerX + 50.0f;  // Slightly right of customer
+    float bubbleY = customerY + 180.0f; // Above customer's head
 
+    // Bubble size
+    float bubbleWidth = 200.0f;
+    float bubbleHeight = 120.0f;
+
+    // Create bubble mesh
+    AEGfxVertexList* bubbleMesh = SquareMesh(0.5f, 0.5f);
+
+    // DRAW BUBBLE BACKGROUND (white circle/rounded square)
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.9f); // White with slight transparency
+
+    // Scale and position bubble
+    AEMtx33 bubbleScale, bubbleTrans, bubbleTransform;
+    AEMtx33Scale(&bubbleScale, bubbleWidth, bubbleHeight);
+    AEMtx33Trans(&bubbleTrans, bubbleX, bubbleY);
+    AEMtx33Concat(&bubbleTransform, &bubbleTrans, &bubbleScale);
+
+    AEGfxSetTransform(bubbleTransform.m);
+    AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
+
+    // DRAW BUBBLE OUTLINE (black border)
+    AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 1.0f);
+    AEGfxSetTransform(bubbleTransform.m);
+    AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
+
+    // DRAW INGREDIENT ICONS inside bubble
+    float iconSize = 40.0f;
+    float startX = bubbleX - (order.size() * iconSize) / 2.0f + iconSize / 2.0f;
+    float iconY = bubbleY;
+
+    for (size_t i = 0; i < order.size(); i++) {
+        float iconX = startX + i * iconSize;
+
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+
+        // Select correct texture based on ingredient
+        switch (order[i]) {
+        case BOTTOM_BUN:
+            AEGfxTextureSet(Ingredients, 3.f / 4.f, 1.f / 2.f);
+            break;
+        case TOP_BUN:
+            AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);
+            break;
+        case PATTY:
+            AEGfxTextureSet(Ingredients, 0.f, 0.f);
+            break;
+        case CHEESE:
+            AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f);
+            break;
+        case LETTUCE:
+            AEGfxTextureSet(Ingredients, 2.f / 4.f, 0.f);
+            break;
+        case TOMATO:
+            AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);
+            break;
+            // Add more cases as needed
+        }
+
+        // Scale and position ingredient icon
+        AEMtx33 iconScale, iconTrans, iconTransform;
+        AEMtx33Scale(&iconScale, iconSize, iconSize);
+        AEMtx33Trans(&iconTrans, iconX, iconY);
+        AEMtx33Concat(&iconTransform, &iconTrans, &iconScale);
+
+        AEGfxSetTransform(iconTransform.m);
+        AEGfxMeshDraw(IngredientMesh(0.5f, 0.5f), AE_GFX_MDM_TRIANGLES);
+    }
+
+    // DRAW BUBBLE TAIL (small circle connecting to customer)
+    float tailX = customerX + 30.0f;
+    float tailY = customerY + 140.0f;
+    float tailSize = 20.0f;
+
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.9f);
+
+    AEMtx33Scale(&bubbleScale, tailSize, tailSize);
+    AEMtx33Trans(&bubbleTrans, tailX, tailY);
+    AEMtx33Concat(&bubbleTransform, &bubbleTrans, &bubbleScale);
+
+    AEGfxSetTransform(bubbleTransform.m);
+    AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
+
+    // Free mesh
+    AEGfxMeshFree(bubbleMesh);
+}
 // ---------------------------------------------------------------------------
 // Check if Customer Reached Target
 // ---------------------------------------------------------------------------
@@ -270,6 +364,13 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
 
         // Free the temporary mesh
         AEGfxMeshFree(frameMesh);
+
+        // ---------------------------------------------------------------
+        // DRAW THOUGHT BUBBLE when customer is waiting for food :Diya
+        // ---------------------------------------------------------------
+        if (customer.isWaitingForFood && customer.hasOrder) {
+            DrawThoughtBubble(customer.x + 50.0f, customer.y, customer.order);
+        }
 
         // ---------------------------------------------------------------
         // DRAW DURATION BAR only when customer has arrived
