@@ -8,6 +8,8 @@
 // ---------------------------------------------------------------------------
 int currentLevel = 1;
 LevelData currentLevelData;
+const char* LEVEL_DATA_PATH = "Assets/Data/Data.csv";
+
 // ---------------------------------------------------------------------------
 // Helper: Split string by delimiter
 // ---------------------------------------------------------------------------
@@ -36,7 +38,7 @@ static std::vector<std::string> SplitString(const std::string& str, char delimit
 // Load Level Data from CSV
 // ---------------------------------------------------------------------------
 bool Level_Manager_LoadLevel(int level) {
-    std::ifstream file("Assets/Data/Data.csv");
+    std::ifstream file(LEVEL_DATA_PATH);
     if (!file.is_open()) {
         printf("ERROR: Could not open Data.csv\n");
         return false;
@@ -54,7 +56,7 @@ bool Level_Manager_LoadLevel(int level) {
 
         std::vector<std::string> cells = SplitString(line, ',');
 
-        if (cells.size() < 6)
+        if (cells.size() < 7)
             continue;
 
         int csvLevel = std::stoi(cells[0]);
@@ -89,6 +91,8 @@ bool Level_Manager_LoadLevel(int level) {
                 currentLevelData.starStatus[2] = std::stoi(starTokens[2]);
             }
 
+            currentLevelData.highestPts = std::stoi(cells[6]);
+
             printf("=== Level %d loaded from CSV ===\n", level);
             printf("  Customer count: %d\n", currentLevelData.customerCount);
             printf("  Ingredients (%zu): ", currentLevelData.ingredients.size());
@@ -105,6 +109,7 @@ bool Level_Manager_LoadLevel(int level) {
                 currentLevelData.starStatus[0],
                 currentLevelData.starStatus[1],
                 currentLevelData.starStatus[2]);
+            printf("  Current highest points: %d\n", currentLevelData.highestPts);
             printf("================================\n");
 
             currentLevel = level;
@@ -121,9 +126,9 @@ bool Level_Manager_LoadLevel(int level) {
 // ---------------------------------------------------------------------------
 // Save star status back to CSV
 // ---------------------------------------------------------------------------
-static void Level_Manager_SaveStarStatus() {
+static void Level_Manager_SaveProgress() {
     // Read entire file
-    std::ifstream inFile("Data.csv");
+    std::ifstream inFile(LEVEL_DATA_PATH);
     if (!inFile.is_open()) {
         printf("ERROR: Could not open Data.csv for reading\n");
         return;
@@ -156,12 +161,13 @@ static void Level_Manager_SaveStarStatus() {
             }
 
             newLine << "\"," << currentLevelData.durationMultiplier << ",\""
-                << (int)currentLevelData.starPositions[0] << "|"
-                << (int)currentLevelData.starPositions[1] << "|"
-                << (int)currentLevelData.starPositions[2] << "\",\""
+                << static_cast<int>(currentLevelData.starPositions[0]) << "|"
+                << static_cast<int>(currentLevelData.starPositions[1]) << "|"
+                << static_cast<int>(currentLevelData.starPositions[2]) << "\",\""
                 << currentLevelData.starStatus[0] << "|"
                 << currentLevelData.starStatus[1] << "|"
-                << currentLevelData.starStatus[2] << "\"";
+                << currentLevelData.starStatus[2] << "\","
+                << currentLevelData.highestPts;
 
             lines[i] = newLine.str();
             break;
@@ -169,7 +175,7 @@ static void Level_Manager_SaveStarStatus() {
     }
 
     // Write back to file
-    std::ofstream outFile("Data.csv");
+    std::ofstream outFile(LEVEL_DATA_PATH);
     if (!outFile.is_open()) {
         printf("ERROR: Could not open Data.csv for writing\n");
         return;
@@ -184,46 +190,76 @@ static void Level_Manager_SaveStarStatus() {
 }
 
 // ---------------------------------------------------------------------------
-// Update star status based on points
+// Setter Functions
 // ---------------------------------------------------------------------------
-static void Level_Manager_UpdateStarStatus(float currentPoints) {
+void Level_Manager_UpdateStarStatus(float currentPoints) {
+
+    printf("Checking stars: points=%.0f\n", currentPoints);
+
     bool anyStarEarned = false;
 
     for (int i = 0; i < 3; i++) {
+
+        printf("Threshold %.0f | status %d\n",
+            currentLevelData.starPositions[i],
+            currentLevelData.starStatus[i]);
+
         if (currentPoints >= currentLevelData.starPositions[i]) {
+
             if (currentLevelData.starStatus[i] == 0) {
-                currentLevelData.starStatus[i] = 1;  // Mark as earned
-                printf("? Star %d earned!\n", i + 1);
+
+                currentLevelData.starStatus[i] = 1;
+                printf("Star %d earned!\n", i + 1);
                 anyStarEarned = true;
             }
         }
     }
 
     if (anyStarEarned) {
-        Level_Manager_SaveStarStatus();  // Save to CSV
+        printf("Saving stars to CSV...\n");
+        Level_Manager_SaveProgress();
+    }
+}
+
+void Level_Manager_UpdateHighestPoints(float currentPoints) {
+
+    if (currentPoints > Level_Manager_GetHighestPoints()) {
+
+        printf("New record! %f (old: %f)\n",
+            currentPoints,
+            Level_Manager_GetHighestPoints());
+
+        currentLevelData.highestPts = currentPoints;
+
+        Level_Manager_UpdateStarStatus(currentPoints);
+        Level_Manager_SaveProgress(); // save to CSV
     }
 }
 
 // ---------------------------------------------------------------------------
 // Getter Functions
 // ---------------------------------------------------------------------------
-static LevelData Level_Manager_GetCurrentLevelData() {
+LevelData Level_Manager_GetCurrentLevelData() {
     return currentLevelData;
 }
 
-static int Level_Manager_GetCurrentLevel() {
+int Level_Manager_GetCurrentLevel() {
     return currentLevel;
 }
 
-static float Level_Manager_GetMaxPoints() {
+float Level_Manager_GetMaxPoints() {
     return currentLevelData.starPositions[2];  // Highest star position
 }
 
-static int Level_Manager_GetCustomerCount() {
+int Level_Manager_GetCustomerCount() {
     return currentLevelData.customerCount;
 }
 
-static int Level_Manager_GetStarsEarned() {
+float Level_Manager_GetStarPosition(int index) {
+    return currentLevelData.starPositions[index];
+}
+
+int Level_Manager_GetStarsEarned() {
     int stars = 0;
     for (int i = 0; i < 3; i++) {
         if (currentLevelData.starStatus[i] == 1) {
@@ -233,34 +269,38 @@ static int Level_Manager_GetStarsEarned() {
     return stars;
 }
 
+float Level_Manager_GetHighestPoints() {
+    return currentLevelData.highestPts;
+}
+
 // ---------------------------------------------------------------------------
 // Level Manager State Functions
 // ---------------------------------------------------------------------------
-static void Level_Manager_Init() {
+void Level_Manager_Init() {
     printf("Level_Manager_Init called\n");
 
     // Load level 1 by default
     Level_Manager_LoadLevel(1);
 }
 
-static void Level_Manager_Load() {
+void Level_Manager_Load() {
     printf("Level_Manager_Load called\n");
 }
 
-static void Level_Manager_Update() {
+void Level_Manager_Update() {
     // Any per-frame level management logic goes here
 }
 
-static void Level_Manager_Draw() {
+void Level_Manager_Draw() {
     // Level manager doesn't draw anything
     // Points.cpp and Game.cpp handle rendering
 }
 
-static void Level_Manager_Free() {
+void Level_Manager_Free() {
     printf("Level_Manager_Free called\n");
 }
 
-static void Level_Manager_Unload() {
+void Level_Manager_Unload() {
     printf("Level_Manager_Unload called\n");
     currentLevelData.ingredients.clear();
 }

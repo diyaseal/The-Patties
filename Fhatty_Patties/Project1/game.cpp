@@ -112,11 +112,12 @@ static void ResetDragState() {
 
 void Game_Init() {
     printf("Game_Init called\n");
-    // Elizabeth : Set Level Number
-    Level_Manager_LoadLevel(1);
-	Customer_Init();
-    Points_Init();
-}
+void Game_Init() { 
+    printf("Game_Init called\n"); 
+    Level_Manager_Init(); 
+    Customer_Init(); 
+    Points_Init(); 
+    }
 
 void Game_Load() {
     printf("Game_Load called\n");
@@ -158,6 +159,8 @@ void Game_Load() {
     }
 
     printf("Rectangle mesh created\n");
+    // Elizabeth: Check if points are loaded
+    Points_Load();
 }
 
 bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
@@ -511,7 +514,9 @@ void Game_Draw() {
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
 
-
+    // -------------------------------------------------------------------
+    // DRAW POINTS BAR
+    // -------------------------------------------------------------------
     Points_Draw();
 
     // -------------------------------------------------------------------
@@ -638,7 +643,6 @@ void Game_Draw() {
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
 
-
 }
 
 void Burger_Clear() {
@@ -666,6 +670,7 @@ void Game_Free() {
 	Customer_Free();
     // Free any dynamic memory here
     Points_Free();
+    Level_Manager_Free();
 
     // Free texture
     if (Ingredients) {
@@ -714,5 +719,6 @@ void Game_Unload() {
     }
 
     Points_Unload();
+    Level_Manager_Unload();
 }
 

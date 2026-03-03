@@ -33,9 +33,7 @@ void Points_Init() {
 
     MAX_POINTS = 0.0f; // reset first
 
-    for (int i = 0; i < currentLevelData.customerCount; ++i) {
-        MAX_POINTS += pointsEarnedH;
-    }
+    MAX_POINTS += Level_Manager_GetMaxPoints();
 
     currentPoints = 0.0f;
 
@@ -43,33 +41,38 @@ void Points_Init() {
 }
 
 void Points_Load() {
-    printf("Points_Load called\n");
+    printf("Loaded stars: %.0f %.0f %.0f\n",
+        currentLevelData.starPositions[0],
+        currentLevelData.starPositions[1],
+        currentLevelData.starPositions[2]);
 }
 
 void Points_Update() {
+
 }
 
 // ---------------------------------------------------------------------------
 //@param retrives customer state
 // ---------------------------------------------------------------------------
 void Points_AddPoints(bool cust) {
-    //[happy] customer provides 35 pts [angry] customer provides 0 pts
-    (cust) ? currentPoints += pointsEarnedH : currentPoints += 0;
+    //happy(true) customer provides 35 pts angry(false) customer provides no pts
+    if (cust) {
+        currentPoints += pointsEarnedH;
+    }
+
     if (currentPoints > MAX_POINTS) {
         currentPoints = MAX_POINTS;
     }
 
-    for (int i = 0; i < 3; i++) {
-        if (currentPoints >= currentLevelData.starPositions[i]) {
-            currentLevelData.starStatus[i] = 1;
-        }
+    // Update points + save CSV
+    Level_Manager_UpdateHighestPoints(currentPoints);
+
+    // Display Stars Position in Console
+    printf("Stars: ");
+    for (int i = 0; i < 3; ++i) {
+        printf("Stars: %.1f", Level_Manager_GetStarPosition(i));
     }
-
-    printf("Stars: %.1f %.1f %.1f\n",
-        currentLevelData.starPositions[0],
-        currentLevelData.starPositions[1],
-        currentLevelData.starPositions[2]);
-
+    printf("\n");
     printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
 
@@ -123,15 +126,15 @@ void Points_Draw(){
 
     // Calculate star positions based on bar position and thresholds
     for (int i = 0; i < 3; i++) {
-        f32 threshold = currentLevelData.starPositions[i];
+        f32 threshold = Level_Manager_GetStarPosition(i);
         f32 thresholdPercentage = threshold / MAX_POINTS;
 
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
         AEGfxVertexList* starMesh = StarMesh(0.5f, 0.2f);
 
-        // Use star status from LevelManager
-        if (currentLevelData.starStatus[i] == 1)
+        // Check if current point is greater than threshold
+        if (currentPoints >= Level_Manager_GetStarPosition(i))
             AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
         else
             AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
