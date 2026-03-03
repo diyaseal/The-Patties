@@ -219,6 +219,10 @@ static float Level_Manager_GetMaxPoints() {
     return currentLevelData.starPositions[2];  // Highest star position
 }
 
+static int Level_Manager_GetCustomerCount() {
+    return currentLevelData.customerCount;
+}
+
 static int Level_Manager_GetStarsEarned() {
     int stars = 0;
     for (int i = 0; i < 3; i++) {

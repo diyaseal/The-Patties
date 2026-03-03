@@ -9,6 +9,7 @@ static AEGfxVertexList* pointsGainedMesh = nullptr;  // Points gained bar mesh
 static AEGfxVertexList* s1Mesh = nullptr;  // Star mesh
 static AEGfxVertexList* s2Mesh = nullptr;  // Star mesh
 static AEGfxVertexList* s3Mesh = nullptr;  // Star mesh
+const f32 pointsEarnedH = 35.0f;
 
 // Removed duplicate declarations
 static AEMtx33 BarTransform, BarScale, BarTranslate;  // Bar transformation matrices
@@ -17,7 +18,7 @@ static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslat
 // ---------------------------------------------------------------------------
 // Points System System
 // ---------------------------------------------------------------------------
-static f32 MAX_POINTS = 600.0f;       // Max points to fill the bar (3 stars * 35)
+static f32 MAX_POINTS = 0.0f;       // Max points to fill the bar (3 stars * 35)
 static f32 currentPoints = 0.0f;            // Current points earned
 static f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
 static const f32 BAR_HEIGHT = 40.0f;        // Same height as gray bar
@@ -29,7 +30,16 @@ static const f32 BAR_POS_Y = 400.0f;        // Same Y as gray bar
 
 void Points_Init() {
     printf("Points_Init called\n");
+
+    MAX_POINTS = 0.0f; // reset first
+
+    for (int i = 0; i < currentLevelData.customerCount; ++i) {
+        MAX_POINTS += pointsEarnedH;
+    }
+
     currentPoints = 0.0f;
+
+    printf("MAX_POINTS = %.0f\n", MAX_POINTS);
 }
 
 void Points_Load() {
@@ -41,12 +51,10 @@ void Points_Update() {
 
 // ---------------------------------------------------------------------------
 //@param retrives customer state
-
-//[happy] customer provides 35 pts
-//[angry] customer provides 20 pts
 // ---------------------------------------------------------------------------
-void Points_AddPoints(f32 amount) {
-    currentPoints += amount;
+void Points_AddPoints(bool cust) {
+    //[happy] customer provides 35 pts [angry] customer provides 0 pts
+    (cust) ? currentPoints += pointsEarnedH : currentPoints += 0;
     if (currentPoints > MAX_POINTS) {
         currentPoints = MAX_POINTS;
     }
@@ -62,7 +70,7 @@ void Points_AddPoints(f32 amount) {
         currentLevelData.starPositions[1],
         currentLevelData.starPositions[2]);
 
-    printf("Points added: %.0f | Total: %.0f\n", amount, currentPoints);
+    printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
 
 void Points_Draw(){
@@ -115,7 +123,6 @@ void Points_Draw(){
 
     // Calculate star positions based on bar position and thresholds
     for (int i = 0; i < 3; i++) {
-
         f32 threshold = currentLevelData.starPositions[i];
         f32 thresholdPercentage = threshold / MAX_POINTS;
 
@@ -166,5 +173,5 @@ void Points_Unload() {
     if (s3Mesh) {
         AEGfxMeshFree(s3Mesh);
         s3Mesh = nullptr;
-    }
+    } 
 }
