@@ -110,8 +110,6 @@ static void ResetDragState() {
 // ---------------------------------------------------------------------------
 // Game State Functions
 
-void Game_Init() {
-    printf("Game_Init called\n");
 void Game_Init() { 
     printf("Game_Init called\n"); 
     Level_Manager_Init(); 
