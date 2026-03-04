@@ -733,25 +733,6 @@ void Game_Free() {
     Points_Free();
     Level_Manager_Free();
 
-    // Free texture
-    if (Ingredients) {
-        AEGfxTextureUnload(Ingredients);
-        Ingredients = nullptr;
-        printf("Ingredients texture freed\n");
-    }
-
-    // Free customer texture
-    for (int i = 0; i < 4; i++) {
-        if (CustomerTexture[i]) {
-            AEGfxTextureUnload(CustomerTexture[i]);
-            CustomerTexture[i] = nullptr;
-        }
-    }
-}
-
-void Game_Unload() {
-    printf("Game_Unload called\n");
-
     // Clean up mesh
     if (TableMesh) {
         AEGfxMeshFree(TableMesh);
