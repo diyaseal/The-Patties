@@ -15,6 +15,7 @@
 #include "School_Credits.hpp"
 #include "Team_Credits.hpp"
 #include "MainMenu.hpp"
+#include "Levels.hpp"
 #include "Points.hpp"
 #include "GraphicManager.hpp"
 

@@ -95,35 +95,37 @@ void RandomOrder(Customer* customer) {
     // Always start with bottom bun
     customer->order.push_back(BOTTOM_BUN);
 
-    // Random main ingredient (patty or cheese)
+    // Always have pattie because burger
+    customer->order.push_back(PATTY);
+
+    // Randomise the chances of all the other ingredients
+    // what this does is to see like a 50% chance of customer
+    // ordering that specific ingredient
     if (rand() % 2 == 0) {
-        customer->order.push_back(PATTY);
-    }
-    else {
         customer->order.push_back(CHEESE);
+
     }
 
-    // Random veggie (optional)
     if (rand() % 2 == 0) {
-        if (rand() % 2 == 0) {
-            customer->order.push_back(LETTUCE);
-        }
-        else {
-            customer->order.push_back(TOMATO);
-        }
+        customer->order.push_back(LETTUCE);
     }
+
+    if (rand() % 2 == 0) {
+        customer->order.push_back(TOMATO);
+    }
+    
 
     // Always end with top bun
     customer->order.push_back(TOP_BUN);
 
     customer->hasOrder = true;
 
-    // Print order for debugging
-    printf("Customer order: ");
-    for (int ingredient : customer->order) {
-        printf("%d ", ingredient);
-    }
-    printf("\n");
+    //// Print order for debugging
+    //printf("Customer order: ");
+    //for (int ingredient : customer->order) {
+    //    printf("%d ", ingredient);
+    //}
+    //printf("\n");
 }
 // ---------------------------------------------------------------------------
 // Draw Thought Bubble with Ingredients :Diya

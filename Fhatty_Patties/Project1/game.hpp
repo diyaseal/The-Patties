@@ -9,3 +9,5 @@ void Burger_Clear();
 void Burger_ServeToCustomer();
 void Game_Free();
 void Game_Unload();
+
+extern AEGfxTexture* Ingredients;

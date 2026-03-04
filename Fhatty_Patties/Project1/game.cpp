@@ -99,7 +99,7 @@ static bool IsBurgerComplete() {
     return bunBottomOnPlate && bunTopOnPlate;
 }
 
-// Helper to reset drag state5 Syakil
+// Helper to reset drag state Syakil
 static void ResetDragState() {
     isDragging = false;
     burgerIsBeingDragged = false;
@@ -252,6 +252,10 @@ void Game_Update() {
     float worldMouseX = (float)mouseX - windowWidth / 2.0f;
     float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
 
+    // ---------------------------------------------------------------------------
+    // DIYA was here , and syakil
+    // ---------------------------------------------------------------------------
+
     // Check for mouse click on the ingredients to see what player is adding to the burger
     if (AEInputCheckTriggered(AEVK_LBUTTON)) {
         printf("Mouse clicked at world: (%.2f, %.2f)\n", worldMouseX, worldMouseY);
@@ -330,7 +334,7 @@ void Game_Update() {
             worldMouseY <= OnionY + OnionHeight / 2.0f) {
 
             onionOnPlate = true;
-            currentBurger.push_back(ONION);  // Make sure ONION is defined in your enum
+            currentBurger.push_back(ONION);  // Track ingredient
             printf("Onion added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
@@ -341,7 +345,7 @@ void Game_Update() {
             worldMouseY <= CucumberY + CucumberHeight / 2.0f) {
 
             cucumberOnPlate = true;
-            currentBurger.push_back(CUCUMBER);  // Make sure CUCUMBER is defined in your enum
+            currentBurger.push_back(CUCUMBER);  // Track ingredient
             printf("Cucumber added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
@@ -654,24 +658,6 @@ void Game_Free() {
     // Free any dynamic memory here
     Points_Free();
 
-    // Free texture
-    if (Ingredients) {
-        AEGfxTextureUnload(Ingredients);
-        Ingredients = nullptr;
-        printf("Ingredients texture freed\n");
-    }
-
-    // Free customer texture
-    if (CustomerTexture) {
-        AEGfxTextureUnload(CustomerTexture);
-        CustomerTexture = nullptr;
-        printf("Customer texture freed\n");
-    }
-}
-
-void Game_Unload() {
-    printf("Game_Unload called\n");
-
     // Clean up mesh
     if (TableMesh) {
         AEGfxMeshFree(TableMesh);
@@ -683,6 +669,10 @@ void Game_Unload() {
         PlateMesh = nullptr;
         printf("Plate mesh freed\n");
     }
+}
+
+void Game_Unload() {
+    printf("Game_Unload called\n");
 
     // Free texture
     if (Ingredients) {
