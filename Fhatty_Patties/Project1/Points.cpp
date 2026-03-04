@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+ // ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -9,52 +9,75 @@ static AEGfxVertexList* pointsGainedMesh = nullptr;  // Points gained bar mesh
 static AEGfxVertexList* s1Mesh = nullptr;  // Star mesh
 static AEGfxVertexList* s2Mesh = nullptr;  // Star mesh
 static AEGfxVertexList* s3Mesh = nullptr;  // Star mesh
+const f32 pointsEarnedH = 35.0f;
 
-// FIXED: Removed duplicate declarations
+// Removed duplicate declarations
 static AEMtx33 BarTransform, BarScale, BarTranslate;  // Bar transformation matrices
 static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslate;  // Star transformation matrices
 
 // ---------------------------------------------------------------------------
-// Points Gained System
+// Points System System
 // ---------------------------------------------------------------------------
-static const f32 MAX_POINTS = 600.0f;       // Max points to fill the bar (3 stars * 200)
+static f32 MAX_POINTS = 0.0f;       // Max points to fill the bar (3 stars * 35)
 static f32 currentPoints = 0.0f;            // Current points earned
-static const f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
+static f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
 static const f32 BAR_HEIGHT = 40.0f;        // Same height as gray bar
 static const f32 BAR_POS_X = 0.0f;          // Same X as gray bar
 static const f32 BAR_POS_Y = 400.0f;        // Same Y as gray bar
-
-// Star thresholds: each star unlocks at 200 points
-static const f32 STAR_THRESHOLDS[3] = { 200.0f, 400.0f, 600.0f };
 
 // ---------------------------------------------------------------------------
 // Points State Functions
 
 void Points_Init() {
     printf("Points_Init called\n");
+
+    MAX_POINTS = 0.0f; // reset first
+
+    MAX_POINTS += Level_Manager_GetMaxPoints();
+
     currentPoints = 0.0f;
+
+    printf("MAX_POINTS = %.0f\n", MAX_POINTS);
 }
 
 void Points_Load() {
-    printf("Points_Load called\n");
+    printf("Loaded stars: %.0f %.0f %.0f\n",
+        currentLevelData.starPositions[0],
+        currentLevelData.starPositions[1],
+        currentLevelData.starPositions[2]);
 }
 
 void Points_Update() {
+
 }
 
 // ---------------------------------------------------------------------------
-// Add points - call this when player serves a customer
+//@param retrives customer state
 // ---------------------------------------------------------------------------
-void Points_AddPoints(f32 amount) {
-    currentPoints += amount;
+void Points_AddPoints(bool cust) {
+    //happy(true) customer provides 35 pts angry(false) customer provides no pts
+    if (cust) {
+        currentPoints += pointsEarnedH;
+    }
+
     if (currentPoints > MAX_POINTS) {
         currentPoints = MAX_POINTS;
     }
-    printf("Points added: %.0f | Total: %.0f\n", amount, currentPoints);
+
+    // Update points + save CSV
+    Level_Manager_UpdateHighestPoints(currentPoints);
+
+    // Display Stars Position in Console
+    printf("Stars: ");
+    for (int i = 0; i < 3; ++i) {
+        printf("Stars: %.1f", Level_Manager_GetStarPosition(i));
+    }
+    printf("\n");
+    printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
 
+void Points_Draw(){
 
-void Points_Draw() {
     // -------------------------------------------------------------------
     // DRAW GRAY BAR (background)
     // -------------------------------------------------------------------
@@ -103,20 +126,19 @@ void Points_Draw() {
 
     // Calculate star positions based on bar position and thresholds
     for (int i = 0; i < 3; i++) {
-        // Calculate position along the bar (0% = left edge, 100% = right edge)
-        f32 thresholdPercentage = STAR_THRESHOLDS[i] / MAX_POINTS;
+        f32 threshold = Level_Manager_GetStarPosition(i);
+        f32 thresholdPercentage = threshold / MAX_POINTS;
+
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
-        // Create star mesh
         AEGfxVertexList* starMesh = StarMesh(0.5f, 0.2f);
 
-        // Set color based on whether threshold is reached
-        if (currentPoints >= STAR_THRESHOLDS[i])
+        // Check if current point is greater than threshold
+        if (currentPoints >= Level_Manager_GetStarPosition(i))
             AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
         else
-            AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray (not earned)
+            AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
 
-        // Apply transformations
         AEMtx33Scale(&StarScale, STAR_SIZE, STAR_SIZE);
         AEMtx33RotDeg(&StarRotate, 180.0f);
         AEMtx33Trans(&StarTranslate, starX, STAR_Y_POS);
@@ -125,9 +147,6 @@ void Points_Draw() {
 
         AEGfxSetTransform(StarTransform.m);
         AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
-
-        // Free the mesh after drawing (optional, depends on your mesh management)
-        // AEGfxMeshFree(starMesh);
     }
 }
 
@@ -157,5 +176,5 @@ void Points_Unload() {
     if (s3Mesh) {
         AEGfxMeshFree(s3Mesh);
         s3Mesh = nullptr;
-    }
+    } 
 }

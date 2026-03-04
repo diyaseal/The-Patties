@@ -27,6 +27,7 @@ enum GS_STATES
 	GS_MAINMENU,// Main menu game state
 	GS_LEVELS, // Levels Page
 	GS_GAME,  // Level 1 game state
+	GS_LVLCMP,     // Level complete state
 
 	GS_QUIT,        // Quit game state - signals program termination
 	GS_RESTART      // Restart state - signals level restart

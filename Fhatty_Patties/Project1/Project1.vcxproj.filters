@@ -46,6 +46,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Levels.cpp">
+    <ClCompile Include="LevelComplete.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Level_Manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,11 +88,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Levels.hpp">
+    <ClInclude Include="LevelComplete.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Level_Manager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Data.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\Assets\Data\Data.csv">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

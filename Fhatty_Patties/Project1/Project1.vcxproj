@@ -101,6 +101,8 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="GameStateManager.cpp" />
     <ClCompile Include="GraphicManager.cpp" />
     <ClCompile Include="Levels.cpp" />
+    <ClCompile Include="LevelComplete.cpp" />
+    <ClCompile Include="Level_Manager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Points.cpp" />
@@ -115,6 +117,8 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="GameStateManager.hpp" />
     <ClInclude Include="GraphicManager.hpp" />
     <ClInclude Include="Levels.hpp" />
+    <ClInclude Include="Level_Manager.hpp" />
+    <ClInclude Include="LevelComplete.hpp" />
     <ClInclude Include="MainMenu.hpp" />
     <ClInclude Include="pch.hpp" />
     <ClInclude Include="Points.hpp" />
@@ -123,6 +127,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Assets\Data\Data.csv" />
     <None Include="Data.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

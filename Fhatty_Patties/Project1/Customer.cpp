@@ -1,4 +1,4 @@
-#include "pch.hpp"
+﻿#include "pch.hpp"
 #include <vector>
 #include <cstdlib>
 #include <ctime>
@@ -7,84 +7,99 @@
 // Customer System Variables
 // ---------------------------------------------------------------------------
 std::vector<Customer> customers;
-static const int MAX_CUSTOMERS = 1;        // Only 1 customer for prototype
-static bool hasSpawned = false;            // Track if we've spawned the customer
-extern AEGfxTexture* Ingredients;          // Customer Bubble Ingredient Texture 
+extern AEGfxTexture* Ingredients;  // for thought bubble ingredient icons (Diya's code)
+static int totalCustomersSpawned = 0;  // tracks lifetime total
+static const int CUSTOMERS_PER_LEVEL = 5;  // game ends after this many
 
-//// Predefined positions
-const float SPAWN_X = -700.0f;       // Customers spawn off-screen left
+// ---------------------------------------------------------------------------
+// Counter Slot System
+// ---------------------------------------------------------------------------
+static const int MAX_SLOTS = 4;
+static bool slotOccupied[MAX_SLOTS] = { false };
+
+// ---------------------------------------------------------------------------
+// Position Constants
+// ---------------------------------------------------------------------------
+const float SPAWN_X = -700.0f;
 const float SPAWN_Y = 100.0f;
-const float COUNTER_X = -200.0f;     // Where customers walk to (the counter)
+const float EXIT_X = 800.0f;
+const float SLOT_START_X = -400.0f;
+const float SLOT_SPACING = 250.0f;
 const float COUNTER_Y = 100.0f;
-const float EXIT_X = 800.0f;         // Off-screen right (where customer leaves)
 
+// ---------------------------------------------------------------------------
+// Patience Bar
+// ---------------------------------------------------------------------------
 static AEGfxVertexList* DurationMesh = nullptr;
+static const f32 DURATION_DECREASE_RATE = 10.0f;
 
-struct Duration {
-    f32 currentDuration{ 0.0f };
-    f32 maxDuration{ 0.0f };
+// ---------------------------------------------------------------------------
+// Emotion Display
+// ---------------------------------------------------------------------------
+static const float EMOTION_DISPLAY_TIME = 1.5f;
 
-    // Standard bar
-    f32 bar_width{ 0.0f };
-    f32 bar_height{ 0.0f };
-    f32 bar_pos_x{ 0.0f }, bar_pos_y{ 0.0f };
+// ---------------------------------------------------------------------------
+// Spawn Timer
+// ---------------------------------------------------------------------------
+static float spawnTimer = 0.0f;
+static float spawnInterval = 4.0f;  // seconds between spawns
 
-    AEMtx33 transform{}; // final transformation matrix for rendering
-};
-
-// Duration bar properties - tied to the customer
-static Duration duration = { 0 };
-static bool durationStarted = false;  // Only start decreasing when customer arrives
-static const f32 DURATION_DECREASE_RATE = 10.0f;  // How fast the bar decreases per second
-
+// ---------------------------------------------------------------------------
+// Helper: FindFreeSlot
+// ---------------------------------------------------------------------------
+static int FindFreeSlot() {
+    for (int i = 0; i < MAX_SLOTS; i++) {
+        if (!slotOccupied[i]) return i;
+    }
+    return -1;
+}
 // ---------------------------------------------------------------------------
 // Initialize Customer System
 // ---------------------------------------------------------------------------
 void Customer_Init() {
     customers.clear();
-    hasSpawned = false;
-    durationStarted = false;
+    for (int i = 0; i < MAX_SLOTS; i++) slotOccupied[i] = false;
+    spawnTimer = 0.0f;
+    totalCustomersSpawned = 0;
     srand(static_cast<unsigned int>(time(nullptr)));
     printf("Customer system initialized\n");
+
+    Customer_Spawn();  // spawn first customer immediately
 }
 
 // ---------------------------------------------------------------------------
 // Spawn a New Customer
 // ---------------------------------------------------------------------------
 void Customer_Spawn() {
-    if (customers.size() >= MAX_CUSTOMERS) {
-        return;  // Don't spawn if we're at max capacity
-    }
+    if (totalCustomersSpawned >= CUSTOMERS_PER_LEVEL) {
+        return;  // Don't spawn if we've reached the total for the level
+	}
+
+    int slot = FindFreeSlot();
+    if (slot == -1) return;
 
     Customer newCustomer;
-
-    // Starting position (off-screen)
     newCustomer.x = SPAWN_X;
     newCustomer.y = SPAWN_Y;
-
-    // Target position (at the counter)
-    newCustomer.targetX = COUNTER_X;
+    newCustomer.targetX = SLOT_START_X + slot * SLOT_SPACING;
     newCustomer.targetY = COUNTER_Y;
+    newCustomer.slotIndex = slot;
+    slotOccupied[slot] = true;
 
-    // WALKING sprite (2nd row, 1st column)
-    newCustomer.frameX = 1;
-    newCustomer.frameY = 0;
+    newCustomer.frameX = 1;      // side view
+    newCustomer.frameY = 1;      // happy row
+    newCustomer.flipHorizontal = false;
 
-    // Properties
-    newCustomer.speed = 200.0f;  // Random speed between 100-150
+    newCustomer.speed = 180.0f + (rand() % 60);
     newCustomer.isWalking = true;
-    newCustomer.mesh = nullptr;
+    newCustomer.patience = 100.0f;
+    newCustomer.maxPatience = 100.0f;
+    newCustomer.textureIndex = rand() % 4;  // random character
 
-    newCustomer.hasOrder = false;
-    newCustomer.isWaitingForFood = false;
-    //newCustomer.patience = 100.0f;
-    //newCustomer.maxPatience = 100.0f;
-
-    // Generate a random order (simple 3-ingredient burger for prototype)
+    totalCustomersSpawned++;
     RandomOrder(&newCustomer);
-
     customers.push_back(newCustomer);
-    printf("Customer spawned! Total customers: %zu\n", customers.size());
+    printf("Customer spawned in slot %d! Total: %zu\n", slot, customers.size());
 }
 // ---------------------------------------------------------------------------
 // Create a Random burger order from customer
@@ -130,7 +145,7 @@ void RandomOrder(Customer* customer) {
 // ---------------------------------------------------------------------------
 // Draw Thought Bubble with Ingredients :Diya
 // ---------------------------------------------------------------------------
-void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
+static void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
     // Bubble position (above customer's head)
     float bubbleX = customerX + 50.0f;  // Slightly right of customer
     float bubbleY = customerY + 180.0f; // Above customer's head
@@ -221,118 +236,152 @@ void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>&
     // Free mesh
     AEGfxMeshFree(bubbleMesh);
 }
+
 // ---------------------------------------------------------------------------
-// Check if Customer Reached Target
+// Customer_IsAtTarget
 // ---------------------------------------------------------------------------
 bool Customer_IsAtTarget(Customer* customer) {
     float dx = customer->targetX - customer->x;
     float dy = customer->targetY - customer->y;
-    float distanceSquared = dx * dx + dy * dy;
-    return distanceSquared < 25.0f;  // Within 5 pixels
+    return (dx * dx + dy * dy) < 25.0f;
+}
+
+// ---------------------------------------------------------------------------
+// StartLeaving (internal)
+// ---------------------------------------------------------------------------
+static void StartLeaving(Customer& customer) {
+    customer.isLeaving = true;
+    customer.isWalking = true;
+    customer.isWaitingForFood = false;
+    customer.targetX = EXIT_X;
+    customer.targetY = customer.y;
+    customer.flipHorizontal = false;
+
+    if (customer.isSatisfied) {
+        customer.frameX = 1;
+        customer.frameY = 1;
+        printf("Customer leaving HAPPY\n");
+    }
+    else {
+        customer.frameX = 1;
+        customer.frameY = 0;
+        printf("Customer leaving ANGRY\n");
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Update All Customers
 // ---------------------------------------------------------------------------
 void Customer_Update(float dt) {
-    // Spawn 1 customer at the start (prototype mode)
-    if (!hasSpawned) {
+    spawnTimer += dt;
+    if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0.0f;
         Customer_Spawn();
-        hasSpawned = true;
     }
 
-    // Update each customer
+    // Check if all customers have been served/left and we hit the limit
+    if (totalCustomersSpawned >= CUSTOMERS_PER_LEVEL && customers.empty()) {
+        printf("Level complete! All %d customers served.\n", CUSTOMERS_PER_LEVEL);
+        next = GS_LVLCMP;   
+    }
+
     for (int i = 0; i < (int)customers.size(); i++) {
-        Customer& customer = customers[i];
-        // Walking logic
-        if (customer.isWalking) {
-            // WALKING sprite
-            customer.frameX = 1;
-            customer.frameY = 0;
-            customer.flipHorizontal = false; // Facing right
+        Customer& c = customers[i];
 
-            // Calculate direction to target
-            float dx = static_cast<float>(customer.targetX - customer.x);
-            float dy = static_cast<float>(customer.targetY - customer.y);
-            float distance = static_cast<float>(sqrt(dx * dx + dy * dy));
+        // STATE 1: WALKING
+        if (c.isWalking) {
+            float dx = c.targetX - c.x;
+            float dy = c.targetY - c.y;
+            float dist = sqrtf(dx * dx + dy * dy);
 
-            if (distance > 0.01f) {
-                // Normalize direction and move
-                float moveX = static_cast<float>((dx / distance) * customer.speed * dt);
-                float moveY = static_cast<float>((dy / distance) * customer.speed * dt);
-
-                customer.x += moveX;
-                customer.y += moveY;
+            if (dist > 0.01f) {
+                c.x += (dx / dist) * c.speed * dt;
+                c.y += (dy / dist) * c.speed * dt;
             }
 
-            // Check if reached target
-            if (Customer_IsAtTarget(&customer)) {
-                // Customer walked off-screen to the right, remove them
-                if (customer.targetX >= EXIT_X) {
+            if (Customer_IsAtTarget(&c)) {
+                if (c.isLeaving) {
+                    if (c.slotIndex >= 0) slotOccupied[c.slotIndex] = false;
                     customers.erase(customers.begin() + i);
-                    hasSpawned = false;  // Allow a new customer to spawn
                     printf("Customer left!\n");
-                    break;  // Break since we modified the vector
+                    i--;
+                    continue;
                 }
 
-                // Customer reached the counter
-                customer.isWalking = false;
-                printf("Customer reached target position!\n");
+                c.isWalking = false;
+                c.isWaitingForFood = true;
+                c.frameX = 0;
+                c.frameY = 1;
+                c.flipHorizontal = false;
 
-                // IDLE sprite
-                customer.frameX = 0;
-                customer.frameY = 0;
-
-                // START the duration bar when customer arrives
-                durationStarted = true;
-                duration.currentDuration = 100.0f;
-                duration.maxDuration = 100.0f;
-
-                // Customer is now waiting for food
-                customer.isWaitingForFood = true;
-
-                // Display the order (we'll add visual later)
                 printf("Customer wants: ");
-                for (int ing : customer.order) {
+                for (int ing : c.order) {
                     switch (ing) {
                     case BOTTOM_BUN: printf("Bottom Bun "); break;
-                    case TOP_BUN: printf("Top Bun "); break;
-                    case PATTY: printf("Patty "); break;
-                    case CHEESE: printf("Cheese "); break;
-                    case LETTUCE: printf("Lettuce "); break;
-                    case TOMATO: printf("Tomato "); break;
+                    case TOP_BUN:    printf("Top Bun ");    break;
+                    case PATTY:      printf("Patty ");      break;
+                    case CHEESE:     printf("Cheese ");     break;
+                    case LETTUCE:    printf("Lettuce ");    break;
+                    case TOMATO:     printf("Tomato ");     break;
                     }
                 }
-                printf("\n");
+                printf("\nCustomer arrived at slot %d\n", c.slotIndex);
             }
+            continue;
         }
-    }
 
-    // Only decrease duration when customer has arrived
-    if (durationStarted) {
-        duration.currentDuration -= DURATION_DECREASE_RATE * dt;
-        if (duration.currentDuration < 0.0f) {
-            duration.currentDuration = 0.0f;
-            durationStarted = false;  // Stop decreasing when it hits 0
-            printf("Customer duration expired!\n");
+        // STATE 2: SHOWING EMOTION before leaving
+        if (c.isAngry || c.isSatisfied) {
+            c.emotionTimer += dt;
+            if (c.emotionTimer >= EMOTION_DISPLAY_TIME) {
+                StartLeaving(c);
+            }
+            continue;
+        }
 
-            // Make customer walk towards the right (off-screen)
-            for (Customer& customer : customers) {
-                if (!customer.isWalking) {
-                    customer.isWalking = true;
-                    customer.targetX = EXIT_X;
-                    customer.targetY = customer.y;  // Keep same Y
-                    customer.flipHorizontal = true;  // Face right
-                }
+        // STATE 3: WAITING FOR FOOD - patience drains
+        if (c.isWaitingForFood) {
+            c.patience -= DURATION_DECREASE_RATE * dt;
+
+            if (c.patience <= 0.0f) {
+                c.patience = 0.0f;
+                c.isAngry = true;
+                c.isWaitingForFood = false;
+                c.frameX = 0;
+                c.frameY = 0;
+                c.flipHorizontal = false;
+                printf("Customer ANGRY! Patience ran out (slot %d)\n", c.slotIndex);
             }
         }
     }
 }
 
+bool Customer_IsLevelComplete() {
+    return totalCustomersSpawned >= CUSTOMERS_PER_LEVEL && customers.empty();
+}
+
+// ---------------------------------------------------------------------------
+// Customer_Satisfy
+// Called from game.cpp when player serves correct burger
+// ---------------------------------------------------------------------------
+void Customer_Satisfy(int index) {
+    if (index < 0 || index >= (int)customers.size()) return;
+    Customer& customer = customers[index];
+    if (!customer.isWaitingForFood) return;
+
+    customer.isSatisfied = true;
+    customer.isWaitingForFood = false;
+    customer.emotionTimer = 0.0f;
+    customer.frameX = 0;
+    customer.frameY = 1;
+    customer.flipHorizontal = false;
+    printf("Customer SATISFIED! (slot %d)\n", customer.slotIndex);
+}
+
 // ---------------------------------------------------------------------------
 // Draw All Customers
 // ---------------------------------------------------------------------------
-void Customer_Draw(AEGfxTexture* customerTexture) {
+void Customer_Draw(AEGfxTexture* customerTexture[]) {
     DurationMesh = SquareMesh(0.5f, 0.5f);
 
     for (Customer& customer : customers) {
@@ -344,15 +393,15 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
 
         // Pass the flip parameter
         AEGfxVertexList* frameMesh = CustomerMesh(
-            static_cast<float>(customer.frameX),
+            static_cast<float>(customer.frameX),  
             static_cast<float>(customer.frameY),
             2.0f,
-            1.0f,
+            2.0f,         
             customer.flipHorizontal
         );
 
         // Set texture (no offset needed since UVs are in the mesh)
-        AEGfxTextureSet(customerTexture, 0.0f, 0.0f);
+        AEGfxTextureSet(customerTexture[customer.textureIndex], 0.0f, 0.0f);
 
         // Create transformation matrices
         AEMtx33 scale, translate;
@@ -375,50 +424,38 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
         }
 
         // ---------------------------------------------------------------
-        // DRAW DURATION BAR only when customer has arrived
+        // DRAW PATIENCE BAR only when customer has arrived
         // ---------------------------------------------------------------
-        if (!customer.isWalking) {
-            // Switch back to color render mode for the bar
+        if (customer.isWaitingForFood) {
             AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-            // Position the bar above the customer's head
-            duration.bar_pos_x = customer.x + 10.0f;           // Centered on customer
-            duration.bar_pos_y = customer.y + 100.0f;  // Above the customer's head
-            duration.bar_width = 140.0f;               // FIXED: width
-            duration.bar_height = 10.0f;               // FIXED: was bar_width = 10.0f
+            const float bar_w = 140.0f, bar_h = 10.0f;
+            const float bar_x = customer.x + 10.0f;
+            const float bar_y = customer.y + 160.0f;
 
-            f32 durationPercentage = duration.currentDuration / duration.maxDuration;
-            if (durationPercentage > 1.0f) durationPercentage = 1.0f;
-            if (durationPercentage < 0.0f) durationPercentage = 0.0f;
-
-            // Draw gray background bar
             {
-                AEMtx33 barScale, barTranslate, barTransform;
-                AEMtx33Scale(&barScale, duration.bar_width, duration.bar_height);
-                AEMtx33Trans(&barTranslate, duration.bar_pos_x, duration.bar_pos_y);
-                AEMtx33Concat(&barTransform, &barTranslate, &barScale);
-
-                AEGfxSetColorToMultiply(0.3f, 0.3f, 0.3f, 1.0f); // Dark gray
-                AEGfxSetTransform(barTransform.m);
+                AEMtx33 s, t, m;
+                AEMtx33Scale(&s, bar_w, bar_h);
+                AEMtx33Trans(&t, bar_x, bar_y);
+                AEMtx33Concat(&m, &t, &s);
+                AEGfxSetColorToMultiply(0.3f, 0.3f, 0.3f, 1.0f);
+                AEGfxSetTransform(m.m);
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
             }
 
-            // Draw colored duration fill
-            if (durationPercentage > 0.0f) {
-                f32 currentWidth = duration.bar_width * durationPercentage;
-                f32 offsetX = -(duration.bar_width - currentWidth) / 2.0f;
+            f32 pct = customer.patience / customer.maxPatience;
+            if (pct < 0.0f) pct = 0.0f;
+            if (pct > 1.0f) pct = 1.0f;
+            if (pct > 0.0f) {
+                f32 fillW = bar_w * pct;
+                f32 offsetX = -(bar_w - fillW) / 2.0f;
 
-                AEMtx33 barScale, barTranslate, barTransform;
-                AEMtx33Scale(&barScale, currentWidth, duration.bar_height);
-                AEMtx33Trans(&barTranslate, duration.bar_pos_x + offsetX, duration.bar_pos_y);
-                AEMtx33Concat(&barTransform, &barTranslate, &barScale);
-
-                // Color: green (100%) to red (0%)
-                f32 red = 1.0f - durationPercentage;
-                f32 green = durationPercentage;
-                AEGfxSetColorToMultiply(red, green, 0.0f, 1.0f);
-
-                AEGfxSetTransform(barTransform.m);
+                AEMtx33 s, t, m;
+                AEMtx33Scale(&s, fillW, bar_h);
+                AEMtx33Trans(&t, bar_x + offsetX, bar_y);
+                AEMtx33Concat(&m, &t, &s);
+                AEGfxSetColorToMultiply(1.0f - pct, pct, 0.0f, 1.0f);
+                AEGfxSetTransform(m.m);
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
             }
         }
@@ -430,9 +467,10 @@ void Customer_Draw(AEGfxTexture* customerTexture) {
 // ---------------------------------------------------------------------------
 void Customer_Free() {
     customers.clear();
-    printf("Customer system freed\n");
+    for (int i = 0; i < MAX_SLOTS; i++) slotOccupied[i] = false;
     if (DurationMesh) {
         AEGfxMeshFree(DurationMesh);
         DurationMesh = nullptr;
     }
+    printf("Customer system freed\n");
 }

@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 extern std::vector<Customer> customers;
@@ -11,7 +11,9 @@ static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
 static AEGfxTexture* GameplayBG = nullptr; // game BG
-static AEGfxTexture* CustomerTexture = nullptr; // Customer sprite sheet texture
+AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
+static AEGfxTexture* PlateTexture = nullptr; //plate 
+
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
                PattieTransform, PattieScale, PattieTranslate,
@@ -20,7 +22,9 @@ static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, Plate
                LettuceTransform, LettuceScale, LettuceTranslate,
                TBurgerTransform, TBurgerScale, TBurgerTranslate,
                BBurgerTransform, BBurgerScale, BBurgerTranslate,  // Transformation matrices
-               BGTransform, BGScale, BGTranslate;
+               BGTransform, BGScale, BGTranslate , 
+               PlateImageTransform, PlateImageScale, PlateImageTranslate;
+;
 
 // Ingredient positions on the plate
 static AEMtx33 PlateLettuceTransform, PlateLettuceScale, PlateLettuceTranslate;
@@ -80,6 +84,12 @@ static float CucumberY = -108.0f;
 static float CucumberWidth = 90.0f;
 static float CucumberHeight = 90.0f;
 
+// Trash bin hitbox for deleting burgers
+static float TrashX = 629.0f;  // Average of your clicks: (574+683+580+706)/4 ≈ 635.75, adjusted to 629
+static float TrashY = -374.0f;  // Average of your clicks: (-307-315-440-435)/4 ≈ -374.25
+static float TrashWidth = 100.0f;  // Width of trash hitbox - adjust as needed
+static float TrashHeight = 100.0f; // Height of trash hitbox - adjust as needed
+
 // Track what's on the plate: Set 
 // everything to false first :Diya
 static bool lettuceOnPlate = false;
@@ -110,11 +120,12 @@ static void ResetDragState() {
 // ---------------------------------------------------------------------------
 // Game State Functions
 
-void Game_Init() {
-    printf("Game_Init called\n");
-	Customer_Init();
-    Points_Init();
-}
+void Game_Init() { 
+    printf("Game_Init called\n"); 
+    Level_Manager_Init(); 
+    Customer_Init(); 
+    Points_Init(); 
+    }
 
 void Game_Load() {
     printf("Game_Load called\n");
@@ -125,6 +136,7 @@ void Game_Load() {
 
     // Load BG 
     GameplayBG = AEGfxTextureLoad("Assets/Assets/Gameplay.png");
+    PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
 
     if (GameplayBG) {
         printf("GameplayBG texture loaded successfully\n");
@@ -143,8 +155,11 @@ void Game_Load() {
         printf("ERROR: Failed to load Ingredients.png\n");
     }
 
-    // Load customer sprite sheet
-    CustomerTexture = AEGfxTextureLoad("Assets/Assets/testChar.png");
+    // Load customer sprite sheet (T)
+    CustomerTexture[0] = AEGfxTextureLoad("Assets/Assets/syakilcust.png");
+    CustomerTexture[1] = AEGfxTextureLoad("Assets/Assets/elicust.png");
+    CustomerTexture[2] = AEGfxTextureLoad("Assets/Assets/tebcust.png");
+    CustomerTexture[3] = AEGfxTextureLoad("Assets/Assets/diyacust.png");
 
     if (CustomerTexture) {
     }
@@ -153,6 +168,8 @@ void Game_Load() {
     }
 
     printf("Rectangle mesh created\n");
+    // Elizabeth: Check if points are loaded
+    Points_Load();
 }
 
 bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
@@ -237,8 +254,8 @@ void Burger_ServeToCustomer() {
 void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc. :Diya 
-    float dt = AEFrameRateControllerGetFrameTime();
-    Customer_Update(dt);
+    f64 dt = AEFrameRateControllerGetFrameTime();
+    Customer_Update(static_cast<float>(dt));
     Points_Update();
 
     // Get mouse position
@@ -394,74 +411,90 @@ void Game_Update() {
     }
 
     // Check for mouse release
+    // Check for mouse release
     if (AEInputCheckReleased(AEVK_LBUTTON)) {
         if (isDragging && burgerIsBeingDragged) {
             // Mouse released while dragging burger
             isDragging = false;
 
-            // Check if burger was dropped on a customer
-            bool servedToCustomer = false;
+            // Check if burger was dropped on the trash bin
+            bool droppedInTrash = false;
 
-            for (Customer& customer : customers) {
-                if (customer.isWaitingForFood) {
-                    // Calculate distance from burger to customer
-                    float dx = burgerDragX - customer.x;
-                    float dy = burgerDragY - customer.y;
-                    float distanceSquared = dx * dx + dy * dy;
+            // Check if burger position is within trash bin bounds
+            if (burgerDragX >= TrashX - TrashWidth / 2.0f &&
+                burgerDragX <= TrashX + TrashWidth / 2.0f &&
+                burgerDragY >= TrashY - TrashHeight / 2.0f &&
+                burgerDragY <= TrashY + TrashHeight / 2.0f) {
 
-                    // If burger is close enough to customer (within 150 pixels)
-                    if (distanceSquared <= 150.0f * 150.0f) {
-                        printf("Burger dropped on customer!\n");
-                        servedToCustomer = true;
+                printf("Burger dropped in trash! Deleting burger...\n");
+                droppedInTrash = true;
+                Burger_Clear(); // This clears the entire burger
+            }
 
-                        // Check if burger matches order
-                        bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
+            // If not dropped in trash, check if dropped on customer
+            if (!droppedInTrash) {
+                bool servedToCustomer = false;
 
-                        if (isCorrect) {
-                            // SUCCESS!
-                            printf("Customer is happy! Order correct!\n");
+                for (int ci = 0; ci < (int)customers.size(); ci++) {
+                    Customer& customer = customers[ci];
+                    if (customer.isWaitingForFood) {
+                        // Calculate distance from burger to customer
+                        float dx = burgerDragX - customer.x;
+                        float dy = burgerDragY - customer.y;
+                        float distanceSquared = dx * dx + dy * dy;
 
-                            // Make customer leave with burger
-                            customer.isWalking = true;
-                            customer.isWaitingForFood = false;
-                            customer.targetX = EXIT_X;
-                            customer.targetY = customer.y;
-                            customer.flipHorizontal = true;
+                        // If burger is close enough to customer (within 150 pixels)
+                        if (distanceSquared <= 150.0f * 150.0f) {
+                            printf("Burger dropped on customer!\n");
+                            servedToCustomer = true;
 
-                            // Clear burger for next order
-                            Burger_Clear();
+                            // Check if burger matches order
+                            bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
 
-                            // Add points (you can integrate with Points system later)
-                            printf("+200 points!\n");
-                            Points_AddPoints(200.0f);
+                            if (isCorrect) {
+                                // SUCCESS!
+                                printf("Customer is happy! Order correct!\n");
 
+                                // Make customer leave with burger
+                                Customer_Satisfy(ci);
+
+                                // Clear burger for next order
+                                Burger_Clear();
+
+                                // Add points
+                                Points_AddPoints(isCorrect);
+                            }
+                            else {
+                                // FAILURE - Wrong order
+                                printf("Customer is unhappy! Wrong order.\n");
+
+                                // Decrease patience
+                                customer.patience -= 30.0f;
+                                if (customer.patience < 0) customer.patience = 0;
+
+                                printf("Customer patience: %.0f/%.0f\n",
+                                    customer.patience, customer.maxPatience);
+
+                                // Burger returns to plate (we'll just clear and let player remake)
+                                Burger_Clear();
+                            }
+                            break; // Exit loop since we found a customer
                         }
-                        else {
-                            // FAILURE - Wrong order
-                            printf("Customer is unhappy! Wrong order.\n");
-
-                            // Decrease patience
-                            customer.patience -= 30.0f;
-                            if (customer.patience < 0) customer.patience = 0;
-
-                            printf("Customer patience: %.0f/%.0f\n",
-                                customer.patience, customer.maxPatience);
-
-                            // Burger returns to plate (we'll just clear and let player remake)
-                            Burger_Clear();
-                        }
-                        break; // Exit loop since we found a customer
                     }
                 }
-            }
 
-            // If burger wasn't served to any customer, it returns to plate
-            if (!servedToCustomer) {
-                printf("Burger returned to plate.\n");
-                burgerIsBeingDragged = false;
-                // Burger stays on plate (no need to clear)
+                // If burger wasn't served to any customer, it returns to plate
+                if (!servedToCustomer) {
+                    printf("Burger returned to plate.\n");
+                    burgerIsBeingDragged = false;
+                    // Burger stays on plate (no need to clear)
+                }
+                else {
+                    burgerIsBeingDragged = false;
+                }
             }
             else {
+                // Burger was dropped in trash, so it's already cleared
                 burgerIsBeingDragged = false;
             }
         }
@@ -469,6 +502,15 @@ void Game_Update() {
 
     if (AEInputCheckTriggered(AEVK_R)) {
         Burger_Clear();
+    }
+
+	//REMEMBER TO REMOVE THIS IS JUST CHECKING PURPOSESSSSS
+    if (AEInputCheckTriggered(AEVK_E)) {
+        next = GS_LVLCMP;
+    }
+
+    if (Customer_IsLevelComplete()) {
+        // switch to results screen / next state
     }
 }
 
@@ -502,7 +544,9 @@ void Game_Draw() {
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
 
-
+    // -------------------------------------------------------------------
+    // DRAW POINTS BAR
+    // -------------------------------------------------------------------
     Points_Draw();
 
     // -------------------------------------------------------------------
@@ -510,7 +554,7 @@ void Game_Draw() {
    // -------------------------------------------------------------------
 
     float plateX = 400.0f;
-    float plateY = -225.0f;
+    float plateY = -175.0f;
     float ingredientSize = 150.0f;
 
     // Determine where to draw burger (plate or dragged position)
@@ -521,7 +565,37 @@ void Game_Draw() {
     }
     else {
         drawX = 400.0f;    // Plate X
-        drawY = -225.0f;   // Plate Y
+        drawY = -175.0f;  // Plate Y
+    }
+
+// -------------------------------------------------------------------
+// DRAW PLATE IMAGE (underneath the burger)
+// -------------------------------------------------------------------
+    if (PlateTexture) {
+        // Set texture rendering mode
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+
+        // Set the plate texture
+        AEGfxTextureSet(PlateTexture, 0.f, 0.f);
+
+        // Scale the plate - adjust size as needed
+        float plateWidth = 20.0f;   // Adjust based on your image
+        float plateHeight = 20.0f;  // Adjust based on your image
+
+        // Create scale matrix
+        AEMtx33Scale(&PlateImageScale, plateWidth, plateHeight);
+
+        // Create translation matrix - position at same X,Y as burger
+        AEMtx33Trans(&PlateImageTranslate, drawX, drawY - 20.0f); // Slightly lower than burger
+
+        // Combine scale and translation
+        AEMtx33Concat(&PlateImageTransform, &PlateImageTranslate, &PlateImageScale);
+
+        // Apply transform
+        AEGfxSetTransform(PlateImageTransform.m);
+
+        // Draw the plate (using a square mesh)
+        AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES); // Reuse TableMesh
     }
 
     /*
@@ -657,6 +731,26 @@ void Game_Free() {
 	Customer_Free();
     // Free any dynamic memory here
     Points_Free();
+    Level_Manager_Free();
+
+    // Free texture
+    if (Ingredients) {
+        AEGfxTextureUnload(Ingredients);
+        Ingredients = nullptr;
+        printf("Ingredients texture freed\n");
+    }
+
+    // Free customer texture
+    for (int i = 0; i < 4; i++) {
+        if (CustomerTexture[i]) {
+            AEGfxTextureUnload(CustomerTexture[i]);
+            CustomerTexture[i] = nullptr;
+        }
+    }
+}
+
+void Game_Unload() {
+    printf("Game_Unload called\n");
 
     // Clean up mesh
     if (TableMesh) {
@@ -682,12 +776,14 @@ void Game_Unload() {
     }
 
     // Free customer texture
-    if (CustomerTexture) {
-        AEGfxTextureUnload(CustomerTexture);
-        CustomerTexture = nullptr;
-        printf("Customer texture freed\n");
+    for (int i = 0; i < 4; i++) {
+        if (CustomerTexture[i]) {
+            AEGfxTextureUnload(CustomerTexture[i]);
+            CustomerTexture[i] = nullptr;
+        }
     }
 
     Points_Unload();
+    Level_Manager_Unload();
 }
 

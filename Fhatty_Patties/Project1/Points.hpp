@@ -7,4 +7,4 @@ void Points_Free();
 void Points_Unload();
 
 // Call this when a customer is served to add points
-void Points_AddPoints(f32 amount);
+void Points_AddPoints(bool cust);
