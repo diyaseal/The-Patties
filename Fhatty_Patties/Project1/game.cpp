@@ -473,9 +473,6 @@ void Game_Update() {
 
                                 // Burger returns to plate (we'll just clear and let player remake)
                                 Burger_Clear();
-
-                                // Add points
-                                Points_AddPoints(!isCorrect);
                             }
                             break; // Exit loop since we found a customer
                         }
