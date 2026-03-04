@@ -12,6 +12,8 @@ static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
 static AEGfxTexture* GameplayBG = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
+static AEGfxTexture* PlateTexture = nullptr; //plate 
+
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
                PattieTransform, PattieScale, PattieTranslate,
@@ -20,7 +22,9 @@ static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, Plate
                LettuceTransform, LettuceScale, LettuceTranslate,
                TBurgerTransform, TBurgerScale, TBurgerTranslate,
                BBurgerTransform, BBurgerScale, BBurgerTranslate,  // Transformation matrices
-               BGTransform, BGScale, BGTranslate;
+               BGTransform, BGScale, BGTranslate , 
+               PlateImageTransform, PlateImageScale, PlateImageTranslate;
+;
 
 // Ingredient positions on the plate
 static AEMtx33 PlateLettuceTransform, PlateLettuceScale, PlateLettuceTranslate;
@@ -132,6 +136,7 @@ void Game_Load() {
 
     // Load BG 
     GameplayBG = AEGfxTextureLoad("Assets/Assets/Gameplay.png");
+    PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
 
     if (GameplayBG) {
         printf("GameplayBG texture loaded successfully\n");
@@ -548,7 +553,7 @@ void Game_Draw() {
    // -------------------------------------------------------------------
 
     float plateX = 400.0f;
-    float plateY = -225.0f;
+    float plateY = -175.0f;
     float ingredientSize = 150.0f;
 
     // Determine where to draw burger (plate or dragged position)
@@ -559,7 +564,37 @@ void Game_Draw() {
     }
     else {
         drawX = 400.0f;    // Plate X
-        drawY = -225.0f;   // Plate Y
+        drawY = -175.0f;  // Plate Y
+    }
+
+// -------------------------------------------------------------------
+// DRAW PLATE IMAGE (underneath the burger)
+// -------------------------------------------------------------------
+    if (PlateTexture) {
+        // Set texture rendering mode
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+
+        // Set the plate texture
+        AEGfxTextureSet(PlateTexture, 0.f, 0.f);
+
+        // Scale the plate - adjust size as needed
+        float plateWidth = 20.0f;   // Adjust based on your image
+        float plateHeight = 20.0f;  // Adjust based on your image
+
+        // Create scale matrix
+        AEMtx33Scale(&PlateImageScale, plateWidth, plateHeight);
+
+        // Create translation matrix - position at same X,Y as burger
+        AEMtx33Trans(&PlateImageTranslate, drawX, drawY - 20.0f); // Slightly lower than burger
+
+        // Combine scale and translation
+        AEMtx33Concat(&PlateImageTransform, &PlateImageTranslate, &PlateImageScale);
+
+        // Apply transform
+        AEGfxSetTransform(PlateImageTransform.m);
+
+        // Draw the plate (using a square mesh)
+        AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES); // Reuse TableMesh
     }
 
     /*
@@ -666,6 +701,7 @@ void Game_Draw() {
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
+
 
 }
 
