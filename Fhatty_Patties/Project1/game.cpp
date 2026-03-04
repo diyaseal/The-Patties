@@ -10,7 +10,8 @@ static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
-static AEGfxTexture* GameplayBG = nullptr; // game BG
+static AEGfxTexture* GameplayBG_back = nullptr; // game BG
+static AEGfxTexture* GameplayBG_front = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
 static AEGfxTexture* PlateTexture = nullptr; //plate 
 
@@ -134,15 +135,26 @@ void Game_Load() {
     TableMesh = SquareMesh(8.0f, 2.5f);
     PlateMesh = CircleMesh(2.0f, 32);
 
-    // Load BG 
-    GameplayBG = AEGfxTextureLoad("Assets/Assets/Gameplay.png");
     PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
 
-    if (GameplayBG) {
-        printf("GameplayBG texture loaded successfully\n");
+    // Load BACK BG 
+    GameplayBG_back = AEGfxTextureLoad("Assets/Assets/Gameplay_back.png");
+
+    if (GameplayBG_back) {
+        printf("GameplayBG back texture loaded successfully\n");
     }
     else {
-        printf("ERROR: Failed to load GameplayBG.png\n");
+        printf("ERROR: Failed to load Gameplay_back.png\n");
+    }
+
+    // Load FRONT BG 
+    GameplayBG_front = AEGfxTextureLoad("Assets/Assets/Gameplay_front.png");
+
+    if (GameplayBG_front) {
+        printf("GameplayBG front texture loaded successfully\n");
+    }
+    else {
+        printf("ERROR: Failed to load Gameplay_front.png\n");
     }
 
     // Load ingredient sprite sheet
@@ -523,7 +535,7 @@ void Game_Draw() {
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
     // -------------------------------------------------------------------
-    // DRAW BG
+    // DRAW BACK BG
     // -------------------------------------------------------------------
     BGMesh = SquareMesh(0.5, 0.5);
     AEMtx33Scale(&BGScale, 1600.0f, 900.0f);
@@ -532,7 +544,7 @@ void Game_Draw() {
     // Apply transformation and draw
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetTransform(BGTransform.m);
-    AEGfxTextureSet(GameplayBG, 0.f, 0.f);
+    AEGfxTextureSet(GameplayBG_back, 0.f, 0.f);
     AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
 
     // -------------------------------------------------------------------
@@ -543,7 +555,15 @@ void Game_Draw() {
 
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
+    // -------------------------------------------------------------------
+    // DRAW FRONT BG
+    // -------------------------------------------------------------------
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetTransform(BGTransform.m);
+    AEGfxTextureSet(GameplayBG_front, 0.f, 0.f);
+    AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
 
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
     // -------------------------------------------------------------------
     // DRAW POINTS BAR
     // -------------------------------------------------------------------
