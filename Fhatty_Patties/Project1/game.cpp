@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 extern std::vector<Customer> customers;
@@ -79,6 +79,12 @@ static float CucumberX = -18.0f;      // From click (-18.00, -108.00)
 static float CucumberY = -108.0f;
 static float CucumberWidth = 90.0f;
 static float CucumberHeight = 90.0f;
+
+// Trash bin hitbox for deleting burgers
+static float TrashX = 629.0f;  // Average of your clicks: (574+683+580+706)/4 ≈ 635.75, adjusted to 629
+static float TrashY = -374.0f;  // Average of your clicks: (-307-315-440-435)/4 ≈ -374.25
+static float TrashWidth = 100.0f;  // Width of trash hitbox - adjust as needed
+static float TrashHeight = 100.0f; // Height of trash hitbox - adjust as needed
 
 // Track what's on the plate: Set 
 // everything to false first :Diya
@@ -396,73 +402,93 @@ void Game_Update() {
     }
 
     // Check for mouse release
+    // Check for mouse release
     if (AEInputCheckReleased(AEVK_LBUTTON)) {
         if (isDragging && burgerIsBeingDragged) {
             // Mouse released while dragging burger
             isDragging = false;
 
-            // Check if burger was dropped on a customer
-            bool servedToCustomer = false;
+            // Check if burger was dropped on the trash bin
+            bool droppedInTrash = false;
 
-            for (int ci = 0; ci < (int)customers.size(); ci++) {
-                Customer& customer = customers[ci];
-                if (customer.isWaitingForFood) {
-                    // Calculate distance from burger to customer
-                    float dx = burgerDragX - customer.x;
-                    float dy = burgerDragY - customer.y;
-                    float distanceSquared = dx * dx + dy * dy;
+            // Check if burger position is within trash bin bounds
+            if (burgerDragX >= TrashX - TrashWidth / 2.0f &&
+                burgerDragX <= TrashX + TrashWidth / 2.0f &&
+                burgerDragY >= TrashY - TrashHeight / 2.0f &&
+                burgerDragY <= TrashY + TrashHeight / 2.0f) {
 
-                    // If burger is close enough to customer (within 150 pixels)
-                    if (distanceSquared <= 150.0f * 150.0f) {
-                        printf("Burger dropped on customer!\n");
-                        servedToCustomer = true;
+                printf("Burger dropped in trash! Deleting burger...\n");
+                droppedInTrash = true;
+                Burger_Clear(); // This clears the entire burger
+            }
 
-                        // Check if burger matches order
-                        bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
+            // If not dropped in trash, check if dropped on customer
+            if (!droppedInTrash) {
+                bool servedToCustomer = false;
 
-                        if (isCorrect) {
-                            // SUCCESS!
-                            printf("Customer is happy! Order correct!\n");
+                for (int ci = 0; ci < (int)customers.size(); ci++) {
+                    Customer& customer = customers[ci];
+                    if (customer.isWaitingForFood) {
+                        // Calculate distance from burger to customer
+                        float dx = burgerDragX - customer.x;
+                        float dy = burgerDragY - customer.y;
+                        float distanceSquared = dx * dx + dy * dy;
 
-                            // Make customer leave with burger
-                            Customer_Satisfy(ci);
+                        // If burger is close enough to customer (within 150 pixels)
+                        if (distanceSquared <= 150.0f * 150.0f) {
+                            printf("Burger dropped on customer!\n");
+                            servedToCustomer = true;
 
-                            // Clear burger for next order
-                            Burger_Clear();
+                            // Check if burger matches order
+                            bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
 
-                            // Add points
-                            Points_AddPoints(isCorrect);
+                            if (isCorrect) {
+                                // SUCCESS!
+                                printf("Customer is happy! Order correct!\n");
 
+                                // Make customer leave with burger
+                                Customer_Satisfy(ci);
+
+                                // Clear burger for next order
+                                Burger_Clear();
+
+                                // Add points
+                                Points_AddPoints(isCorrect);
+                            }
+                            else {
+                                // FAILURE - Wrong order
+                                printf("Customer is unhappy! Wrong order.\n");
+
+                                // Decrease patience
+                                customer.patience -= 30.0f;
+                                if (customer.patience < 0) customer.patience = 0;
+
+                                printf("Customer patience: %.0f/%.0f\n",
+                                    customer.patience, customer.maxPatience);
+
+                                // Burger returns to plate (we'll just clear and let player remake)
+                                Burger_Clear();
+
+                                // Add points
+                                Points_AddPoints(!isCorrect);
+                            }
+                            break; // Exit loop since we found a customer
                         }
-                        else {
-                            // FAILURE - Wrong order
-                            printf("Customer is unhappy! Wrong order.\n");
-
-                            // Decrease patience
-                            customer.patience -= 30.0f;
-                            if (customer.patience < 0) customer.patience = 0;
-
-                            printf("Customer patience: %.0f/%.0f\n",
-                                customer.patience, customer.maxPatience);
-
-                            // Burger returns to plate (we'll just clear and let player remake)
-                            Burger_Clear();
-
-                            // Add points
-                            Points_AddPoints(!isCorrect);
-                        }
-                        break; // Exit loop since we found a customer
                     }
                 }
-            }
 
-            // If burger wasn't served to any customer, it returns to plate
-            if (!servedToCustomer) {
-                printf("Burger returned to plate.\n");
-                burgerIsBeingDragged = false;
-                // Burger stays on plate (no need to clear)
+                // If burger wasn't served to any customer, it returns to plate
+                if (!servedToCustomer) {
+                    printf("Burger returned to plate.\n");
+                    burgerIsBeingDragged = false;
+                    // Burger stays on plate (no need to clear)
+                }
+                else {
+                    burgerIsBeingDragged = false;
+                }
             }
             else {
+                // Burger was dropped in trash, so it's already cleared
                 burgerIsBeingDragged = false;
             }
         }
