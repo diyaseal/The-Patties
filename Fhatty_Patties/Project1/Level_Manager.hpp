@@ -16,7 +16,7 @@ struct LevelData {
     float starPositions[3] = { 0.0f, 0.0f, 0.0f };
     int   starStatus[3] = { 0, 0, 0 };
 
-    float highestPts;
+    float highestPts = 0.0f;
 };
 
 // Global level data (shared)

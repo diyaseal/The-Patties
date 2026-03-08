@@ -91,7 +91,7 @@ bool Level_Manager_LoadLevel(int level) {
                 currentLevelData.starStatus[2] = std::stoi(starTokens[2]);
             }
 
-            currentLevelData.highestPts = std::stoi(cells[6]);
+            currentLevelData.highestPts = static_cast<float>(std::stoi(cells[6]));
 
             printf("=== Level %d loaded from CSV ===\n", level);
             printf("  Customer count: %d\n", currentLevelData.customerCount);
@@ -109,7 +109,7 @@ bool Level_Manager_LoadLevel(int level) {
                 currentLevelData.starStatus[0],
                 currentLevelData.starStatus[1],
                 currentLevelData.starStatus[2]);
-            printf("  Current highest points: %d\n", currentLevelData.highestPts);
+            printf("  Current highest points: %f\n", currentLevelData.highestPts);
             printf("================================\n");
 
             currentLevel = level;

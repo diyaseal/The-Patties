@@ -5,7 +5,6 @@
 // Add headers that you want to pre-compile here
 #include <crtdbg.h> // To check for memory leaks
 #include <cstdio> 
-#include <filesystem>
 #include <vector>
 #include <fstream>
 #include <sstream>

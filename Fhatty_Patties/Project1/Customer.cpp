@@ -9,7 +9,7 @@
 std::vector<Customer> customers;
 extern AEGfxTexture* Ingredients;  // for thought bubble ingredient icons (Diya's code)
 static int totalCustomersSpawned = 0;  // tracks lifetime total
-static const int CUSTOMERS_PER_LEVEL = 5;  // game ends after this many
+static int CUSTOMERS_PER_LEVEL = 0;  // game ends after this many
 
 // ---------------------------------------------------------------------------
 // Counter Slot System
@@ -28,10 +28,15 @@ const float SLOT_SPACING = 250.0f;
 const float COUNTER_Y = 100.0f;
 
 // ---------------------------------------------------------------------------
+// Mesh
+// ---------------------------------------------------------------------------
+static AEGfxVertexList* bubbleMesh = nullptr;
+static AEGfxVertexList* ingredientMesh = nullptr;
+static AEGfxVertexList* DurationMesh = nullptr;
+// ---------------------------------------------------------------------------
 // Patience Bar
 // ---------------------------------------------------------------------------
-static AEGfxVertexList* DurationMesh = nullptr;
-static const f32 DURATION_DECREASE_RATE = 10.0f;
+static const f32 DURATION_DECREASE_RATE = 8.0f;
 
 // ---------------------------------------------------------------------------
 // Emotion Display
@@ -59,9 +64,15 @@ static int FindFreeSlot() {
 void Customer_Init() {
     customers.clear();
     for (int i = 0; i < MAX_SLOTS; i++) slotOccupied[i] = false;
+    CUSTOMERS_PER_LEVEL = Level_Manager_GetCustomerCount();
     spawnTimer = 0.0f;
     totalCustomersSpawned = 0;
     srand(static_cast<unsigned int>(time(nullptr)));
+
+    DurationMesh = SquareMesh(0.5f, 0.5f);
+    bubbleMesh = SquareMesh(0.5f, 0.5f);
+    ingredientMesh = IngredientMesh(0.5f, 0.5f);
+
     printf("Customer system initialized\n");
 
     Customer_Spawn();  // spawn first customer immediately
@@ -154,9 +165,6 @@ static void DrawThoughtBubble(float customerX, float customerY, const std::vecto
     float bubbleWidth = 200.0f;
     float bubbleHeight = 120.0f;
 
-    // Create bubble mesh
-    AEGfxVertexList* bubbleMesh = SquareMesh(0.5f, 0.5f);
-
     // DRAW BUBBLE BACKGROUND (white circle/rounded square)
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.9f); // White with slight transparency
@@ -215,7 +223,7 @@ static void DrawThoughtBubble(float customerX, float customerY, const std::vecto
         AEMtx33Concat(&iconTransform, &iconTrans, &iconScale);
 
         AEGfxSetTransform(iconTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5f, 0.5f), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(ingredientMesh, AE_GFX_MDM_TRIANGLES);
     }
 
     // DRAW BUBBLE TAIL (small circle connecting to customer)
@@ -233,8 +241,6 @@ static void DrawThoughtBubble(float customerX, float customerY, const std::vecto
     AEGfxSetTransform(bubbleTransform.m);
     AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
 
-    // Free mesh
-    AEGfxMeshFree(bubbleMesh);
 }
 
 // ---------------------------------------------------------------------------
@@ -382,7 +388,6 @@ void Customer_Satisfy(int index) {
 // Draw All Customers
 // ---------------------------------------------------------------------------
 void Customer_Draw(AEGfxTexture* customerTexture[]) {
-    DurationMesh = SquareMesh(0.5f, 0.5f);
 
     for (Customer& customer : customers) {
         // Switch to texture rendering mode
@@ -471,6 +476,14 @@ void Customer_Free() {
     if (DurationMesh) {
         AEGfxMeshFree(DurationMesh);
         DurationMesh = nullptr;
+    }
+    if (bubbleMesh) {
+        AEGfxMeshFree(bubbleMesh);
+        bubbleMesh = nullptr;
+    }
+    if (ingredientMesh) {
+        AEGfxMeshFree(ingredientMesh);
+        ingredientMesh = nullptr;
     }
     printf("Customer system freed\n");
 }
