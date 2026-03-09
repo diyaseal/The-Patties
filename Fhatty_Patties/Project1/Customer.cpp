@@ -10,6 +10,7 @@ std::vector<Customer> customers;
 extern AEGfxTexture* Ingredients;  // for thought bubble ingredient icons (Diya's code)
 static int totalCustomersSpawned = 0;  // tracks lifetime total
 static int CUSTOMERS_PER_LEVEL = 0;  // game ends after this many
+static bool levelcompletelogged = false;
 
 // ---------------------------------------------------------------------------
 // Counter Slot System
@@ -76,6 +77,7 @@ void Customer_Init() {
     printf("Customer system initialized\n");
 
     Customer_Spawn();  // spawn first customer immediately
+    levelcompletelogged = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -287,8 +289,10 @@ void Customer_Update(float dt) {
 
     // Check if all customers have been served/left and we hit the limit
     if (totalCustomersSpawned >= CUSTOMERS_PER_LEVEL && customers.empty()) {
-        printf("Level complete! All %d customers served.\n", CUSTOMERS_PER_LEVEL);
-        next = GS_LVLCMP;   
+        if (!levelcompletelogged) {
+            printf("Level complete! All %d customers served.\n", CUSTOMERS_PER_LEVEL);
+            levelcompletelogged = true;
+        }
     }
 
     for (int i = 0; i < (int)customers.size(); i++) {

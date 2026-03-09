@@ -99,6 +99,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="Customer.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="GameStateManager.cpp" />
+    <ClCompile Include="Garagedoor.cpp" />
     <ClCompile Include="GraphicManager.cpp" />
     <ClCompile Include="Levels.cpp" />
     <ClCompile Include="LevelComplete.cpp" />
@@ -115,6 +116,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="game.hpp" />
     <ClInclude Include="GameStateList.hpp" />
     <ClInclude Include="GameStateManager.hpp" />
+    <ClInclude Include="Garagedoor.hpp" />
     <ClInclude Include="GraphicManager.hpp" />
     <ClInclude Include="Levels.hpp" />
     <ClInclude Include="Level_Manager.hpp" />

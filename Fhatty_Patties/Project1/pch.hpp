@@ -23,6 +23,7 @@
 #include "Points.hpp"
 #include "GraphicManager.hpp"
 #include "LevelComplete.hpp"
+#include "Garagedoor.hpp"
 
 //enum of ingredient type used in game.cpp 
 //on click order :Syakil / diya 

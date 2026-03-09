@@ -14,6 +14,7 @@ static AEGfxTexture* GameplayBG_back = nullptr; // game BG
 static AEGfxTexture* GameplayBG_front = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
 static AEGfxTexture* PlateTexture = nullptr; //plate 
+static bool levelEndTriggered = false; // To ensure we only trigger level end sequence once (T)
 
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
@@ -125,7 +126,9 @@ void Game_Init() {
     printf("Game_Init called\n"); 
     Level_Manager_Init(); 
     Customer_Init(); 
-    Points_Init(); 
+    Points_Init();
+    GarageDoor_Init();
+	levelEndTriggered = false; // Reset level end trigger in case of replay
     }
 
 void Game_Load() {
@@ -182,6 +185,8 @@ void Game_Load() {
     printf("Rectangle mesh created\n");
     // Elizabeth: Check if points are loaded
     Points_Load();
+	// Teb : Check if garage door is loaded
+    GarageDoor_Load();
 }
 
 bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
@@ -521,8 +526,17 @@ void Game_Update() {
         next = GS_LVLCMP;
     }
 
-    if (Customer_IsLevelComplete()) {
-        // switch to results screen / next state
+    if (!levelEndTriggered && Customer_IsLevelComplete()) {
+        levelEndTriggered = true;
+        GarageDoor_Trigger();
+    }
+    GarageDoor_Update(static_cast<float>(dt));
+
+    // TEMP DEBUG - press G to test garage door instantly
+    if (AEInputCheckTriggered(AEVK_G)) {
+        levelEndTriggered = true;
+        GarageDoor_Trigger();
+        printf("DEBUG: Garage door manually triggered!\n");
     }
 }
 
@@ -723,7 +737,7 @@ void Game_Draw() {
         AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
     }
 
-
+	GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
 }
 
 void Burger_Clear() {
@@ -752,6 +766,7 @@ void Game_Free() {
     // Free any dynamic memory here
     Points_Free();
     Level_Manager_Free();
+    GarageDoor_Free();
 
     // Clean up mesh
     if (TableMesh) {
