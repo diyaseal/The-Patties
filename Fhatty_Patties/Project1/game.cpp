@@ -798,7 +798,7 @@ void Game_Unload() {
             CustomerTexture[i] = nullptr;
         }
     }
-
+    GarageDoor_Unload();
     Points_Unload();
     Level_Manager_Unload();
 }
