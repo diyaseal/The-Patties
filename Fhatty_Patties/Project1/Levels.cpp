@@ -2,22 +2,44 @@
 // includes
 #include "pch.hpp"
 
+// Global variables for Level
 // ---------------------------------------------------------------------------
-// Global variables for School Credits
-
 static float totalElapsedTime = 0.0f;            // Timer for screen duration
 static s8 fontId = -1;                           // Font ID
-
 // ---------------------------------------------------------------------------
-
-static Button playButton;
-static AEGfxVertexList* pButtonMesh = nullptr;
-
+static AEGfxTexture* LevelBG = nullptr;
+static AEGfxVertexList* LevelMesh = nullptr;
+static AEMtx33 LevelTransform, LevelTranslate, LevelScale;
 // ---------------------------------------------------------------------------
+static AEGfxTexture* Ingredients = nullptr;
+static AEGfxVertexList* IngredientsMesh = nullptr;
+static LevelButton levelButtons[5];
+
+// Star rating textures and mesh
+static AEGfxTexture* starEmptyTex = nullptr;
+static AEGfxTexture* starFilledTex = nullptr;
+static AEGfxVertexList* starMesh = nullptr;
+
+// Button dimensions
+const float BUTTON_WIDTH = 250.0f;
+const float BUTTON_HEIGHT = 250.0f;
+const float BUTTON_SPACING = 300.0f;
+const float START_X = -600.0f;
+const float START_Y = 0.f;
+
+
 // Game State Functions
-
+// ---------------------------------------------------------------------------
 void Levels_Load()
 {
+    //Load BG
+    LevelMesh = CreateSquareMesh(0.5f, 0.5f);
+    LevelBG = AEGfxTextureLoad("Assets/Assets/level_page.png");
+    if (LevelBG)
+        printf("LevelBG texture loaded successfully\n");
+    else
+        printf("ERROR: Failed to load LevelBG!\n");
+
     //Load font
     fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
     if (fontId < 0)
@@ -26,86 +48,179 @@ void Levels_Load()
         printf("SUCCESS: Font loaded, ID = %d\n", fontId);
 
     //Create a button mesh
-    pButtonMesh = CreateSquareMesh(0.5f, 0.5f);
+    IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
+    starMesh = CreateStarMesh(0.5f, 0.2f);  // Outer radius, inner radius
+
+    // Load ingredient textures (you'll need to create these assets)
+    Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
+
+    for (int i = 0; i < 5; i++) {
+        levelButtons[i].ingredientName = INGREDIENT_DATA[i].name;
+    }
 }
 
 void Levels_Init()
 {
     totalElapsedTime = 0.0f;
+    // Initialize level buttons in a grid layout
+    for (int i = 0; i < 5; i++) {
+        levelButtons[i].button.x = START_X + (i * BUTTON_SPACING);
+        levelButtons[i].button.y = START_Y;
+        levelButtons[i].button.width = BUTTON_WIDTH;
+        levelButtons[i].button.height = BUTTON_HEIGHT;
+        levelButtons[i].button.isHovered = false;
+        levelButtons[i].button.isClicked = false;
 
-    // Initialize button properties
-    playButton.x = 0.0f;        // Center of screen
-    playButton.y = 0.0f;
-    playButton.width = 200.0f;
-    playButton.height = 80.0f;
-    playButton.isHovered = false;
-    playButton.isClicked = false;
+        //ELI OVER HERE U CAN INPUT SAVED DATA STUFF
+        // Demo stars (replace with actual saved data)
+        // Level 1: 3 stars, Level 2: 2 stars, Level 3: 1 star, etc.
+        levelButtons[i].starsEarned = 3 - i;
+        if (levelButtons[i].starsEarned < 0) levelButtons[i].starsEarned = 0;
+
+        // First 3 levels unlocked, last 2 locked for demo
+        levelButtons[i].Unlocked = (i < 3);
+    }
 }
 
 void Levels_Update()
 {
     float dt = (float)AEFrameRateControllerGetFrameTime();
 
-    // Use utility function to check hover state
-    playButton.isHovered = IsButtonHovered(playButton);
+    // Check each level button
+    for (int i = 0; i < 5; i++) {
+        // ELI this line skips locked buttons so the click can only work for unlocked levels
+        // if u need to edit base on your code msg me I wanna understand what you do
+        if (!levelButtons[i].Unlocked) continue;  // Skip locked levels
 
-    // Use utility function to check if button is clicked
-    if (IsButtonClicked(playButton))
-    {
-        playButton.isClicked = true;
-        next = GS_GAME;  // Go to next level
+        // Check hover state
+        levelButtons[i].button.isHovered = IsButtonHovered(levelButtons[i].button);
+
+        // Check if button is clicked
+        if (IsButtonClicked(levelButtons[i].button)) {
+            levelButtons[i].button.isClicked = true;
+            // ELI also over here is the place to go to the next game state based on what is clicked when u wanna edit
+            // go through with me too I wanna understand
+            currentLevel = i + 1;  // 1-based level number
+            next = GS_GAME;  // Go to game
+        }
     }
 }
 
 void Levels_Draw()
 {
-    //Render Settings
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    // LevelBG
+    AEMtx33Scale(&LevelScale, 1600, 900);
+    AEMtx33Trans(&LevelTranslate, 0, 0);
+    AEMtx33Concat(&LevelTransform, &LevelTranslate, &LevelScale);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetTransform(LevelTransform.m);
+    AEGfxTextureSet(LevelBG, 0.f, 0.f);
+    AEGfxMeshDraw(LevelMesh, AE_GFX_MDM_TRIANGLES);
 
-    //if mouse is hovering, change color
-    if (playButton.isHovered)
-        AEGfxSetColorToMultiply(0.7f, 0.7f, 0.7f, 1.0f); // Lighter color
-    else
-        AEGfxSetColorToMultiply(1.0f, 0.0f, 0.0f, 1.0f); // Normal color
+    // ---------------------------------------------------------------------------
+    // Draw all level buttons
+    for (int i = 0; i < 5; i++) {
+        AEMtx33 scale, translate, transform;
 
-    //Set transformation for button
-    AEMtx33 scale, translate, transform;
-    AEMtx33Scale(&scale, playButton.width, playButton.height);
-    AEMtx33Trans(&translate, playButton.x, playButton.y);
-    AEMtx33Concat(&transform, &scale, &translate);
-    AEGfxSetTransform(transform.m);
+        // Draw ingredient icon (if unlocked)
+        if (levelButtons[i].Unlocked && Ingredients) {
+            // Slightly smaller than button for padding
+            AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+            AEMtx33Scale(&scale, levelButtons[i].button.width, levelButtons[i].button.height);
+            AEMtx33Trans(&translate, levelButtons[i].button.x, levelButtons[i].button.y + 15); // Shift up for stars
+            AEMtx33Concat(&transform, &translate, &scale);
+            AEGfxSetTransform(transform.m);
+            AEGfxTextureSet(Ingredients, INGREDIENT_DATA[i].x, INGREDIENT_DATA[i].y);
+            AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
+        }
+        else if (!levelButtons[i].Unlocked) {
+            // Draw lock icon or text for locked levels
+            if (fontId >= 0) {
+                AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+                AEGfxPrint(fontId, "LOCKED",
+                    (levelButtons[i].button.x / 800) - 0.1f,
+                    (levelButtons[i].button.y / 450) - 0.05f,
+                    0.6f, 0.0f, 0.0f, 0.0f, 1.0f);
+            }
+        }
 
-    //Draw button mesh
-    AEGfxMeshDraw(pButtonMesh, AE_GFX_MDM_TRIANGLES);
+        // Draw stars (3 stars per level)
+        //float starY = levelButtons[i].button.y - 50;
+        //float starStartX = levelButtons[i].button.x - 45;
+        //float starSpacing = 45;
 
-    //Button Text
-    if (fontId >= 0)
-    {
-        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-        AEGfxPrint(
-            fontId,
-            "Play",
-            -0.05f,   // X (normalized)
-            -0.03f,    // Y (normalized)
-            0.9f,     // Scale
-            0.0f, 0.0f, 0.0f, 1.0f
-        );
+        //for (int star = 0; star < 3; star++) {
+        //    // Set star color based on earned status
+        //    if (levelButtons[i].Unlocked && star < levelButtons[i].starsEarned) {
+        //        // Yellow for earned stars
+        //        AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
+        //    }
+        //    else {
+        //        // Gray for unearned stars
+        //        AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f);
+        //    }
+
+        //    // Set star transformation
+        //    AEMtx33Scale(&scale, 35, 35);
+        //    AEMtx33Trans(&translate, starStartX + (star * starSpacing), starY);
+        //    AEMtx33Concat(&transform, &scale, &translate);
+        //    AEGfxSetTransform(transform.m);
+
+        //    // Draw star mesh
+        //    AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
+        //}
+
+        // Draw level number
+        if (fontId >= 0 && levelButtons[i].Unlocked) {
+            char levelText[16];
+            sprintf_s(levelText, "Level %d", i + 1);
+
+            /*AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+            AEGfxPrint(fontId, levelText,
+                (levelButtons[i].button.x / 800) - 0.1f,
+                (levelButtons[i].button.y / 450) + 0.15f,
+                0.5f, 0.0f, 0.0f, 0.0f, 1.0f);*/
+            float normX = (levelButtons[i].button.x / 800.0f) - 0.1f;
+            float normY = (levelButtons[i].button.y / 450.0f) + 0.15f;
+            if (normX >= -1.0f && normX <= 1.0f && normY >= -1.0f && normY <= 1.0f) {
+                AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+                AEGfxPrint(fontId, levelText, normX, normY, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f);
+            }
+        }
     }
 }
 
 void Levels_Free()
 {
     // Free the button mesh
-    if (pButtonMesh)
+    if (IngredientsMesh)
     {
-        AEGfxMeshFree(pButtonMesh);
-        pButtonMesh = nullptr;
+        AEGfxMeshFree(IngredientsMesh);
+        IngredientsMesh = nullptr;
     }
 }
 
 void Levels_Unload()
 {
-
+    // Free the button mesh
+    if (IngredientsMesh)
+    {
+        AEGfxMeshFree(IngredientsMesh);
+        IngredientsMesh = nullptr;
+    }
+    if (LevelBG) {
+        AEGfxTextureUnload(LevelBG);
+        LevelBG = nullptr;
+    }
+    if (LevelMesh) {
+        AEGfxMeshFree(LevelMesh);
+        LevelMesh = nullptr;
+    }
+    if (fontId >= 0)
+    {
+        AEGfxDestroyFont(fontId);
+        fontId = -1;
+    }
 }

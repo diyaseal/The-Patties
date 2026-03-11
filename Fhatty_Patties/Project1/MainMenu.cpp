@@ -33,7 +33,7 @@ void MainMenu_Load()
     // Load BG
     Wall = AEGfxTextureLoad("Assets/Assets/Transition_wall.png");
     WallMesh = CreateSquareMesh(0.5, 0.5);
-	IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
+
     //Load font
     FontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
     if (FontId < 0)
@@ -43,16 +43,17 @@ void MainMenu_Load()
 
     // Load ingredient sprite sheet for button texture
     Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
+    IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
 
     if (Ingredients)
         printf("Ingredients texture loaded successfully\n");
     else 
         printf("ERROR: Failed to load Ingredients.png\n");
 
-    // Assign the same mesh to all buttons (or create separate if needed)
-    for (int i = 0; i < ButtonCount; i++) {
-        burgerButtons[i]->mesh = IngredientsMesh;
-    }
+    //// Assign the same mesh to all buttons (or create separate if needed)
+    //for (int i = 0; i < ButtonCount; i++) {
+    //    burgerButtons[i]->mesh = IngredientsMesh;
+    //}
 }
 
 void MainMenu_Init()
