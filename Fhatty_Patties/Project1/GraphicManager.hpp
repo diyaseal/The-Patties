@@ -5,4 +5,4 @@ AEGfxVertexList* CreateSquareMesh(float x, float y);
 AEGfxVertexList* CreateCircleMesh(float radius, int segments);
 AEGfxVertexList* CreateIngredientMesh(float x, float y);
 AEGfxVertexList* CreateStarMesh(float outerRadius, float innerRadius);
-AEGfxVertexList* CreateCustomerMesh(float frameX, float frameY, float column, float row, bool flipHorizontal);
+AEGfxVertexList* CreateCustomerMesh();

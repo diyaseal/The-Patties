@@ -34,6 +34,7 @@ const float COUNTER_Y = 100.0f;
 static AEGfxVertexList* bubbleMesh = nullptr;
 static AEGfxVertexList* ingredientMesh = nullptr;
 static AEGfxVertexList* DurationMesh = nullptr;
+AEGfxVertexList* frameMesh = nullptr;
 // ---------------------------------------------------------------------------
 // Patience Bar
 // ---------------------------------------------------------------------------
@@ -78,6 +79,8 @@ void Customer_Init() {
 
     Customer_Spawn();  // spawn first customer immediately
     levelcompletelogged = false;
+
+    frameMesh = CreateCustomerMesh();
 }
 
 // ---------------------------------------------------------------------------
@@ -400,17 +403,10 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
         // Set color to white (to show texture without tint)
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
 
-        // Pass the flip parameter
-        AEGfxVertexList* frameMesh = CreateCustomerMesh(
-            static_cast<float>(customer.frameX),  
-            static_cast<float>(customer.frameY),
-            2.0f,
-            2.0f,         
-            customer.flipHorizontal
-        );
-
         // Set texture (no offset needed since UVs are in the mesh)
-        AEGfxTextureSet(customerTexture[customer.textureIndex], 0.0f, 0.0f);
+        float offsetU = customer.frameX * 0.5f;  // 2 columns → each cell = 0.5
+        float offsetV = customer.frameY * 0.5f;  // 2 rows    → each cell = 0.5
+        AEGfxTextureSet(customerTexture[customer.textureIndex], offsetU, offsetV);
 
         // Create transformation matrices
         AEMtx33 scale, translate;
@@ -421,9 +417,6 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
         // Draw customer sprite
         AEGfxSetTransform(customer.transform.m);
         AEGfxMeshDraw(frameMesh, AE_GFX_MDM_TRIANGLES);
-
-        // Free the temporary mesh
-        AEGfxMeshFree(frameMesh);
 
         // ---------------------------------------------------------------
         // DRAW THOUGHT BUBBLE when customer is waiting for food :Diya
@@ -477,6 +470,10 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
 void Customer_Free() {
     customers.clear();
     for (int i = 0; i < MAX_SLOTS; i++) slotOccupied[i] = false;
+    if (frameMesh) {
+        AEGfxMeshFree(frameMesh);
+        frameMesh = nullptr;
+    }
     if (DurationMesh) {
         AEGfxMeshFree(DurationMesh);
         DurationMesh = nullptr;

@@ -13,7 +13,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    _CrtSetBreakAlloc(20288);
+    //_CrtSetBreakAlloc(20288);
 
     int gGameRunning = 1;
 

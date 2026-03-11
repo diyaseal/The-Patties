@@ -1,4 +1,4 @@
-/* Start Header ************************************************************************/
+ï»¿/* Start Header ************************************************************************/
 /*!
 \file       GarageDoor.cpp
 \brief      Garage door closing animation for level end sequence.
@@ -39,7 +39,7 @@ void GarageDoor_Load()
 }
 
 // ---------------------------------------------------------------------------
-// GarageDoor_Init  — call this when entering the gameplay state
+// GarageDoor_Init  â€” call this when entering the gameplay state
 // ---------------------------------------------------------------------------
 void GarageDoor_Init()
 {
@@ -52,7 +52,7 @@ void GarageDoor_Init()
 }
 
 // ---------------------------------------------------------------------------
-// GarageDoor_Trigger  — call once when Customer_IsLevelComplete() is true
+// GarageDoor_Trigger  â€” call once when Customer_IsLevelComplete() is true
 // ---------------------------------------------------------------------------
 void GarageDoor_Trigger()
 {
@@ -62,7 +62,7 @@ void GarageDoor_Trigger()
 }
 
 // ---------------------------------------------------------------------------
-// GarageDoor_Update  — call every frame from Game_Update()
+// GarageDoor_Update  â€” call every frame from Game_Update()
 // ---------------------------------------------------------------------------
 void GarageDoor_Update(float dt)
 {
@@ -91,7 +91,7 @@ void GarageDoor_Update(float dt)
 }
 
 // ---------------------------------------------------------------------------
-// GarageDoor_Draw  — call at the END of Game_Draw() so it draws on top
+// GarageDoor_Draw  â€” call at the END of Game_Draw() so it draws on top
 // ---------------------------------------------------------------------------
 void GarageDoor_Draw()
 {
@@ -108,7 +108,6 @@ void GarageDoor_Draw()
     AEMtx33Concat(&m, &t, &s);
     AEGfxSetTransform(m.m);
     AEGfxMeshDraw(doorMesh, AE_GFX_MDM_TRIANGLES);
-    AEGfxMeshFree(doorMesh);
 }
 
 // ---------------------------------------------------------------------------
@@ -116,6 +115,10 @@ void GarageDoor_Draw()
 // ---------------------------------------------------------------------------
 void GarageDoor_Free()
 {
+    if (doorMesh) {          
+        AEGfxMeshFree(doorMesh);
+        doorMesh = nullptr;
+    }
     // Reset state in case level is replayed
     isTriggered = false;
     isClosed = false;
