@@ -29,8 +29,6 @@ static const f32 BAR_POS_Y = 400.0f;        // Same Y as gray bar
 // Points State Functions
 
 void Points_Init() {
-    BarMesh = CreateSquareMesh(0.5f, 0.5f);
-
     printf("Points_Init called\n");
 
     MAX_POINTS = 0.0f; // reset first
@@ -47,6 +45,11 @@ void Points_Load() {
         currentLevelData.starPositions[0],
         currentLevelData.starPositions[1],
         currentLevelData.starPositions[2]);
+
+    BarMesh = CreateSquareMesh(0.5f, 0.5f);
+    s1Mesh = CreateStarMesh(0.5f, 0.2f); // ? create once
+    s2Mesh = CreateStarMesh(0.5f, 0.2f);
+    s3Mesh = CreateStarMesh(0.5f, 0.2f);
 }
 
 void Points_Update() {
@@ -78,7 +81,9 @@ void Points_AddPoints(bool cust) {
     printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
 
-void Points_Draw(){
+void Points_Draw() {
+
+    if (MAX_POINTS <= 0.0f) return; // Guard against division by zero
 
     // -------------------------------------------------------------------
     // DRAW GRAY BAR (background)
@@ -100,10 +105,7 @@ void Points_Draw(){
     if (pointsPercentage < 0.0f) pointsPercentage = 0.0f;
 
     if (pointsPercentage > 0.0f) {
-        pointsGainedMesh = BarMesh;
-
         f32 filledWidth = BAR_WIDTH * pointsPercentage;
-        // Offset so it grows from the left edge of the gray bar
         f32 offsetX = -(BAR_WIDTH - filledWidth) / 2.0f;
 
         AEMtx33 pgScale, pgTranslate, pgTransform;
@@ -111,31 +113,26 @@ void Points_Draw(){
         AEMtx33Trans(&pgTranslate, BAR_POS_X + offsetX, BAR_POS_Y);
         AEMtx33Concat(&pgTransform, &pgTranslate, &pgScale);
 
-        // Gold/yellow color for the points fill
-        AEGfxSetColorToMultiply(1.0f, 0.75f, 0.0f, 1.0f);
+        AEGfxSetColorToMultiply(1.0f, 0.75f, 0.0f, 1.0f); // Gold/yellow
         AEGfxSetTransform(pgTransform.m);
-        AEGfxMeshDraw(pointsGainedMesh, AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(BarMesh, AE_GFX_MDM_TRIANGLES); // reuse BarMesh directly
     }
 
     // -------------------------------------------------------------------
     // DRAW STARS (on top of points bar)
-    // Color: yellow if points reached threshold, gray if not yet
     // -------------------------------------------------------------------
     const f32 STAR_SIZE = 50.0f;
     const f32 STAR_Y_POS = BAR_POS_Y;
-    const f32 BAR_LEFT_EDGE = BAR_POS_X - BAR_WIDTH / 2.0f; // Leftmost point of bar
+    const f32 BAR_LEFT_EDGE = BAR_POS_X - BAR_WIDTH / 2.0f;
 
-    // Calculate star positions based on bar position and thresholds
+    AEGfxVertexList* starMeshes[3] = { s1Mesh, s2Mesh, s3Mesh }; // use pre-created meshes
+
     for (int i = 0; i < 3; i++) {
         f32 threshold = Level_Manager_GetStarPosition(i);
         f32 thresholdPercentage = threshold / MAX_POINTS;
-
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
-        AEGfxVertexList* starMesh = CreateStarMesh(0.5f, 0.2f);
-
-        // Check if current point is greater than threshold
-        if (currentPoints >= Level_Manager_GetStarPosition(i))
+        if (currentPoints >= threshold)
             AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
         else
             AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
@@ -147,7 +144,7 @@ void Points_Draw(){
         AEMtx33Concat(&StarTransform, &StarTranslate, &TempTransform);
 
         AEGfxSetTransform(StarTransform.m);
-        AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(starMeshes[i], AE_GFX_MDM_TRIANGLES); // no allocation here
     }
 }
 
@@ -160,12 +157,9 @@ void Points_Unload() {
 
     if (BarMesh) {
         AEGfxMeshFree(BarMesh);
-        BarMesh = nullptr;
-    }
-    if (pointsGainedMesh) {
-        AEGfxMeshFree(pointsGainedMesh);
         pointsGainedMesh = nullptr;
     }
+
     if (s1Mesh) {
         AEGfxMeshFree(s1Mesh);
         s1Mesh = nullptr;
