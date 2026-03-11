@@ -19,6 +19,7 @@ static BurgerButton bottomBun;
 static BurgerButton* burgerButtons[] = { &bottomBun, &lettuce, &patty, &cheese, &topBun };
 static const int ButtonCount = sizeof(BUTTON_DATA) / sizeof(BUTTON_DATA[0]);
 static float buttonWidth = 850.0f, buttonHeight = 400.0f;
+static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh 
 // ---------------------------------------------------------------------------
 static AEGfxTexture* Wall = nullptr;
 static AEMtx33 WallTransform, WallTranslate, WallScale;
@@ -31,8 +32,8 @@ void MainMenu_Load()
 {
     // Load BG
     Wall = AEGfxTextureLoad("Assets/Assets/Transition_wall.png");
-    WallMesh = SquareMesh(0.5, 0.5);
-
+    WallMesh = CreateSquareMesh(0.5, 0.5);
+	IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
     //Load font
     FontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
     if (FontId < 0)
@@ -50,7 +51,7 @@ void MainMenu_Load()
 
     // Assign the same mesh to all buttons (or create separate if needed)
     for (int i = 0; i < ButtonCount; i++) {
-        burgerButtons[i]->mesh = IngredientMesh(0.5, 0.5);
+        burgerButtons[i]->mesh = IngredientsMesh;
     }
 }
 
@@ -66,7 +67,7 @@ void MainMenu_Init()
         float yPos = startY + spacing * BUTTON_DATA[i].yOffset;
 
         burgerButtons[i]->texture = Ingredients;
-        burgerButtons[i]->mesh = IngredientMesh(0.5, 0.5);
+        burgerButtons[i]->mesh = IngredientsMesh;
         burgerButtons[i]->name = BUTTON_DATA[i].name;
         burgerButtons[i]->x = 0.0f;
         burgerButtons[i]->y = yPos;

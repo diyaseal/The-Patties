@@ -29,7 +29,7 @@ const float SLOT_SPACING = 250.0f;
 const float COUNTER_Y = 100.0f;
 
 // ---------------------------------------------------------------------------
-// Mesh
+// Mesh DIYA
 // ---------------------------------------------------------------------------
 static AEGfxVertexList* bubbleMesh = nullptr;
 static AEGfxVertexList* ingredientMesh = nullptr;
@@ -70,9 +70,9 @@ void Customer_Init() {
     totalCustomersSpawned = 0;
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    DurationMesh = SquareMesh(0.5f, 0.5f);
-    bubbleMesh = SquareMesh(0.5f, 0.5f);
-    ingredientMesh = IngredientMesh(0.5f, 0.5f);
+    DurationMesh = CreateSquareMesh(0.5f, 0.5f);
+    bubbleMesh = CreateSquareMesh(0.5f, 0.5f);
+    ingredientMesh = CreateIngredientMesh(0.5f, 0.5f);
 
     printf("Customer system initialized\n");
 
@@ -401,7 +401,7 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
 
         // Pass the flip parameter
-        AEGfxVertexList* frameMesh = CustomerMesh(
+        AEGfxVertexList* frameMesh = CreateCustomerMesh(
             static_cast<float>(customer.frameX),  
             static_cast<float>(customer.frameY),
             2.0f,

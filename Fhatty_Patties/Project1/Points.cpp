@@ -29,6 +29,8 @@ static const f32 BAR_POS_Y = 400.0f;        // Same Y as gray bar
 // Points State Functions
 
 void Points_Init() {
+    BarMesh = CreateSquareMesh(0.5f, 0.5f);
+
     printf("Points_Init called\n");
 
     MAX_POINTS = 0.0f; // reset first
@@ -81,7 +83,6 @@ void Points_Draw(){
     // -------------------------------------------------------------------
     // DRAW GRAY BAR (background)
     // -------------------------------------------------------------------
-    BarMesh = SquareMesh(0.5f, 0.5f);
     AEGfxSetColorToMultiply(0.2f, 0.2f, 0.2f, 1.0f); // Gray color
 
     AEMtx33Scale(&BarScale, BAR_WIDTH, BAR_HEIGHT);
@@ -99,7 +100,7 @@ void Points_Draw(){
     if (pointsPercentage < 0.0f) pointsPercentage = 0.0f;
 
     if (pointsPercentage > 0.0f) {
-        pointsGainedMesh = SquareMesh(0.5f, 0.5f);
+        pointsGainedMesh = BarMesh;
 
         f32 filledWidth = BAR_WIDTH * pointsPercentage;
         // Offset so it grows from the left edge of the gray bar
@@ -131,7 +132,7 @@ void Points_Draw(){
 
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
-        AEGfxVertexList* starMesh = StarMesh(0.5f, 0.2f);
+        AEGfxVertexList* starMesh = CreateStarMesh(0.5f, 0.2f);
 
         // Check if current point is greater than threshold
         if (currentPoints >= Level_Manager_GetStarPosition(i))

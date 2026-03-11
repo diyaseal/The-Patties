@@ -26,7 +26,7 @@ void Levels_Load()
         printf("SUCCESS: Font loaded, ID = %d\n", fontId);
 
     //Create a button mesh
-    pButtonMesh = SquareMesh(0.5f, 0.5f);
+    pButtonMesh = CreateSquareMesh(0.5f, 0.5f);
 }
 
 void Levels_Init()

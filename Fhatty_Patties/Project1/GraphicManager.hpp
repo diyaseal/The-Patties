@@ -1,8 +1,8 @@
 #pragma once
 
 
-AEGfxVertexList* SquareMesh(float x, float y);
-AEGfxVertexList* CircleMesh(float radius, int segments);
-AEGfxVertexList* IngredientMesh(float x, float y);
-AEGfxVertexList* StarMesh(float outerRadius, float innerRadius);
-AEGfxVertexList* CustomerMesh(float frameX, float frameY, float column, float row, bool flipHorizontal);
+AEGfxVertexList* CreateSquareMesh(float x, float y);
+AEGfxVertexList* CreateCircleMesh(float radius, int segments);
+AEGfxVertexList* CreateIngredientMesh(float x, float y);
+AEGfxVertexList* CreateStarMesh(float outerRadius, float innerRadius);
+AEGfxVertexList* CreateCustomerMesh(float frameX, float frameY, float column, float row, bool flipHorizontal);

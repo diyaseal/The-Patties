@@ -2,7 +2,7 @@
 #include <cmath> 
 //diya dont forget u did this :)
 
-AEGfxVertexList* SquareMesh(float x, float y) {
+AEGfxVertexList* CreateSquareMesh(float x, float y) {
     AEGfxMeshStart();
 
     // Create a square using two triangles
@@ -23,8 +23,8 @@ AEGfxVertexList* SquareMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
-
-AEGfxVertexList* CircleMesh(float radius, int segments)
+// remove later if not needed, but this is a simple way to create a circle mesh using triangles
+AEGfxVertexList* CreateCircleMesh(float radius, int segments)
 {
     AEGfxMeshStart();
 
@@ -58,7 +58,7 @@ AEGfxVertexList* CircleMesh(float radius, int segments)
     return AEGfxMeshEnd();
 }
 
-AEGfxVertexList* IngredientMesh(float x, float y) {
+AEGfxVertexList* CreateIngredientMesh(float x, float y) {
     AEGfxMeshStart();
 
     // Create a square using two triangles
@@ -79,7 +79,7 @@ AEGfxVertexList* IngredientMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
-AEGfxVertexList* CustomerMesh(float frameX, float frameY, float column, float row, bool flipHorizontal) {
+AEGfxVertexList* CreateCustomerMesh(float frameX, float frameY, float column, float row, bool flipHorizontal) {
     AEGfxMeshStart();
     //for protoype, can remove once we have the customer with same spaces
 	const float UV_PADDING = 0.010f; // Small padding to prevent texture bleeding

@@ -26,7 +26,7 @@ void LevelComplete_Load()
     else
         printf("SUCCESS: LevelComplete font loaded, ID = %d\n", fontId);
 
-    pButtonMesh = SquareMesh(0.5f, 0.5f);
+    pButtonMesh = CreateSquareMesh(0.5f, 0.5f);
 }
 
 // ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ void LevelComplete_Init()
     printf("LevelComplete: Init\n");
 
     menuButton.x = -10.0f;
-    menuButton.y = -30.0f;   // world-space units below centre
+    menuButton.y = -30.0f;
     menuButton.width = 280.0f;
     menuButton.height = 80.0f;
     menuButton.isHovered = false;
@@ -120,7 +120,7 @@ void LevelComplete_Free()
 
 // ---------------------------------------------------------------------------
 // LevelComplete_Unload
-// ---------------------------------------------------------------------------
+// --------------------------------------- ------------------------------------
 void LevelComplete_Unload()
 {
     printf("LevelComplete: Unload\n");

@@ -19,6 +19,7 @@ static const float LEVEL_COMPLETE_DELAY = 0.5f;  // seconds to wait after door c
 // State
 // ---------------------------------------------------------------------------
 static AEGfxTexture* pDoorTexture = nullptr;
+static AEGfxVertexList* doorMesh = nullptr;
 static bool             isTriggered = false;
 static bool             isClosed = false;
 static float            doorY = SCREEN_HEIGHT;  // starts fully above screen
@@ -47,6 +48,7 @@ void GarageDoor_Init()
     doorY = SCREEN_HEIGHT;   // fully off-screen above
     transitionTimer = 0.0f;
     printf("GarageDoor: initialized\n");
+    doorMesh = CreateSquareMesh(0.5f, 0.5f);
 }
 
 // ---------------------------------------------------------------------------
@@ -99,8 +101,6 @@ void GarageDoor_Draw()
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     AEGfxTextureSet(pDoorTexture, 0.0f, 0.0f);
-
-    AEGfxVertexList* doorMesh = SquareMesh(0.5f, 0.5f);
 
     AEMtx33 s, t, m;
     AEMtx33Scale(&s, SCREEN_WIDTH, SCREEN_HEIGHT);

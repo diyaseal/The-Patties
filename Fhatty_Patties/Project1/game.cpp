@@ -9,6 +9,8 @@ extern const float EXIT_X = 800.0f;
 static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
+static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh (T)
+
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
 static AEGfxTexture* GameplayBG_back = nullptr; // game BG
 static AEGfxTexture* GameplayBG_front = nullptr; // game BG
@@ -135,8 +137,10 @@ void Game_Load() {
     printf("Game_Load called\n");
 
     // Load meshes ONCE
-    TableMesh = SquareMesh(8.0f, 2.5f);
-    PlateMesh = CircleMesh(2.0f, 32);
+    TableMesh = CreateSquareMesh(8.0f, 2.5f);
+    PlateMesh = CreateCircleMesh(2.0f, 32);
+	IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
+    BGMesh = CreateSquareMesh(0.5, 0.5);
 
     PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
 
@@ -551,7 +555,6 @@ void Game_Draw() {
     // -------------------------------------------------------------------
     // DRAW BACK BG
     // -------------------------------------------------------------------
-    BGMesh = SquareMesh(0.5, 0.5);
     AEMtx33Scale(&BGScale, 1600.0f, 900.0f);
     AEMtx33Trans(&BGTranslate, 0.0f, 0.0f);
     AEMtx33Concat(&BGTransform, &BGTranslate, &BGScale);
@@ -647,7 +650,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY - 10.0f + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 15.0f;  // Bottom bun adds 15px height
     }
 
@@ -659,7 +662,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 8.0f;   // Lettuce adds only 8px (thin and compresses)
     }
 
@@ -671,7 +674,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 10.0f;  // Cheese adds 10px (melts a bit)
     }
 
@@ -683,7 +686,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 25.0f;  // Patty adds 25px (thick meat)
     }
 
@@ -695,7 +698,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 18.0f;  // Tomato adds 18px
     }
 
@@ -707,7 +710,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 8.0f;   // Cucumber adds 8px (thin)
     }
 
@@ -719,7 +722,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
         currentHeight += 8.0f;   // Onion adds 8px (thin)
     }
 
@@ -734,7 +737,7 @@ void Game_Draw() {
         AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight + 15.0f);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientMesh(0.5, 0.5), AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
     }
 
 	GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
@@ -768,17 +771,7 @@ void Game_Free() {
     Level_Manager_Free();
     GarageDoor_Free();
 
-    // Clean up mesh
-    if (TableMesh) {
-        AEGfxMeshFree(TableMesh);
-        TableMesh = nullptr;
-        printf("Table mesh freed\n");
-    }
-    if (PlateMesh) {
-        AEGfxMeshFree(PlateMesh);
-        PlateMesh = nullptr;
-        printf("Plate mesh freed\n");
-    }
+    
 }
 
 void Game_Unload() {
@@ -798,6 +791,24 @@ void Game_Unload() {
             CustomerTexture[i] = nullptr;
         }
     }
+
+    // Clean up mesh
+    if (TableMesh) {
+        AEGfxMeshFree(TableMesh);
+        TableMesh = nullptr;
+        printf("Table mesh freed\n");
+    }
+    if (PlateMesh) {
+        AEGfxMeshFree(PlateMesh);
+        PlateMesh = nullptr;
+        printf("Plate mesh freed\n");
+    }
+    if (IngredientsMesh) {
+        AEGfxMeshFree(IngredientsMesh);
+        IngredientsMesh = nullptr;
+        printf("Ingredient mesh freed\n");
+    }
+
     GarageDoor_Unload();
     Points_Unload();
     Level_Manager_Unload();

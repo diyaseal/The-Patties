@@ -35,7 +35,7 @@ void School_Credits_Load()
     else
         printf("SUCCESS: DigiPen logo loaded\n");
 
-    pLogoMesh = SquareMesh(0.5, 0.5);
+    pLogoMesh = CreateSquareMesh(0.5, 0.5);
     printf(pLogoMesh ? "SUCCESS: Logo mesh created\n" : "ERROR: Failed to create logo mesh\n");
 }
 

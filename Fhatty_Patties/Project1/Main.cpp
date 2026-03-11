@@ -13,6 +13,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
+    _CrtSetBreakAlloc(20288);
+
     int gGameRunning = 1;
 
     // Using custom window procedure
@@ -92,7 +94,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (fpUnload)
         fpUnload();
-
+    //MainMenu_Free();
+    //MainMenu_Unload();
     // Free the system
     AESysExit();
 
