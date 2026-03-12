@@ -13,12 +13,15 @@ static AEMtx33 LevelTransform, LevelTranslate, LevelScale;
 // ---------------------------------------------------------------------------
 static AEGfxTexture* Ingredients = nullptr;
 static AEGfxVertexList* IngredientsMesh = nullptr;
-static LevelButton levelButtons[5];
+static LevelButton  levelButtons[5];
 
 // Star rating textures and mesh
 static AEGfxTexture* starEmptyTex = nullptr;
 static AEGfxTexture* starFilledTex = nullptr;
 static AEGfxVertexList* starMesh = nullptr;
+
+// Star transformation matrices
+static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslate;  
 
 // Button dimensions
 const float BUTTON_WIDTH = 250.0f;
@@ -73,9 +76,12 @@ void Levels_Init()
 
         //ELI OVER HERE U CAN INPUT SAVED DATA STUFF
         // Demo stars (replace with actual saved data)
+        Level_Manager_LoadLevel(i + 1);
+        levelButtons[i].starsEarned = Level_Manager_GetStarsEarned();
+
         // Level 1: 3 stars, Level 2: 2 stars, Level 3: 1 star, etc.
-        levelButtons[i].starsEarned = 3 - i;
-        if (levelButtons[i].starsEarned < 0) levelButtons[i].starsEarned = 0;
+        //levelButtons[i].starsEarned = 3 - i;
+        //if (levelButtons[i].starsEarned < 0) levelButtons[i].starsEarned = 0;
 
         // First 3 levels unlocked, last 2 locked for demo
         levelButtons[i].Unlocked = (i < 3);
@@ -122,6 +128,30 @@ void Levels_Draw()
     for (int i = 0; i < 5; i++) {
         AEMtx33 scale, translate, transform;
 
+        /*-----------------
+             DRAW STARS
+        -------------------*/
+
+        const f32 star_size = 35.0f;
+        const f32 starY = levelButtons[i].button.y - 60.0f;
+        const f32 starX = levelButtons[i].button.x - 85.0f;
+        const f32 starSpace = 40.0f;
+
+        for (int j = 1; j <= 3; j++)
+        {
+            if (j <= levelButtons[i].starsEarned)  // colors all earned stars
+                AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+            else
+                AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
+
+            AEMtx33Scale(&StarScale, star_size, star_size);
+            AEMtx33Trans(&StarTranslate, starX + (j * starSpace), starY);
+            AEMtx33Concat(&StarTransform, &StarTranslate, &StarScale);
+            AEGfxSetTransform(StarTransform.m);
+            AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
+        }
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // reset color after stars
+
         // Draw ingredient icon (if unlocked)
         if (levelButtons[i].Unlocked && Ingredients) {
             // Slightly smaller than button for padding
@@ -143,35 +173,7 @@ void Levels_Draw()
                     0.6f, 0.0f, 0.0f, 0.0f, 1.0f);
             }
         }
-
-        // Draw stars (3 stars per level)
-        //float starY = levelButtons[i].button.y - 50;
-        //float starStartX = levelButtons[i].button.x - 45;
-        //float starSpacing = 45;
-
-        //AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-
-        //for (int star = 0; star < 3; star++) {
-        //    // Set star color based on earned status
-        //    if (levelButtons[i].Unlocked && star < levelButtons[i].starsEarned) {
-        //        // Yellow for earned stars
-        //        AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
-        //    }
-        //    else {
-        //        // Gray for unearned stars
-        //        AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f);
-        //    }
-
-        //    // Set star transformation
-        //    AEMtx33Scale(&scale, 35, 35);
-        //    AEMtx33Trans(&translate, starStartX + (star * starSpacing), starY);
-        //    AEMtx33Concat(&transform, &scale, &translate);
-        //    AEGfxSetTransform(transform.m);
-
-        //    // Draw star mesh
-        //    AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
-        //}
-
+        
         // Draw level number
         if (fontId >= 0 && levelButtons[i].Unlocked) {
             char levelText[16];
@@ -194,12 +196,7 @@ void Levels_Draw()
 
 void Levels_Free()
 {
-    // Free the button mesh
-    if (IngredientsMesh)
-    {
-        AEGfxMeshFree(IngredientsMesh);
-        IngredientsMesh = nullptr;
-    }
+
 }
 
 void Levels_Unload()
@@ -209,6 +206,10 @@ void Levels_Unload()
     {
         AEGfxMeshFree(IngredientsMesh);
         IngredientsMesh = nullptr;
+    }
+    if (starMesh) {
+        AEGfxMeshFree(starMesh);
+        starMesh = nullptr;
     }
     if (LevelBG) {
         AEGfxTextureUnload(LevelBG);

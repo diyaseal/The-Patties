@@ -38,7 +38,7 @@ AEGfxVertexList* frameMesh = nullptr;
 // ---------------------------------------------------------------------------
 // Patience Bar
 // ---------------------------------------------------------------------------
-static const f32 DURATION_DECREASE_RATE = 8.0f;
+static f32 DURATION_DECREASE_RATE = 8.0f;
 
 // ---------------------------------------------------------------------------
 // Emotion Display
@@ -354,7 +354,7 @@ void Customer_Update(float dt) {
 
         // STATE 3: WAITING FOR FOOD - patience drains
         if (c.isWaitingForFood) {
-            c.patience -= DURATION_DECREASE_RATE * dt;
+            c.patience -= DURATION_DECREASE_RATE * dt * Level_Manager_GetDurationMul();
 
             if (c.patience <= 0.0f) {
                 c.patience = 0.0f;
@@ -435,6 +435,8 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
             const float bar_x = customer.x + 10.0f;
             const float bar_y = customer.y + 160.0f;
 
+
+            // Grey Background Bar
             {
                 AEMtx33 s, t, m;
                 AEMtx33Scale(&s, bar_w, bar_h);
@@ -445,6 +447,7 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
             }
 
+            // Calculate customer patience percentage
             f32 pct = customer.patience / customer.maxPatience;
             if (pct < 0.0f) pct = 0.0f;
             if (pct > 1.0f) pct = 1.0f;

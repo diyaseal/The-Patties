@@ -34,6 +34,7 @@ void Level_Manager_UpdateHighestPoints(float currentPoints);
 // Getter Functions
 LevelData Level_Manager_GetCurrentLevelData();
 int Level_Manager_GetCurrentLevel();
+float Level_Manager_GetDurationMul();
 float Level_Manager_GetMaxPoints();
 int Level_Manager_GetCustomerCount();
 float Level_Manager_GetStarPosition(int index);

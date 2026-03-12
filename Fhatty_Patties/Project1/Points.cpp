@@ -6,9 +6,7 @@
 // Global variables for Point State
 static AEGfxVertexList* BarMesh = nullptr;  // Square mesh
 static AEGfxVertexList* pointsGainedMesh = nullptr;  // Points gained bar mesh
-static AEGfxVertexList* s1Mesh = nullptr;  // Star mesh
-static AEGfxVertexList* s2Mesh = nullptr;  // Star mesh
-static AEGfxVertexList* s3Mesh = nullptr;  // Star mesh
+static AEGfxVertexList* starMesh = nullptr;  // Star mesh
 const f32 pointsEarnedH = 35.0f;
 
 // Removed duplicate declarations
@@ -47,9 +45,7 @@ void Points_Load() {
         currentLevelData.starPositions[2]);
 
     BarMesh = CreateSquareMesh(0.5f, 0.5f);
-    s1Mesh = CreateStarMesh(0.5f, 0.2f); // ? create once
-    s2Mesh = CreateStarMesh(0.5f, 0.2f);
-    s3Mesh = CreateStarMesh(0.5f, 0.2f);
+    starMesh = CreateStarMesh(0.5f, 0.2f); 
 }
 
 void Points_Update() {
@@ -125,26 +121,27 @@ void Points_Draw() {
     const f32 STAR_Y_POS = BAR_POS_Y;
     const f32 BAR_LEFT_EDGE = BAR_POS_X - BAR_WIDTH / 2.0f;
 
-    AEGfxVertexList* starMeshes[3] = { s1Mesh, s2Mesh, s3Mesh }; // use pre-created meshes
-
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         f32 threshold = Level_Manager_GetStarPosition(i);
         f32 thresholdPercentage = threshold / MAX_POINTS;
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
         if (currentPoints >= threshold)
-            AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+            AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
         else
-            AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
+            AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f);
 
         AEMtx33Scale(&StarScale, STAR_SIZE, STAR_SIZE);
         AEMtx33RotDeg(&StarRotate, 180.0f);
         AEMtx33Trans(&StarTranslate, starX, STAR_Y_POS);
+
         AEMtx33Concat(&TempTransform, &StarRotate, &StarScale);
         AEMtx33Concat(&StarTransform, &StarTranslate, &TempTransform);
 
         AEGfxSetTransform(StarTransform.m);
-        AEGfxMeshDraw(starMeshes[i], AE_GFX_MDM_TRIANGLES); // no allocation here
+
+        AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
     }
 }
 
@@ -157,19 +154,11 @@ void Points_Unload() {
 
     if (BarMesh) {
         AEGfxMeshFree(BarMesh);
-        pointsGainedMesh = nullptr;
+        BarMesh = nullptr;
     }
 
-    if (s1Mesh) {
-        AEGfxMeshFree(s1Mesh);
-        s1Mesh = nullptr;
+    if (starMesh) {
+        AEGfxMeshFree(starMesh);
+        starMesh = nullptr;
     }
-    if (s2Mesh) {
-        AEGfxMeshFree(s2Mesh);
-        s2Mesh = nullptr;
-    }
-    if (s3Mesh) {
-        AEGfxMeshFree(s3Mesh);
-        s3Mesh = nullptr;
-    } 
 }

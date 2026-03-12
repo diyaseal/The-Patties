@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 // Global Variables
 // ---------------------------------------------------------------------------
-int currentLevel = 1;
+int currentLevel;
 LevelData currentLevelData;
 const char* LEVEL_DATA_PATH = "Assets/Data/Data.csv";
 
@@ -247,6 +247,10 @@ int Level_Manager_GetCurrentLevel() {
     return currentLevel;
 }
 
+float Level_Manager_GetDurationMul() {
+    return currentLevelData.durationMultiplier;
+}
+
 float Level_Manager_GetMaxPoints() {
     return currentLevelData.starPositions[2];  // Highest star position
 }
@@ -277,10 +281,8 @@ float Level_Manager_GetHighestPoints() {
 // Level Manager State Functions
 // ---------------------------------------------------------------------------
 void Level_Manager_Init() {
+    Level_Manager_LoadLevel(currentLevel);
     printf("Level_Manager_Init called\n");
-
-    // Load level 1 by default
-    Level_Manager_LoadLevel(1);
 }
 
 void Level_Manager_Load() {
