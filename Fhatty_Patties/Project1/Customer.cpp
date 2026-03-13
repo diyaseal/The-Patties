@@ -111,6 +111,7 @@ void Customer_Spawn() {
     newCustomer.patience = 100.0f;
     newCustomer.maxPatience = 100.0f;
     newCustomer.textureIndex = rand() % 4;  // random character
+    newCustomer.isMale = (newCustomer.textureIndex == 0);  // only syakil is male
 
     totalCustomersSpawned++;
     RandomOrder(&newCustomer);
@@ -363,6 +364,7 @@ void Customer_Update(float dt) {
                 c.frameX = 0;
                 c.frameY = 0;
                 c.flipHorizontal = false;
+                Sound_PlaySFX_Angry(c.isMale);
                 printf("Customer ANGRY! Patience ran out (slot %d)\n", c.slotIndex);
             }
         }
@@ -388,6 +390,7 @@ void Customer_Satisfy(int index) {
     customer.frameX = 0;
     customer.frameY = 1;
     customer.flipHorizontal = false;
+    Sound_PlaySFX_Correct();
     printf("Customer SATISFIED! (slot %d)\n", customer.slotIndex);
 }
 

@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -7,6 +7,10 @@
 
 static float totalElapsedTime = 0.0f;            // Timer for screen duration
 static s8 FontId = -1;                           // Font ID
+static bool pendingStateChange = false;
+static int pendingNextState = 0;
+static float stateChangeTimer = 0.0f;
+static const float STATE_CHANGE_DELAY = 0.3f;  // wait 0.3 seconds before switching
 // ---------------------------------------------------------------------------
 // Using BurgerButton struct in hpp
 static BurgerButton topBun;
@@ -54,6 +58,8 @@ void MainMenu_Load()
     //for (int i = 0; i < ButtonCount; i++) {
     //    burgerButtons[i]->mesh = IngredientsMesh;
     //}
+    Sound_Load();
+    Sound_PlayBGM(); //Load sound then play BGM
 }
 
 void MainMenu_Init()
@@ -81,6 +87,10 @@ void MainMenu_Init()
         burgerButtons[i]->isHovered = false;
         burgerButtons[i]->isClicked = false;
     }
+
+    pendingStateChange = false;
+    stateChangeTimer = 0.0f;
+    pendingNextState = 0;
 }
 
 void MainMenu_Update()
@@ -123,11 +133,12 @@ void MainMenu_Update()
         // Check click
         if (btn->isHovered && AEInputCheckTriggered(AEVK_LBUTTON)) {
             btn->isClicked = true;
-
+            Sound_PlaySFX_OnClick();    
             // Handle button actions based on which burger part was clicked
             if (btn == &topBun) {
                 printf("Top Bun clicked - Levels Menu!\n");
-                next = GS_LEVELS;  // Or whatever state you want
+                pendingStateChange = true; //dont switch state immediately
+                pendingNextState = GS_LEVELS;  //save where the page would go (Level page)
             }
             else if (btn == &cheese) {
                 printf("Cheese clicked - Options menu!\n");
@@ -143,10 +154,21 @@ void MainMenu_Update()
             }
             else if (btn == &bottomBun) {
                 printf("Bottom Bun clicked - Quit!\n");
-                next = GS_QUIT;
+                pendingStateChange = true;       // ← dont switch immediately
+                pendingNextState = GS_QUIT;
             }
         }
         else btn->isClicked = false;
+    }
+
+    // Handle delayed state change so click sound can finish playing
+    if (pendingStateChange) {
+        stateChangeTimer += dt;
+        if (stateChangeTimer >= STATE_CHANGE_DELAY) {
+            next = pendingNextState;         // NOW switch state
+            pendingStateChange = false;
+            stateChangeTimer = 0.0f;
+        }
     }
 }
 
@@ -219,6 +241,7 @@ void MainMenu_Free()
     {
         AEGfxMeshFree(WallMesh);
     }
+    Sound_Free(); //stop bgm when leaving
 }
 
 void MainMenu_Unload()
@@ -248,4 +271,5 @@ void MainMenu_Unload()
         AEGfxDestroyFont(FontId);
         FontId = -1;
     }
+    Sound_Unload(); //free memory
 }

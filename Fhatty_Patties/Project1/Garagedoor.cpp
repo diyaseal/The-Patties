@@ -18,7 +18,7 @@ static const float LEVEL_COMPLETE_DELAY = 0.5f;  // seconds to wait after door c
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
-static AEGfxTexture* pDoorTexture = nullptr;
+AEGfxTexture* pDoorTexture = nullptr;
 static AEGfxVertexList* doorMesh = nullptr;
 static bool             isTriggered = false;
 static bool             isClosed = false;
@@ -58,6 +58,7 @@ void GarageDoor_Trigger()
 {
     if (isTriggered) return;  // prevent double-trigger
     isTriggered = true;
+    Sound_PlaySFX_doorClose();
     printf("GarageDoor: triggered!\n");
 }
 

@@ -43,6 +43,9 @@
     <ClCompile Include="Garagedoor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sounds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils.hpp">
@@ -90,6 +93,7 @@
     <ClInclude Include="Garagedoor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sounds.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Assets\Data\Data.csv" />

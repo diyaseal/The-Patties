@@ -1,47 +1,130 @@
-/* Start Header ************************************************************************/
-/*!
-\file       LevelComplete.cpp
-\brief      Level Complete screen - shows "Level Complete!" and a Back to Menu button.
-*/
-/* End Header **************************************************************************/
-#include "pch.hpp"
+﻿#include "pch.hpp"
 
 // ---------------------------------------------------------------------------
-// Static variables
+// Static variables — owns fonts AND its own meshes
 // ---------------------------------------------------------------------------
 static s8                fontId = -1;
-static Button            menuButton;
-static AEGfxVertexList* pButtonMesh = nullptr;
+static s8                fontSmall = -1;
+static AEGfxVertexList* pMesh = nullptr;
+static AEGfxVertexList* pStarMesh = nullptr;
+
+static Button continueButton = {};
+static Button restartButton = {};
+static Button nextLevelButton = {};
+
+static AEGfxTexture* pBgTexture = nullptr;
+
+static float       popupScale = 0.0f;
+static const float POPUP_GROW_SPEED = 3.0f;
+static const int   DISPLAY_SCORE = 1000;
 
 // ---------------------------------------------------------------------------
-// LevelComplete_Load
+// DrawRect
+// ---------------------------------------------------------------------------
+static void DrawRect(float cx, float cy, float w, float h,
+    float r, float g, float b, float a,
+    float scaleMultiplier = 1.0f)
+{
+    if (!pMesh) return;
+    AEMtx33 s, t, m;
+    AEMtx33Scale(&s, w * scaleMultiplier, h * scaleMultiplier);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetColorToMultiply(r, g, b, a);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
+}
+
+// ---------------------------------------------------------------------------
+// DrawStar
+// ---------------------------------------------------------------------------
+static void DrawStar(float cx, float cy, float size,
+    float r, float g, float b, float a)
+{
+    if (!pStarMesh) return;
+    AEMtx33 s, t, m;
+    AEMtx33Scale(&s, size, size);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetColorToMultiply(r, g, b, a);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(pStarMesh, AE_GFX_MDM_TRIANGLES);
+}
+
+// ---------------------------------------------------------------------------
+// DrawBackground — door texture fullscreen
+// ---------------------------------------------------------------------------
+static void DrawBackground()
+{
+    if (!pMesh || !pBgTexture) return;
+    AEMtx33 s, t, m;
+    AEMtx33Scale(&s, 1700.0f, 1000.0f);
+    AEMtx33Trans(&t, 0.0f, 0.0f);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxTextureSet(pBgTexture, 0.0f, 0.0f);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
+}
+
+
+// ---------------------------------------------------------------------------
+// LevelComplete_Load — allocates fonts + meshes
 // ---------------------------------------------------------------------------
 void LevelComplete_Load()
 {
     printf("LevelComplete: Load\n");
 
-    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
-    if (fontId < 0)
-        printf("ERROR: LevelComplete failed to load font!\n");
-    else
-        printf("SUCCESS: LevelComplete font loaded, ID = %d\n", fontId);
+    if (pMesh != nullptr)
+    {
+        printf("WARNING: LevelComplete_Load called twice!\n");
+        return;
+    }
 
-    pButtonMesh = CreateSquareMesh(0.5f, 0.5f);
+    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 48);
+    fontSmall = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 32);
+
+    if (fontId < 0 || fontSmall < 0)
+        printf("ERROR: LevelComplete failed to load fonts!\n");
+
+    pMesh = CreateSquareMesh(0.5f, 0.5f);
+    pStarMesh = CreateStarMesh(0.5f, 0.2f);
+
+    if (!pMesh || !pStarMesh)
+        printf("ERROR: LevelComplete failed to create meshes!\n");
+
+    pBgTexture = AEGfxTextureLoad("Assets/Assets/Transition_wall.png");
+    if (!pBgTexture)
+        printf("ERROR: LevelComplete failed to load background texture!\n");
 }
 
 // ---------------------------------------------------------------------------
-// LevelComplete_Init
+// LevelComplete_Init — state only, NO allocations
 // ---------------------------------------------------------------------------
 void LevelComplete_Init()
 {
     printf("LevelComplete: Init\n");
 
-    menuButton.x = -10.0f;
-    menuButton.y = -30.0f;
-    menuButton.width = 280.0f;
-    menuButton.height = 80.0f;
-    menuButton.isHovered = false;
-    menuButton.isClicked = false;
+    popupScale = 0.0f;  // reset animation
+
+    continueButton.x = -260.0f; continueButton.y = -130.0f;
+    continueButton.width = 200.0f; continueButton.height = 65.0f;
+    continueButton.isHovered = continueButton.isClicked = false;
+
+    restartButton.x = 0.0f;    restartButton.y = -130.0f;
+    restartButton.width = 200.0f; restartButton.height = 65.0f;
+    restartButton.isHovered = restartButton.isClicked = false;
+
+    nextLevelButton.x = 260.0f;  nextLevelButton.y = -130.0f;
+    nextLevelButton.width = 200.0f; nextLevelButton.height = 65.0f;
+    nextLevelButton.isHovered = nextLevelButton.isClicked = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -49,12 +132,21 @@ void LevelComplete_Init()
 // ---------------------------------------------------------------------------
 void LevelComplete_Update()
 {
-    menuButton.isHovered = IsButtonHovered(menuButton);
+    f64 dt = AEFrameRateControllerGetFrameTime();
 
-    if (IsButtonClicked(menuButton))
-    {
-        next = GS_MAINMENU;
+    if (popupScale < 1.0f) {
+        popupScale += POPUP_GROW_SPEED * static_cast<float>(dt);
+        if (popupScale > 1.0f) popupScale = 1.0f;
+        return;  // no button input while animating
     }
+
+    continueButton.isHovered = IsButtonHovered(continueButton);
+    restartButton.isHovered = IsButtonHovered(restartButton);
+    nextLevelButton.isHovered = IsButtonHovered(nextLevelButton);
+
+    if (IsButtonClicked(continueButton))  next = GS_MAINMENU;
+    if (IsButtonClicked(restartButton))   next = GS_RESTART;
+    // if (IsButtonClicked(nextLevelButton)) next = GS_LEVEL2;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,77 +155,85 @@ void LevelComplete_Update()
 void LevelComplete_Draw()
 {
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    float s = popupScale;
 
-    // ------------------------------------------------------------------
-    // Draw button background
-    // ------------------------------------------------------------------
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    // 1. Striped door texture background
+    DrawBackground();
 
-    if (menuButton.isHovered)
-        AEGfxSetColorToMultiply(0.7f, 0.7f, 0.7f, 1.0f);  // lighter on hover
-    else
-        AEGfxSetColorToMultiply(1.0f, 0.0f, 0.0f, 1.0f);  // red (matches MainMenu)
+    // 2. Pink border
+    DrawRect(0.0f, 20.0f, 830.0f, 570.0f, 0.85f, 0.55f, 0.85f, 1.0f, s);
 
-    AEMtx33 scale, translate, transform;
-    AEMtx33Scale(&scale, menuButton.width, menuButton.height);
-    AEMtx33Trans(&translate, menuButton.x, menuButton.y);
-    AEMtx33Concat(&transform, &translate, &scale);  // translate * scale (correct order)
-    AEGfxSetTransform(transform.m);
-    AEGfxMeshDraw(pButtonMesh, AE_GFX_MDM_TRIANGLES);
+    // 3. Black title bar
+    DrawRect(0.0f, 185.0f, 800.0f, 195.0f, 0.12f, 0.12f, 0.12f, 1.0f, s);
 
-    // ------------------------------------------------------------------
-    // Draw text
-    // ------------------------------------------------------------------
-    if (fontId >= 0)
+    // 4. Light grey body
+    DrawRect(0.0f, -65.0f, 800.0f, 350.0f, 0.82f, 0.82f, 0.82f, 1.0f, s);
+
+    // 5. Dark score row
+    DrawRect(0.0f, 55.0f, 770.0f, 75.0f, 0.25f, 0.25f, 0.25f, 1.0f, s);
+
+    // 6. Main Menu button (red)
+    DrawRect(continueButton.x, continueButton.y,
+        continueButton.width, continueButton.height,
+        continueButton.isHovered ? 0.6f : 0.85f, 0.1f, 0.1f, 1.0f, s);
+
+    // 7. Restart button (blue)
+    DrawRect(restartButton.x, restartButton.y,
+        restartButton.width, restartButton.height,
+        0.1f, 0.1f, restartButton.isHovered ? 0.6f : 0.9f, 1.0f, s);
+
+    // 8. Next Level button (green)
+    DrawRect(nextLevelButton.x, nextLevelButton.y,
+        nextLevelButton.width, nextLevelButton.height,
+        0.1f, nextLevelButton.isHovered ? 0.4f : 0.6f, 0.1f, 1.0f, s);
+
+    // 9. Stars — only after fully scaled in
+    if (s >= 1.0f)
+    {
+        DrawStar(-60.0f, 55.0f, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f);
+        DrawStar(0.0f, 55.0f, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f);
+        DrawStar(60.0f, 55.0f, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f);
+    }
+
+    // 10. Text — only after fully scaled in
+    if (fontId >= 0 && s >= 1.0f)
     {
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
-        // "Level Complete!" title - gold
-        AEGfxPrint(
-            fontId,
-            "Level Complete!",
-            -0.22f,   // X normalized
-            0.15f,   // Y normalized
-            1.2f,    // scale
-            1.0f, 0.85f, 0.0f, 1.0f
-        );
+        AEGfxPrint(fontId, "LEVEL COMPLETE!", -0.26f, 0.28f, 1.2f, 1.0f, 0.85f, 0.0f, 1.0f);
+        AEGfxPrint(fontSmall, "SCORE", -0.28f, 0.09f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
-        // Button label - black
-        AEGfxPrint(
-            fontId,
-            "Back to Menu",
-            -0.15f,   // X normalized
-            -0.08f,   // Y normalized (sits inside button)
-            0.9f,    // scale
-            0.0f, 0.0f, 0.0f, 1.0f
-        );
+        char scoreStr[16];
+        sprintf_s(scoreStr, "%d", DISPLAY_SCORE);
+        AEGfxPrint(fontSmall, scoreStr, 0.22f, 0.09f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+        AEGfxPrint(fontSmall, "MAIN MENU", -0.42f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxPrint(fontSmall, "RESTART", -0.07f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxPrint(fontSmall, "NEXT LEVEL", 0.23f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
     }
 }
 
 // ---------------------------------------------------------------------------
-// LevelComplete_Free
+// LevelComplete_Free — reset state, NO deallocations
 // ---------------------------------------------------------------------------
 void LevelComplete_Free()
 {
     printf("LevelComplete: Free\n");
+    continueButton = {};
+    restartButton = {};
+    nextLevelButton = {};
 }
 
 // ---------------------------------------------------------------------------
-// LevelComplete_Unload
-// --------------------------------------- ------------------------------------
+// LevelComplete_Unload — frees everything Load allocated
+// ---------------------------------------------------------------------------
 void LevelComplete_Unload()
 {
     printf("LevelComplete: Unload\n");
 
-    if (pButtonMesh)
-    {
-        AEGfxMeshFree(pButtonMesh);
-        pButtonMesh = nullptr;
-    }
-
-    if (fontId >= 0)
-    {
-        AEGfxDestroyFont(fontId);
-        fontId = -1;
-    }
+    if (pMesh) { AEGfxMeshFree(pMesh);        pMesh = nullptr; }
+    if (pStarMesh) { AEGfxMeshFree(pStarMesh);    pStarMesh = nullptr; }
+    if (fontId >= 0) { AEGfxDestroyFont(fontId);    fontId = -1; }
+    if (fontSmall >= 0) { AEGfxDestroyFont(fontSmall); fontSmall = -1; }
+    if (pBgTexture) { AEGfxTextureUnload(pBgTexture); pBgTexture = nullptr; }
 }

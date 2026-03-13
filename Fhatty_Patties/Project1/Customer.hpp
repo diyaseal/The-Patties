@@ -42,6 +42,9 @@ struct Customer {
     int frameY{ 0 };
     bool flipHorizontal{ false };                // For sprite flipping
 
+    //Gender
+    bool isMale{ false };
+
     //customer emotions
     bool isSatisfied{ false };
     bool isAngry{ false };

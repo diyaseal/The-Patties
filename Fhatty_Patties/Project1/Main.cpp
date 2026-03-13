@@ -13,7 +13,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    //_CrtSetBreakAlloc(20288);
+    //_CrtSetBreakAlloc(811);
 
     int gGameRunning = 1;
 
@@ -71,6 +71,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         previous = current;
         current = next;
 
+        if (current == GS_QUIT) {
+            gGameRunning = 0;
+        }
+
         // Update GSM function pointers
         GSM_Update();
 
@@ -80,9 +84,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (fpInit)
             fpInit();
     }
-
-    if (fpDraw)
-        fpDraw();
 
     // Informing the system about the loop's end
     AESysFrameEnd();

@@ -191,6 +191,8 @@ void Game_Load() {
     Points_Load();
 	// Teb : Check if garage door is loaded
     GarageDoor_Load();
+    Sound_Load();
+    Sound_PlayBGM();
 }
 
 bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
@@ -770,7 +772,7 @@ void Game_Free() {
     Points_Free();
     Level_Manager_Free();
     GarageDoor_Free();
-
+    Sound_Free();
     
 }
 
@@ -812,5 +814,6 @@ void Game_Unload() {
     GarageDoor_Unload();
     Points_Unload();
     Level_Manager_Unload();
+    Sound_Unload();
 }
 
