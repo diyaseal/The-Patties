@@ -22,12 +22,13 @@ Technology is prohibited.
 // Enumeration of all possible game states
 enum GS_STATES
 {
-	GS_SCH_CRED = 0,
-	GS_TEAM_CRED,
+	GS_SCH_CRED = 0, // School Credits
+	GS_TEAM_CRED, // Team Credits
 	GS_MAINMENU,// Main menu game state
 	GS_LEVELS, // Levels Page
 	GS_GAME,  // Level 1 game state
 	GS_LVLCMP,     // Level complete state
+	GS_END_CRED,     // End Credits
 
 	GS_QUIT,        // Quit game state - signals program termination
 	GS_RESTART      // Restart state - signals level restart

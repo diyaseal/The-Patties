@@ -23,7 +23,7 @@ AEGfxVertexList* CreateSquareMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
-// remove later if not needed, but this is a simple way to create a circle mesh using triangles
+// remove later if not needed, but this is a simple way to create a circle mesh using triangles Eli: I NEED
 AEGfxVertexList* CreateCircleMesh(float radius, int segments)
 {
     AEGfxMeshStart();

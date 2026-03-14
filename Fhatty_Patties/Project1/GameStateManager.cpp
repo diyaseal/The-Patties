@@ -90,6 +90,14 @@ void GSM_Update()
         fpFree = LevelComplete_Free;
         fpUnload = LevelComplete_Unload;
         break;
+    case GS_END_CRED:
+        fpLoad = End_Credits_Load;
+        fpInit = End_Credits_Init;
+        fpUpdate = End_Credits_Update;
+        fpDraw = End_Credits_Draw;
+        fpFree = End_Credits_Free;
+        fpUnload = End_Credits_Unload;
+        break;
     case GS_RESTART:
         // No function pointers for restart - handled in main loop
         break;

@@ -1,0 +1,261 @@
+// ---------------------------------------------------------------------------
+// includes
+#include "pch.hpp"
+
+// ---------------------------------------------------------------------------
+// Global variables for School Credits
+static float totalElapsedTime = 0.0f;            // Timer for screen duration
+static float fade = 1.0f;                   // Start fully visible
+
+// Assets
+static s8 fontId = -1;                           // Font ID
+static AEGfxVertexList* landMesh = nullptr;
+static AEGfxVertexList* starMesh = nullptr;
+
+struct BackgroundStar {
+    float x, y;           // position
+    float baseSize;       // original size
+    float currentSize;    // animated size
+    float pulseSpeed;     // how fast it pulses
+    float pulseTimer;     // offset so they dont all pulse together
+};
+
+static const int NUM_STARS = 15;
+static BackgroundStar bgStars[NUM_STARS];
+
+// ---------------------------------------------------------------------------
+// Helper Functions
+
+void End_Credits_Update()
+{
+    float dt = (float)AEFrameRateControllerGetFrameTime();
+    totalElapsedTime += dt;
+
+    // Pulse each star
+    for (int i = 0; i < NUM_STARS; i++)
+    {
+        bgStars[i].pulseTimer += dt * bgStars[i].pulseSpeed;
+        // sinf oscillates -1 to 1, scale to 0.5 to 1.5x base size
+        float pulse = 1.0f + 0.5f * sinf(bgStars[i].pulseTimer);
+        bgStars[i].currentSize = bgStars[i].baseSize * pulse;
+    }
+
+}
+
+// ---------------------------------------------------------------------------
+// Helper: calculates fade alpha for a set based on when it starts
+// Each set: 1s fade in, 3s hold, 1s fade out = 5s total per set
+// ---------------------------------------------------------------------------
+static float GetSetFade(float startTime)
+{
+    const float FADE_IN_DUR = 1.0f;
+    const float HOLD_DUR = 3.0f;
+    const float FADE_OUT_DUR = 1.0f;
+    const float SET_DUR = FADE_IN_DUR + HOLD_DUR + FADE_OUT_DUR; // 5s
+
+    float t = totalElapsedTime - startTime;
+
+    if (t < 0.0f)                              return 0.0f; // not started
+    if (t < FADE_IN_DUR)                       return t / FADE_IN_DUR; // fading in
+    if (t < FADE_IN_DUR + HOLD_DUR)            return 1.0f; // fully visible
+    if (t < SET_DUR)                           return 1.0f - ((t - FADE_IN_DUR - HOLD_DUR) / FADE_OUT_DUR); // fading out
+    return 0.0f; // done
+}
+
+// ---------------------------------------------------------------------------
+// Game State Functions
+
+void End_Credits_Load()
+{
+    printf("School_Credits Load\n");
+
+    totalElapsedTime = 0.0f;
+    landMesh = CreateCircleMesh(0.5f, 64);
+    starMesh = CreateStarMesh(0.5f, 0.2f);
+
+    // -------------------------------------------------------------------
+    // LOAD FONT
+    // -------------------------------------------------------------------
+    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
+    if (fontId < 0)
+        printf("ERROR: Failed to load font!\n");
+    else
+        printf("SUCCESS: Font loaded, ID = %d\n", fontId);
+
+}
+
+void End_Credits_Init()
+{
+    printf("End Credits Init called\n");
+    fade = 1.0f;  // Reset fade when entering screen
+
+    // Scatter stars randomly across screen
+    srand(72); // fixed seed so positions are consistent each run
+    for (int i = 0; i < NUM_STARS; i++)
+    {
+        // Random position across screen in normalized-ish pixel space
+        bgStars[i].x = -700.0f + (rand() % 1400);  // -700 to 700
+        bgStars[i].y = -100.0f + (rand() % 600);   // -100 to 500 (upper half)
+        bgStars[i].baseSize = 10.0f + (rand() % 25);    // 10 to 35
+        bgStars[i].currentSize = bgStars[i].baseSize;
+        bgStars[i].pulseSpeed = 0.5f + (rand() % 100) / 100.0f; // 0.5 to 1.5
+        bgStars[i].pulseTimer = (rand() % 100) / 100.0f * 6.28f;   // random start offset
+    }
+}
+
+void End_Credits_Draw()
+{
+    // -----------------------------------------------------------------------
+    // DRAW SKY
+    // -----------------------------------------------------------------------
+    AEGfxSetBackgroundColor(0.0f, 0.0f, 0.2f);
+
+    // -----------------------------------------------------------------------
+    // DRAW LAND
+    // -----------------------------------------------------------------------
+    if (landMesh)
+    {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetColorToMultiply(0.2f, 0.6f, 0.2f, 1.0f); // green
+
+        AEMtx33 scale, translate, transform;
+        AEMtx33Scale(&scale, 1800.0f, 1800.0f);     
+        AEMtx33Trans(&translate, 0.0f, -1000.0f);   
+        AEMtx33Concat(&transform, &translate, &scale);
+
+        AEGfxSetTransform(transform.m);
+        AEGfxMeshDraw(landMesh, AE_GFX_MDM_TRIANGLES);
+    }
+
+    // -----------------------------------------------------------------------
+    // DRAW BACKGROUND STARS
+    // -----------------------------------------------------------------------
+    if (starMesh)
+    {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+
+        for (int i = 0; i < NUM_STARS; i++)
+        {
+            // Slight yellow-white tint
+            AEGfxSetColorToMultiply(1.0f, 1.0f, 0.8f, 1.0f);
+
+            AEMtx33 scale, translate, transform;
+            AEMtx33Scale(&scale, bgStars[i].currentSize, bgStars[i].currentSize);
+            AEMtx33Trans(&translate, bgStars[i].x, bgStars[i].y);
+            AEMtx33Concat(&transform, &translate, &scale);
+
+            AEGfxSetTransform(transform.m);
+            AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
+        }
+    }
+
+
+    // -----------------------------------------------------------------------
+    // DRAW CREDITS TEXT
+    // -----------------------------------------------------------------------
+
+    if (fontId < 0) return;
+
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+    // Each set starts 5s after the previous
+    float f1 = GetSetFade(0.0f);
+    float f2 = GetSetFade(5.0f);
+    float f3 = GetSetFade(10.0f);
+    float f4 = GetSetFade(15.0f);
+    float f5 = GetSetFade(20.0f);
+    float f6 = GetSetFade(25.0f);
+
+    // School credits line stays throughout using max fade of all sets
+    float globalFade = 1.0f;
+    AEGfxPrint(fontId, "WWW.DIGIPEN.EDU",
+        -0.10f, 0.9f, 0.4f, 1, 1, 1, globalFade);
+    AEGfxPrint(fontId, "All content (c) 2025 DigiPen Institute of Technology Singapore. All Rights Reserved.",
+        -0.39f, 0.82f, 0.45f, 1, 1, 1, globalFade);
+
+    // -----------------------------------------------------------------------
+    // SET 1 — Team Credits
+    // -----------------------------------------------------------------------
+    if (f1 > 0.0f)
+    {
+        AEGfxPrint(fontId, "Fatty Patties", -0.15f, 0.60f, 1.0f, 1, 1, 1, f1);
+
+        AEGfxPrint(fontId, "Syakil", -0.20f, 0.50f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "UI/UX Programmer", 0.02f, 0.50f, 0.5f, 1, 1, 1, f1);
+
+        AEGfxPrint(fontId, "Yue Jun", -0.20f, 0.45f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Animation Programmer", 0.02f, 0.45f, 0.5f, 1, 1, 1, f1);
+
+        AEGfxPrint(fontId, "Diya", -0.20f, 0.40f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Gameplay Programmer", 0.02f, 0.40f, 0.5f, 1, 1, 1, f1);
+
+        AEGfxPrint(fontId, "Elizabeth", -0.20f, 0.35f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Level Programmer", 0.02f, 0.35f, 0.5f, 1, 1, 1, f1);
+    }
+
+    // -----------------------------------------------------------------------
+    // SET 2 — Faculty and Created At
+    // -----------------------------------------------------------------------
+    if (f2 > 0.0f)
+    {
+        AEGfxPrint(fontId, "Game Instructors", -0.20f, 0.60f, 1.0f, 1, 1, 1, f2);
+        AEGfxPrint(fontId, "Gerald Wong", -0.08f, 0.50f, 0.5f, 1, 1, 1, f2);
+        AEGfxPrint(fontId, "Soroor Malekmohammadi Faradounbeh", -0.22f, 0.45f, 0.5f, 1, 1, 1, f2);
+        AEGfxPrint(fontId, "Tommy Tan", -0.075f, 0.40f, 0.5f, 1, 1, 1, f2);
+
+        AEGfxPrint(fontId, "Created At", -0.10f, 0.25f, 0.8f, 1, 1, 1, f2);
+        AEGfxPrint(fontId, "DigiPen Institute of Technology", -0.18f, 0.15f, 0.5f, 1, 1, 1, f2);
+    }
+
+    // -----------------------------------------------------------------------
+    // SET 3 — President and Executives
+    // -----------------------------------------------------------------------
+    if (f3 > 0.0f)
+    {
+        AEGfxPrint(fontId, "President", -0.115f, 0.60f, 1.0f, 1, 1, 1, f3);
+        AEGfxPrint(fontId, "Claude Comair", -0.085f, 0.50f, 0.5f, 1, 1, 1, f3);
+
+        AEGfxPrint(fontId, "Executives", -0.115f, 0.35f, 0.8f, 1, 1, 1, f3);
+        AEGfxPrint(fontId, "Jason Chu    Samir Abou Samra    Michele Comair", -0.25f, 0.25f, 0.5f, 1, 1, 1, f3);
+        AEGfxPrint(fontId, "Angela Kugler    Erik Mohrmann          Benjamin Ellinger", -0.294f, 0.20f, 0.5f, 1, 1, 1, f3);
+        AEGfxPrint(fontId, "Melvin Gonsalves", -0.115f, 0.15f, 0.5f, 1, 1, 1, f3);
+    }
+
+    // -----------------------------------------------------------------------
+    // SET 4 — Special Thanks
+    // -----------------------------------------------------------------------
+    if (f4 > 0.0f)
+    {
+        AEGfxPrint(fontId, "Special Thanks", -0.17f, 0.60f, 1.0f, 1, 1, 1, f4);
+        AEGfxPrint(fontId, "All Our Play Testers", -0.12f, 0.50f, 0.5f, 1, 1, 1, f4);
+    }
+
+    // -----------------------------------------------------------------------
+    // SET 5 — Copyright
+    // -----------------------------------------------------------------------
+    if (f5 > 0.0f)
+    {
+        AEGfxPrint(fontId, "Thank You For Playing", -0.25f, 0.5f, 1.0f, 1, 1, 1, f5);
+    
+    }
+
+    if (f6 > 0.0f) {
+        next = GS_MAINMENU;
+    }
+
+    AEGfxSetBlendMode(AE_GFX_BM_NONE);
+}
+
+void End_Credits_Free()
+{
+    /*printf("School Credits Free called\n");*/
+}
+
+void End_Credits_Unload()
+{
+    printf("School Credits Unload called\n");
+    if (fontId >= 0) { AEGfxDestroyFont(fontId); fontId = -1; }
+    if (landMesh) { AEGfxMeshFree(landMesh);  landMesh = nullptr; }
+    if (starMesh) { AEGfxMeshFree(starMesh);  starMesh = nullptr; }
+}

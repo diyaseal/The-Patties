@@ -146,7 +146,7 @@ void MainMenu_Update()
             }
             else if (btn == &patty) {
                 printf("Patty clicked - Load game!\n");
-                // next = GS_CREDIT;
+                 next = GS_END_CRED;
             }
             else if (btn == &lettuce) {
                 printf("Lettuce clicked - High scores!\n");

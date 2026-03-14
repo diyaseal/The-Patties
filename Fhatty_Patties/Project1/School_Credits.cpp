@@ -62,7 +62,7 @@ void School_Credits_Update()
     }
 
     if (totalElapsedTime > 3.0f)
-        next = GS_MAINMENU;
+        next = GS_TEAM_CRED;
 }
 
 void School_Credits_Draw()
@@ -122,18 +122,18 @@ void School_Credits_Draw()
 
 void School_Credits_Free()
 {
-    printf("School Credits Free called\n");
+    /*printf("School Credits Free called\n");*/
+}
+
+void School_Credits_Unload()
+{
+    printf("School Credits Unload called\n");
 
     if (pLogoMesh)
     {
         AEGfxMeshFree(pLogoMesh);
         pLogoMesh = nullptr;
     }
-}
-
-void School_Credits_Unload()
-{
-    printf("School Credits Unload called\n");
 
     if (pSchoolLogo)
     {

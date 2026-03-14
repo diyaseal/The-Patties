@@ -18,6 +18,7 @@
 #include "utils.hpp"
 #include "School_Credits.hpp"
 #include "Team_Credits.hpp"
+#include "End_Credits.hpp"
 #include "MainMenu.hpp"
 #include "Levels.hpp"
 #include "Points.hpp"
