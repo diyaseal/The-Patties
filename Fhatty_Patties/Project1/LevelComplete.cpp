@@ -16,7 +16,7 @@ static AEGfxTexture* pBgTexture = nullptr;
 
 static float       popupScale = 0.0f;
 static const float POPUP_GROW_SPEED = 3.0f;
-static const int   DISPLAY_SCORE = 1000;
+//static const int   DISPLAY_SCORE = 1000;
 
 // ---------------------------------------------------------------------------
 // DrawRect
@@ -142,11 +142,18 @@ void LevelComplete_Update()
 
     continueButton.isHovered = IsButtonHovered(continueButton);
     restartButton.isHovered = IsButtonHovered(restartButton);
+    if (IsButtonClicked(continueButton))  next = GS_MAINMENU;
+    if (IsButtonClicked(restartButton))   next = GS_GAME;
+
+
     nextLevelButton.isHovered = IsButtonHovered(nextLevelButton);
 
-    if (IsButtonClicked(continueButton))  next = GS_MAINMENU;
-    if (IsButtonClicked(restartButton))   next = GS_RESTART;
-    // if (IsButtonClicked(nextLevelButton)) next = GS_LEVEL2;
+    if (currentPoints > Level_Manager_GetStarPosition(0)) {
+        if (IsButtonClicked(nextLevelButton)) {
+            Level_Manager_LoadLevel(Level_Manager_GetCurrentLevel() + 1);
+            next = GS_GAME;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -183,16 +190,27 @@ void LevelComplete_Draw()
         0.1f, 0.1f, restartButton.isHovered ? 0.6f : 0.9f, 1.0f, s);
 
     // 8. Next Level button (green)
-    DrawRect(nextLevelButton.x, nextLevelButton.y,
-        nextLevelButton.width, nextLevelButton.height,
-        0.1f, nextLevelButton.isHovered ? 0.4f : 0.6f, 0.1f, 1.0f, s);
+    if (currentPoints > Level_Manager_GetStarPosition(0)) {
+        DrawRect(nextLevelButton.x, nextLevelButton.y,
+            nextLevelButton.width, nextLevelButton.height,
+            0.1f, nextLevelButton.isHovered ? 0.4f : 0.6f, 0.1f, 1.0f, s);
+    }
 
     // 9. Stars — only after fully scaled in
     if (s >= 1.0f)
     {
-        DrawStar(-60.0f, 55.0f, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f);
-        DrawStar(0.0f, 55.0f, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f);
-        DrawStar(60.0f, 55.0f, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f);
+        int starsEarned = currentStars; // returns 0, 1, 2, or 3
+
+        for (int i = 0; i < 3; i++)
+        {
+            float starX = -60.0f + (i * 60.0f); // -60, 0, 60
+            float starY = 55.0f;
+
+            if (i < starsEarned)
+                DrawStar(starX, starY, 50.0f, 1.0f, 0.85f, 0.0f, 1.0f); // yellow
+            else
+                DrawStar(starX, starY, 50.0f, 0.4f, 0.4f, 0.4f, 1.0f);  // grey
+        }
     }
 
     // 10. Text — only after fully scaled in
@@ -204,12 +222,18 @@ void LevelComplete_Draw()
         AEGfxPrint(fontSmall, "SCORE", -0.28f, 0.09f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
         char scoreStr[16];
-        sprintf_s(scoreStr, "%d", DISPLAY_SCORE);
+        sprintf_s(scoreStr, "%d", static_cast<int>(currentPoints));
         AEGfxPrint(fontSmall, scoreStr, 0.22f, 0.09f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
         AEGfxPrint(fontSmall, "MAIN MENU", -0.42f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
         AEGfxPrint(fontSmall, "RESTART", -0.07f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxPrint(fontSmall, "NEXT LEVEL", 0.23f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+        if (currentPoints > Level_Manager_GetStarPosition(0)) {
+            AEGfxPrint(fontSmall, "NEXT LEVEL", 0.23f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        AEGfxPrint(fontSmall, "HIGH SCORE: ", -0.11f, -0.10f, 0.8f, 0.0f, 0.0f, 0.0f, 1.0f);
+        char    highScoreStr[16];
+        sprintf_s(highScoreStr, "%d", static_cast<int>(Level_Manager_GetHighestPoints()));
+        AEGfxPrint(fontSmall, highScoreStr, 0.08f, -0.10f, 0.8f, 0.0f, 0.0f, 0.0f, 1.0f);
     }
 }
 
