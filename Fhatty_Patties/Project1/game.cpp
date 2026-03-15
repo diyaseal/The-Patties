@@ -16,18 +16,19 @@ static AEGfxTexture* GameplayBG_back = nullptr; // game BG
 static AEGfxTexture* GameplayBG_front = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
 static AEGfxTexture* PlateTexture = nullptr; //plate 
+static AEGfxTexture* LockTexture = nullptr; // (D) Lock icon for locked ingredients
 static bool levelEndTriggered = false; // To ensure we only trigger level end sequence once (T)
 
 
 static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
-               PattieTransform, PattieScale, PattieTranslate,
-               CheeseTransform, CheeseScale, CheeseTranslate,
-               TomatoTransform, TomatoScale, TomatoTranslate,
-               LettuceTransform, LettuceScale, LettuceTranslate,
-               TBurgerTransform, TBurgerScale, TBurgerTranslate,
-               BBurgerTransform, BBurgerScale, BBurgerTranslate,  // Transformation matrices
-               BGTransform, BGScale, BGTranslate , 
-               PlateImageTransform, PlateImageScale, PlateImageTranslate;
+PattieTransform, PattieScale, PattieTranslate,
+CheeseTransform, CheeseScale, CheeseTranslate,
+TomatoTransform, TomatoScale, TomatoTranslate,
+LettuceTransform, LettuceScale, LettuceTranslate,
+TBurgerTransform, TBurgerScale, TBurgerTranslate,
+BBurgerTransform, BBurgerScale, BBurgerTranslate,  // Transformation matrices
+BGTransform, BGScale, BGTranslate,
+PlateImageTransform, PlateImageScale, PlateImageTranslate;
 ;
 
 // Ingredient positions on the plate
@@ -52,10 +53,10 @@ static float BunTopY = -81.0f;
 static float BunTopWidth = 100.0f;
 static float BunTopHeight = 100.0f;
 
-static float BunBottomX = -560.0f;  
-static float BunBottomY = -180.0f;  
+static float BunBottomX = -560.0f;
+static float BunBottomY = -180.0f;
 static float BunBottomWidth = 90.0f;
-static float BunBottomHeight = 90.0f; 
+static float BunBottomHeight = 90.0f;
 
 static float PattieX = -275.0f; //updated hitbox
 static float PattieY = -110.0f;
@@ -73,9 +74,9 @@ static float LettuceWidth = 110.0f;
 static float LettuceHeight = 110.0f;
 
 static float TomatoX = -300.0f;   //updated hitbox  
-static float TomatoY = -175.0f;     
-static float TomatoWidth = 90.0f;   
-static float TomatoHeight = 90.0f;  
+static float TomatoY = -175.0f;
+static float TomatoWidth = 90.0f;
+static float TomatoHeight = 90.0f;
 
 // Add these with your other ingredient position variables
 static float OnionX = 3.0f;          // From click (3.00, -175.00)
@@ -100,10 +101,10 @@ static bool lettuceOnPlate = false;
 static bool cheeseOnPlate = false;
 static bool pattieOnPlate = false;
 static bool tomatoOnPlate = false;
-static bool onionOnPlate = false;      
-static bool cucumberOnPlate = false;   
+static bool onionOnPlate = false;
+static bool cucumberOnPlate = false;
 static bool bunTopOnPlate = false;
-static bool bunBottomOnPlate = false; 
+static bool bunBottomOnPlate = false;
 
 // ---------------------------------------------------------------------------
 // Helper Functions Syakil 
@@ -121,17 +122,69 @@ static void ResetDragState() {
     burgerDragY = -225.0f; // Plate position
 }
 
+
+// (D) Helper to check if an ingredient is unlocked for the current level
+static bool IsIngredientUnlocked(IngredientType ingredient) {
+    for (const std::string& ing : currentLevelData.ingredients) {
+        switch (ingredient) {
+        case BOTTOM_BUN:
+            if (ing == "BOTTOM_BUN" || ing == "Bottom Bun" || ing == "bottom_bun") return true;
+            break;
+        case TOP_BUN:
+            if (ing == "TOP_BUN" || ing == "Top Bun" || ing == "top_bun") return true;
+            break;
+        case PATTY:
+            if (ing == "PATTY" || ing == "Patty" || ing == "patty") return true;
+            break;
+        case CHEESE:
+            if (ing == "CHEESE" || ing == "Cheese" || ing == "cheese") return true;
+            break;
+        case LETTUCE:
+            if (ing == "LETTUCE" || ing == "Lettuce" || ing == "lettuce") return true;
+            break;
+        case TOMATO:
+            if (ing == "TOMATO" || ing == "Tomato" || ing == "tomato") return true;
+            break;
+        case ONION:
+            if (ing == "ONION" || ing == "Onion" || ing == "onion") return true;
+            break;
+        case CUCUMBER:
+            if (ing == "CUCUMBER" || ing == "Cucumber" || ing == "cucumber") return true;
+            break;
+        }
+    }
+
+    return false;
+}
+
+// (D) Helper to draw the lock icon over locked ingredients
+static void DrawLockOverlay(float x, float y, float width, float height) {
+    if (!LockTexture || !TableMesh) return;
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxTextureSet(LockTexture, 0.f, 0.f);
+
+    AEMtx33 lockScale, lockTranslate, lockTransform;
+    AEMtx33Scale(&lockScale, width, height);
+    AEMtx33Trans(&lockTranslate, x, y);
+    AEMtx33Concat(&lockTransform, &lockTranslate, &lockScale);
+
+    AEGfxSetTransform(lockTransform.m);
+    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+}
+
 // ---------------------------------------------------------------------------
 // Game State Functions
 
-void Game_Init() { 
-    printf("Game_Init called\n"); 
-    Level_Manager_Init(); 
-    Customer_Init(); 
+void Game_Init() {
+    printf("Game_Init called\n");
+    Level_Manager_Init();
+    Customer_Init();
     Points_Init();
     GarageDoor_Init();
-	levelEndTriggered = false; // Reset level end trigger in case of replay
-    }
+    levelEndTriggered = false; // Reset level end trigger in case of replay
+}
 
 void Game_Load() {
     printf("Game_Load called\n");
@@ -139,7 +192,7 @@ void Game_Load() {
     // Load meshes ONCE
     TableMesh = CreateSquareMesh(8.0f, 2.5f);
     PlateMesh = CreateCircleMesh(2.0f, 32);
-	IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
+    IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
     BGMesh = CreateSquareMesh(0.5, 0.5);
 
     PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
@@ -167,6 +220,15 @@ void Game_Load() {
     // Load ingredient sprite sheet
     Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
 
+    // (D) Load lock icon for locked ingredients
+    LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png");
+    if (LockTexture) {
+        printf("Lock texture loaded successfully\n");
+    }
+    else {
+        printf("ERROR: Failed to load lock.png\n");
+    }
+
     if (Ingredients) {
         printf("Ingredients texture loaded successfully\n");
     }
@@ -189,7 +251,7 @@ void Game_Load() {
     printf("Rectangle mesh created\n");
     // Elizabeth: Check if points are loaded
     Points_Load();
-	// Teb : Check if garage door is loaded
+    // Teb : Check if garage door is loaded
     GarageDoor_Load();
     Sound_Load();
     Sound_PlayBGM();
@@ -301,7 +363,8 @@ void Game_Update() {
         printf("Mouse clicked at world: (%.2f, %.2f)\n", worldMouseX, worldMouseY);
 
         // Check if lettuce was clicked
-        if (worldMouseX >= LettuceX - LettuceWidth / 2.0f &&
+        if (IsIngredientUnlocked(LETTUCE) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= LettuceX - LettuceWidth / 2.0f &&
             worldMouseX <= LettuceX + LettuceWidth / 2.0f &&
             worldMouseY >= LettuceY - LettuceHeight / 2.0f &&
             worldMouseY <= LettuceY + LettuceHeight / 2.0f) {
@@ -312,7 +375,8 @@ void Game_Update() {
         }
 
         // Check if cheese was clicked
-        if (worldMouseX >= CheeseX - CheeseWidth / 2.0f &&
+        if (IsIngredientUnlocked(CHEESE) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= CheeseX - CheeseWidth / 2.0f &&
             worldMouseX <= CheeseX + CheeseWidth / 2.0f &&
             worldMouseY >= CheeseY - CheeseHeight / 2.0f &&
             worldMouseY <= CheeseY + CheeseHeight / 2.0f) {
@@ -323,7 +387,8 @@ void Game_Update() {
         }
 
         // Check if pattie was clicked
-        if (worldMouseX >= PattieX - PattieWidth / 2.0f &&
+        if (IsIngredientUnlocked(PATTY) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= PattieX - PattieWidth / 2.0f &&
             worldMouseX <= PattieX + PattieWidth / 2.0f &&
             worldMouseY >= PattieY - PattieHeight / 2.0f &&
             worldMouseY <= PattieY + PattieHeight / 2.0f) {
@@ -334,7 +399,8 @@ void Game_Update() {
         }
 
         // Check if tomato was clicked
-        if (worldMouseX >= TomatoX - TomatoWidth / 2.0f &&
+        if (IsIngredientUnlocked(TOMATO) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= TomatoX - TomatoWidth / 2.0f &&
             worldMouseX <= TomatoX + TomatoWidth / 2.0f &&
             worldMouseY >= TomatoY - TomatoHeight / 2.0f &&
             worldMouseY <= TomatoY + TomatoHeight / 2.0f) {
@@ -345,7 +411,8 @@ void Game_Update() {
         }
 
         // Check if bun top was clicked
-        if (worldMouseX >= BunTopX - BunTopWidth / 2.0f &&
+        if (IsIngredientUnlocked(TOP_BUN) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= BunTopX - BunTopWidth / 2.0f &&
             worldMouseX <= BunTopX + BunTopWidth / 2.0f &&
             worldMouseY >= BunTopY - BunTopHeight / 2.0f &&
             worldMouseY <= BunTopY + BunTopHeight / 2.0f) {
@@ -357,7 +424,8 @@ void Game_Update() {
         }
 
         // Check if bun bottom was clicked
-        if (worldMouseX >= BunBottomX - BunBottomWidth / 2.0f &&
+        if (IsIngredientUnlocked(BOTTOM_BUN) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= BunBottomX - BunBottomWidth / 2.0f &&
             worldMouseX <= BunBottomX + BunBottomWidth / 2.0f &&
             worldMouseY >= BunBottomY - BunBottomHeight / 2.0f &&
             worldMouseY <= BunBottomY + BunBottomHeight / 2.0f) {
@@ -368,7 +436,8 @@ void Game_Update() {
         }
 
         // Check if onion was clicked   UNLOCK INGREDIENTS 
-        if (worldMouseX >= OnionX - OnionWidth / 2.0f &&
+        if (IsIngredientUnlocked(ONION) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= OnionX - OnionWidth / 2.0f &&
             worldMouseX <= OnionX + OnionWidth / 2.0f &&
             worldMouseY >= OnionY - OnionHeight / 2.0f &&
             worldMouseY <= OnionY + OnionHeight / 2.0f) {
@@ -379,7 +448,8 @@ void Game_Update() {
         }
 
         // Check if cucumber was clicked UUNLOCK INGREDIENTS 
-        if (worldMouseX >= CucumberX - CucumberWidth / 2.0f &&
+        if (IsIngredientUnlocked(CUCUMBER) && // (D) Locked ingredients cannot be clicked
+            worldMouseX >= CucumberX - CucumberWidth / 2.0f &&
             worldMouseX <= CucumberX + CucumberWidth / 2.0f &&
             worldMouseY >= CucumberY - CucumberHeight / 2.0f &&
             worldMouseY <= CucumberY + CucumberHeight / 2.0f) {
@@ -530,7 +600,7 @@ void Game_Update() {
         Burger_Clear();
     }
 
-	//REMEMBER TO REMOVE THIS IS JUST CHECKING PURPOSESSSSS
+    //REMEMBER TO REMOVE THIS IS JUST CHECKING PURPOSESSSSS
     if (AEInputCheckTriggered(AEVK_E)) {
         next = GS_LVLCMP;
     }
@@ -575,7 +645,7 @@ void Game_Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     Customer_Draw(CustomerTexture);
 
-	AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
 
     // -------------------------------------------------------------------
     // DRAW FRONT BG
@@ -590,6 +660,16 @@ void Game_Draw() {
     // DRAW POINTS BAR
     // -------------------------------------------------------------------
     Points_Draw();
+
+    // (D) Draw lock icon on top of any ingredient that is still locked for this level
+    if (!IsIngredientUnlocked(BOTTOM_BUN)) DrawLockOverlay(BunBottomX, BunBottomY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(TOP_BUN)) DrawLockOverlay(BunTopX, BunTopY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(PATTY)) DrawLockOverlay(PattieX, PattieY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(CHEESE)) DrawLockOverlay(CheeseX, CheeseY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(LETTUCE)) DrawLockOverlay(LettuceX, LettuceY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(TOMATO)) DrawLockOverlay(TomatoX, TomatoY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(ONION)) DrawLockOverlay(OnionX, OnionY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(CUCUMBER)) DrawLockOverlay(CucumberX, CucumberY, 8.0f, 8.0f);
 
     // -------------------------------------------------------------------
    // DRAW INGREDIENTS ON PLATE (STACKED)
@@ -610,9 +690,9 @@ void Game_Draw() {
         drawY = -175.0f;  // Plate Y
     }
 
-// -------------------------------------------------------------------
-// DRAW PLATE IMAGE (underneath the burger)
-// -------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    // DRAW PLATE IMAGE (underneath the burger)
+    // -------------------------------------------------------------------
     if (PlateTexture) {
         // Set texture rendering mode
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -639,10 +719,10 @@ void Game_Draw() {
         // Draw the plate (using a square mesh)
         AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES); // Reuse TableMesh
     }
-    
+
     /*
     What it does: Creates a variable that keeps track of the burger's current height
-    Starts at 0: Bottom bun is at the baseGrows: 
+    Starts at 0: Bottom bun is at the baseGrows:
     Each ingredient adds to this height*/
 
     float currentHeight = 0.0f;  // Track how tall our stack is
@@ -745,7 +825,7 @@ void Game_Draw() {
         AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
     }
 
-	GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
+    GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
 }
 
 void Burger_Clear() {
@@ -757,8 +837,8 @@ void Burger_Clear() {
     cheeseOnPlate = false;
     pattieOnPlate = false;
     tomatoOnPlate = false;
-    onionOnPlate = false;     
-    cucumberOnPlate = false;  
+    onionOnPlate = false;
+    cucumberOnPlate = false;
     bunTopOnPlate = false;
     bunBottomOnPlate = false;
 
@@ -770,13 +850,13 @@ void Burger_Clear() {
 
 void Game_Free() {
     printf("Game_Free called\n");
-	Customer_Free();
+    Customer_Free();
     // Free any dynamic memory here
     Points_Free();
     Level_Manager_Free();
     GarageDoor_Free();
     Sound_Free();
-    
+
 }
 
 void Game_Unload() {
@@ -787,6 +867,13 @@ void Game_Unload() {
         AEGfxTextureUnload(Ingredients);
         Ingredients = nullptr;
         printf("Ingredients texture freed\n");
+    }
+
+    // (D) Free lock texture
+    if (LockTexture) {
+        AEGfxTextureUnload(LockTexture);
+        LockTexture = nullptr;
+        printf("Lock texture freed\n");
     }
 
     // Free customer texture

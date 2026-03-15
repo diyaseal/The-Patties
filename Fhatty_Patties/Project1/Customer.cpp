@@ -51,6 +51,43 @@ static const float EMOTION_DISPLAY_TIME = 1.5f;
 static float spawnTimer = 0.0f;
 static float spawnInterval = 4.0f;  // seconds between spawns
 
+
+// ---------------------------------------------------------------------------
+// (D) Helper: Check if ingredient is unlocked for current level
+// ---------------------------------------------------------------------------
+static bool IsIngredientUnlocked(IngredientType ingredient) {
+    for (const std::string& ing : currentLevelData.ingredients) {
+        switch (ingredient) {
+        case BOTTOM_BUN:
+            if (ing == "BOTTOM_BUN" || ing == "Bottom Bun" || ing == "bottom_bun") return true;
+            break;
+        case TOP_BUN:
+            if (ing == "TOP_BUN" || ing == "Top Bun" || ing == "top_bun") return true;
+            break;
+        case PATTY:
+            if (ing == "PATTY" || ing == "Patty" || ing == "patty") return true;
+            break;
+        case CHEESE:
+            if (ing == "CHEESE" || ing == "Cheese" || ing == "cheese") return true;
+            break;
+        case LETTUCE:
+            if (ing == "LETTUCE" || ing == "Lettuce" || ing == "lettuce") return true;
+            break;
+        case TOMATO:
+            if (ing == "TOMATO" || ing == "Tomato" || ing == "tomato") return true;
+            break;
+        case ONION:
+            if (ing == "ONION" || ing == "Onion" || ing == "onion") return true;
+            break;
+        case CUCUMBER:
+            if (ing == "CUCUMBER" || ing == "Cucumber" || ing == "cucumber") return true;
+            break;
+        }
+    }
+
+    return false;
+}
+
 // ---------------------------------------------------------------------------
 // Helper: FindFreeSlot
 // ---------------------------------------------------------------------------
@@ -89,7 +126,7 @@ void Customer_Init() {
 void Customer_Spawn() {
     if (totalCustomersSpawned >= CUSTOMERS_PER_LEVEL) {
         return;  // Don't spawn if we've reached the total for the level
-	}
+    }
 
     int slot = FindFreeSlot();
     if (slot == -1) return;
@@ -124,31 +161,43 @@ void Customer_Spawn() {
 void RandomOrder(Customer* customer) {
     customer->order.clear();
 
-    // Always start with bottom bun
-    customer->order.push_back(BOTTOM_BUN);
+    // (D) Only allow customer orders to use ingredients unlocked for the current level
 
-    // Always have pattie because burger
-    customer->order.push_back(PATTY);
-
-    // Randomise the chances of all the other ingredients
-    // what this does is to see like a 50% chance of customer
-    // ordering that specific ingredient
-    if (rand() % 2 == 0) {
-        customer->order.push_back(CHEESE);
-
+    // Always start with bottom bun if unlocked
+    if (IsIngredientUnlocked(BOTTOM_BUN)) {
+        customer->order.push_back(BOTTOM_BUN);
     }
 
-    if (rand() % 2 == 0) {
+    // Always have patty if unlocked
+    if (IsIngredientUnlocked(PATTY)) {
+        customer->order.push_back(PATTY);
+    }
+
+    // Randomise only unlocked ingredients
+    if (IsIngredientUnlocked(CHEESE) && rand() % 2 == 0) {
+        customer->order.push_back(CHEESE);
+    }
+
+    if (IsIngredientUnlocked(LETTUCE) && rand() % 2 == 0) {
         customer->order.push_back(LETTUCE);
     }
 
-    if (rand() % 2 == 0) {
+    if (IsIngredientUnlocked(TOMATO) && rand() % 2 == 0) {
         customer->order.push_back(TOMATO);
     }
-    
 
-    // Always end with top bun
-    customer->order.push_back(TOP_BUN);
+    if (IsIngredientUnlocked(ONION) && rand() % 2 == 0) {
+        customer->order.push_back(ONION);
+    }
+
+    if (IsIngredientUnlocked(CUCUMBER) && rand() % 2 == 0) {
+        customer->order.push_back(CUCUMBER);
+    }
+
+    // Always end with top bun if unlocked
+    if (IsIngredientUnlocked(TOP_BUN)) {
+        customer->order.push_back(TOP_BUN);
+    }
 
     customer->hasOrder = true;
 
@@ -218,6 +267,12 @@ static void DrawThoughtBubble(float customerX, float customerY, const std::vecto
             break;
         case TOMATO:
             AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);
+            break;
+        case ONION: // (D) Added onion icon support in customer thought bubble
+            AEGfxTextureSet(Ingredients, 1.f / 4.f, 1.f / 2.f);
+            break;
+        case CUCUMBER: // (D) Added cucumber icon support in customer thought bubble
+            AEGfxTextureSet(Ingredients, 2.f / 4.f, 1.f / 2.f);
             break;
             // Add more cases as needed
         }
@@ -337,6 +392,8 @@ void Customer_Update(float dt) {
                     case CHEESE:     printf("Cheese ");     break;
                     case LETTUCE:    printf("Lettuce ");    break;
                     case TOMATO:     printf("Tomato ");     break;
+                    case ONION:      printf("Onion ");      break; // (D) Added onion order debug print
+                    case CUCUMBER:   printf("Cucumber ");   break; // (D) Added cucumber order debug print
                     }
                 }
                 printf("\nCustomer arrived at slot %d\n", c.slotIndex);
