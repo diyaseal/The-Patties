@@ -17,7 +17,8 @@ static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslat
 // Points System System
 // ---------------------------------------------------------------------------
 static f32 MAX_POINTS = 0.0f;       // Max points to fill the bar (3 stars * 35)
-static f32 currentPoints = 0.0f;            // Current points earned
+extern float currentPoints = 0.0f;            // Current points earned
+extern int currentStars = 0;
 static f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
 static const f32 BAR_HEIGHT = 40.0f;        // Same height as gray bar
 static const f32 BAR_POS_X = 0.0f;          // Same X as gray bar
@@ -34,6 +35,7 @@ void Points_Init() {
     MAX_POINTS += Level_Manager_GetMaxPoints();
 
     currentPoints = 0.0f;
+    currentStars = 0;
 
     printf("MAX_POINTS = %.0f\n", MAX_POINTS);
 }
@@ -121,16 +123,20 @@ void Points_Draw() {
     const f32 STAR_Y_POS = BAR_POS_Y;
     const f32 BAR_LEFT_EDGE = BAR_POS_X - BAR_WIDTH / 2.0f;
 
+    currentStars = 0;
+
     for (int i = 0; i < 3; i++)
     {
         f32 threshold = Level_Manager_GetStarPosition(i);
         f32 thresholdPercentage = threshold / MAX_POINTS;
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
-        if (currentPoints >= threshold)
+        if (currentPoints >= threshold) {
+            currentStars++;
             AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
-        else
+        } else {
             AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f);
+        }
 
         AEMtx33Scale(&StarScale, STAR_SIZE, STAR_SIZE);
         AEMtx33RotDeg(&StarRotate, 180.0f);
