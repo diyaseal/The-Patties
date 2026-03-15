@@ -199,6 +199,7 @@ void MainMenu_Update()
                 truckFrame = 0;
             }
 
+            // for ELI
             // Animate wheels only while the truck is moving
             truckFrameTimer += dt;
             if (truckFrameTimer >= TRUCK_FRAME_DURATION)
