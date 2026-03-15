@@ -23,7 +23,7 @@ AEGfxVertexList* CreateSquareMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
-// remove later if not needed, but this is a simple way to create a circle mesh using triangles Eli: I NEED
+// remove later if not needed, but this is a simple way to create a circle mesh using triangles
 AEGfxVertexList* CreateCircleMesh(float radius, int segments)
 {
     AEGfxMeshStart();
@@ -55,6 +55,38 @@ AEGfxVertexList* CreateCircleMesh(float radius, int segments)
         );
     }
 
+    return AEGfxMeshEnd();
+}
+
+AEGfxVertexList* CreateCircleMeshUV(float radius, int segments)
+{
+    AEGfxMeshStart();
+    const float cPI = 3.14159265359f;
+    float angleStep = (2.0f * cPI) / segments;
+
+    for (int i = 0; i < segments; ++i)
+    {
+        float angle1 = i * angleStep;
+        float angle2 = (i + 1) * angleStep;
+
+        float cx = 0.0f, cy = 0.0f;
+        float x1 = radius * cosf(angle1);
+        float y1 = radius * sinf(angle1);
+        float x2 = radius * cosf(angle2);
+        float y2 = radius * sinf(angle2);
+
+        // Map position to UV: position is -0.5 to 0.5, UV is 0 to 1
+        float u1 = x1 / radius * 0.5f + 0.5f;
+        float v1 = y1 / radius * 0.5f + 0.5f;
+        float u2 = x2 / radius * 0.5f + 0.5f;
+        float v2 = y2 / radius * 0.5f + 0.5f;
+
+        AEGfxTriAdd(
+            cx, cy, 0xFFFFFFFF, 0.5f, 0.5f,  // center UV = middle of texture
+            x1, y1, 0xFFFFFFFF, u1, v1,
+            x2, y2, 0xFFFFFFFF, u2, v2
+        );
+    }
     return AEGfxMeshEnd();
 }
 

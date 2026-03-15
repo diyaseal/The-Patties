@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+ï»¿// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -12,6 +12,7 @@ static s8 fontId = -1;                           // Font ID
 static AEGfxVertexList* landMesh = nullptr;
 static AEGfxVertexList* starMesh = nullptr;
 
+
 struct BackgroundStar {
     float x, y;           // position
     float baseSize;       // original size
@@ -22,6 +23,31 @@ struct BackgroundStar {
 
 static const int NUM_STARS = 15;
 static BackgroundStar bgStars[NUM_STARS];
+
+static AEGfxTexture* Grass = nullptr;
+
+static AEGfxTexture* Truck = nullptr;
+static AEMtx33 TruckTransform, TruckTranslate, TruckScale;
+static AEGfxVertexList* TruckMesh = nullptr;
+// Wheel animation 2 frames side by side in spritesheet, each frame = 0.5 UV width
+static int   truckFrame = 0;        // current frame (0 or 1)
+static float truckFrameTimer = 0.0f;     // counts up to TRUCK_FRAME_DURATION
+static const float TRUCK_FRAME_DURATION = 1.0f / 8.0f;
+static const float TRUCK_FRAME_UV[2] = { 0.0f, 1.f / 2.f };
+
+static float truckY = 600.0f;          // starts above screen
+static float truckVelY = 0.0f;
+static bool  truckLanded = false;
+static float truckBounceTimer = 0.0f;
+static const float TRUCK_TARGET_Y = -90.0f;  // resting Y at top middle
+static const float TRUCK_GRAVITY = 1200.0f;
+static const float TRUCK_BOUNCE_DAMPEN = 0.4f;
+static const float TRUCK_LAND_THRESHOLD = 30.0f;
+
+static float truckBobOffset = 0.0f;   // current bob offset
+static float truckBobTimer = 0.0f;    // drives the sine wave
+static const float TRUCK_BOB_SPEED = 8.0f;   // how fast it bobs
+static const float TRUCK_BOB_AMOUNT = 5.0f;   // how many pixels up/down
 
 // ---------------------------------------------------------------------------
 // Helper Functions
@@ -38,6 +64,49 @@ void End_Credits_Update()
         // sinf oscillates -1 to 1, scale to 0.5 to 1.5x base size
         float pulse = 1.0f + 0.5f * sinf(bgStars[i].pulseTimer);
         bgStars[i].currentSize = bgStars[i].baseSize * pulse;
+    }
+
+    // Truck drop + bounce
+    if (!truckLanded)
+    {
+        truckVelY -= TRUCK_GRAVITY * dt;
+        truckY += truckVelY * dt;
+
+        if (truckY <= TRUCK_TARGET_Y)
+        {
+            truckY = TRUCK_TARGET_Y;
+            truckVelY = -truckVelY * TRUCK_BOUNCE_DAMPEN;
+
+            if (fabsf(truckVelY) < TRUCK_LAND_THRESHOLD)
+            {
+                truckVelY = 0.0f;
+                truckLanded = true;
+            }
+        }
+
+        // Animate wheels while falling
+        truckFrameTimer += dt;
+        if (truckFrameTimer >= TRUCK_FRAME_DURATION)
+        {
+            truckFrameTimer -= TRUCK_FRAME_DURATION;
+            truckFrame = (truckFrame + 1) % 2;
+        }
+    }
+
+    // Truck wheel frame animation + bob â€” only after landed
+    if (truckLanded)
+    {
+        // Switch frames
+        truckFrameTimer += dt;
+        if (truckFrameTimer >= TRUCK_FRAME_DURATION)
+        {
+            truckFrameTimer -= TRUCK_FRAME_DURATION;
+            truckFrame = (truckFrame + 1) % 2; // toggles 0 â†’ 1 â†’ 0
+        }
+
+        // Bob up and down with sine wave
+        truckBobTimer += dt;
+        truckBobOffset = sinf(truckBobTimer * TRUCK_BOB_SPEED) * TRUCK_BOB_AMOUNT;
     }
 
 }
@@ -70,7 +139,7 @@ void End_Credits_Load()
     printf("School_Credits Load\n");
 
     totalElapsedTime = 0.0f;
-    landMesh = CreateCircleMesh(0.5f, 64);
+    landMesh = CreateCircleMeshUV(0.5f, 64);
     starMesh = CreateStarMesh(0.5f, 0.2f);
 
     // -------------------------------------------------------------------
@@ -81,6 +150,28 @@ void End_Credits_Load()
         printf("ERROR: Failed to load font!\n");
     else
         printf("SUCCESS: Font loaded, ID = %d\n", fontId);
+
+    // -------------------------------------------------------------------
+    // LOAD GRASS
+    // -------------------------------------------------------------------
+    Grass = AEGfxTextureLoad("Assets/Assets/grass.png");
+
+    if (Grass)
+        printf("Truck texture loaded successfully\n");
+    else
+        printf("ERROR: Failed to load grass.png\n");
+
+
+    // -------------------------------------------------------------------
+    // LOAD TRUCK
+    // -------------------------------------------------------------------
+    Truck = AEGfxTextureLoad("Assets/Assets/Food_Truck.png");
+    TruckMesh = CreateTruckMesh(0.5, 0.5);
+
+    if (Truck)
+        printf("Truck texture loaded successfully\n");
+    else
+        printf("ERROR: Failed to load Food_truck.png\n");
 
 }
 
@@ -101,6 +192,16 @@ void End_Credits_Init()
         bgStars[i].pulseSpeed = 0.5f + (rand() % 100) / 100.0f; // 0.5 to 1.5
         bgStars[i].pulseTimer = (rand() % 100) / 100.0f * 6.28f;   // random start offset
     }
+
+    // ... existing code ...
+    truckY = 600.0f;
+    truckVelY = 0.0f;
+    truckLanded = false;
+    truckFrame = 0;
+    truckFrameTimer = 0.0f;
+    totalElapsedTime = 0.0f; 
+    truckBobOffset = 0.0f;
+    truckBobTimer = 0.0f;
 }
 
 void End_Credits_Draw()
@@ -113,18 +214,18 @@ void End_Credits_Draw()
     // -----------------------------------------------------------------------
     // DRAW LAND
     // -----------------------------------------------------------------------
-    if (landMesh)
+    if (landMesh && Grass)
     {
-        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-        AEGfxSetColorToMultiply(0.2f, 0.6f, 0.2f, 1.0f); // green
-
         AEMtx33 scale, translate, transform;
-        AEMtx33Scale(&scale, 1800.0f, 1800.0f);     
-        AEMtx33Trans(&translate, 0.0f, -1000.0f);   
-        AEMtx33Concat(&transform, &translate, &scale);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // no tint, show texture as-is
 
+        AEMtx33Scale(&scale, 1800.0f, 1800.0f);
+        AEMtx33Trans(&translate, 0.0f, -980.0f);
+        AEMtx33Concat(&transform, &translate, &scale);
         AEGfxSetTransform(transform.m);
+        AEGfxTextureSet(Grass, 0.0f, 0.0f);
         AEGfxMeshDraw(landMesh, AE_GFX_MDM_TRIANGLES);
     }
 
@@ -148,6 +249,22 @@ void End_Credits_Draw()
             AEGfxSetTransform(transform.m);
             AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
         }
+    }
+
+    if (Truck && TruckMesh)
+    {
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxSetTransparency(1.0f);
+
+        AEMtx33Scale(&TruckScale, 100.0f, 100.0f);
+        AEMtx33Trans(&TruckTranslate, 0.0f, truckY + truckBobOffset); // bob applied here
+        AEMtx33Concat(&TruckTransform, &TruckTranslate, &TruckScale);
+
+        AEGfxSetTransform(TruckTransform.m);
+        AEGfxTextureSet(Truck, TRUCK_FRAME_UV[truckFrame], 0.f);
+        AEGfxMeshDraw(TruckMesh, AE_GFX_MDM_TRIANGLES);
     }
 
 
@@ -175,7 +292,7 @@ void End_Credits_Draw()
         -0.39f, 0.82f, 0.45f, 1, 1, 1, globalFade);
 
     // -----------------------------------------------------------------------
-    // SET 1 — Team Credits
+    // SET 1 â€” Team Credits
     // -----------------------------------------------------------------------
     if (f1 > 0.0f)
     {
@@ -195,7 +312,7 @@ void End_Credits_Draw()
     }
 
     // -----------------------------------------------------------------------
-    // SET 2 — Faculty and Created At
+    // SET 2 â€” Faculty and Created At
     // -----------------------------------------------------------------------
     if (f2 > 0.0f)
     {
@@ -209,7 +326,7 @@ void End_Credits_Draw()
     }
 
     // -----------------------------------------------------------------------
-    // SET 3 — President and Executives
+    // SET 3 â€” President and Executives
     // -----------------------------------------------------------------------
     if (f3 > 0.0f)
     {
@@ -223,7 +340,7 @@ void End_Credits_Draw()
     }
 
     // -----------------------------------------------------------------------
-    // SET 4 — Special Thanks
+    // SET 4 â€” Special Thanks
     // -----------------------------------------------------------------------
     if (f4 > 0.0f)
     {
@@ -232,7 +349,7 @@ void End_Credits_Draw()
     }
 
     // -----------------------------------------------------------------------
-    // SET 5 — Copyright
+    // SET 5 â€” Copyright
     // -----------------------------------------------------------------------
     if (f5 > 0.0f)
     {
@@ -258,4 +375,7 @@ void End_Credits_Unload()
     if (fontId >= 0) { AEGfxDestroyFont(fontId); fontId = -1; }
     if (landMesh) { AEGfxMeshFree(landMesh);  landMesh = nullptr; }
     if (starMesh) { AEGfxMeshFree(starMesh);  starMesh = nullptr; }
+
+    if (TruckMesh) { AEGfxMeshFree(TruckMesh); TruckMesh = nullptr; }
+    if (Truck) { AEGfxTextureUnload(Truck); Truck = nullptr; }
 }
