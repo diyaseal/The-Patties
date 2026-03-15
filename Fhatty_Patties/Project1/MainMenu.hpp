@@ -29,9 +29,9 @@ static const struct {
     float floatAmount;
     float x, y;
 } BUTTON_DATA[] = {
-    { "Bottom Bun", -1.5f, 2.0f, 15.0f, 3.f / 4.f, 1.f / 2.f },
-    { "Lettuce",    0.2f, 2.1f, 16.0f, 1.f/ 2.f, 0 },
-    { "Patty",      1.7f, 1.9f, 14.0f, 0, 0 },
-    { "Cheese",     3.2f, 2.0f, 15.0f, 0, 1.f / 2.f },
-    { "Top Bun",    5.3f, 2.1f, 16.0f, 3.f / 4.f, 0 }
+    { "Quit", -1.5f, 2.0f, 15.0f, 3.f / 4.f, 1.f / 2.f },
+    { "Settings", 0.2f, 2.1f, 16.0f, 1.f/ 2.f, 0 },
+    { "Credits", 1.7f, 1.9f, 14.0f, 0, 0 },
+    { "Tutorial", 3.2f, 2.0f, 15.0f, 0, 1.f / 2.f },
+    { "Play", 5.3f, 2.1f, 16.0f, 3.f / 4.f, 0 }
 };

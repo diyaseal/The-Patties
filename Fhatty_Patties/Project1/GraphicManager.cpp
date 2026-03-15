@@ -64,14 +64,35 @@ AEGfxVertexList* CreateIngredientMesh(float x, float y) {
     // Create a square using two triangles
     AEGfxTriAdd(
         //  change to x and y va
-        -x, -y, 0xFFFFFFFF, 0.0f, 1/2.f,  // Bottom-left
-        x, -y, 0xFFFFFFFF, 1/4.f, 1/2.f,   // Bottom-right
+        -x, -y, 0xFFFFFFFF, 0.0f, 1.f/2.f,  // Bottom-left
+        x, -y, 0xFFFFFFFF, 1.f/4.f, 1.f/2.f,   // Bottom-right
         -x, y, 0xFFFFFFFF, 0.0f, 0.0f    // Top-left
     );
 
     AEGfxTriAdd(
-        x, -y, 0xFFFFFFFF, 1/4.f, 1/2.f,   // Bottom-right
-        x, y, 0xFFFFFFFF, 1/4.f, 0.0f,    // Top-right
+        x, -y, 0xFFFFFFFF, 1.f/4.f, 1.f/2.f,   // Bottom-right
+        x, y, 0xFFFFFFFF, 1.f/4.f, 0.0f,    // Top-right
+        -x, y, 0xFFFFFFFF, 0.0f, 0.0f    // Top-left
+    );
+
+    // Finish creating square mesh
+    return AEGfxMeshEnd();
+}
+
+AEGfxVertexList* CreateTruckMesh(float x, float y) {
+    AEGfxMeshStart();
+
+    // Create a square using two triangles
+    AEGfxTriAdd(
+        //  change to x and y va
+        -x, -y, 0xFFFFFFFF, 0.0f, 1.f / 1.f,  // Bottom-left
+        x, -y, 0xFFFFFFFF, 1.f / 2.f, 1.f / 1.f,   // Bottom-right
+        -x, y, 0xFFFFFFFF, 0.0f, 0.0f    // Top-left
+    );
+
+    AEGfxTriAdd(
+        x, -y, 0xFFFFFFFF, 1.f / 2.f, 1.f / 1.f,   // Bottom-right
+        x, y, 0xFFFFFFFF, 1.f / 2.f, 0.0f,    // Top-right
         -x, y, 0xFFFFFFFF, 0.0f, 0.0f    // Top-left
     );
 
