@@ -390,17 +390,22 @@ void Game_Update() {
         }
 
         // Check if player clicks on the plate (burger) to start dragging
-        float plateCenterX = 400.0f;
-        float plateCenterY = -225.0f;
-        float plateRadius = 100.0f;  // Approximate plate radius
+        float plateWidth = 200.0f;    // ADJUST THIS to match your plate.png size
+        float plateHeight = 100.0f;   // ADJUST THIS to match your plate.png size
+        float plateCenterX = 300.0f;  // Where you draw the plate
+        float plateCenterY = -175.0f; // Where you draw the plate
 
-        // Calculate distance from mouse to plate center
-        float dx = worldMouseX - plateCenterX;
-        float dy = worldMouseY - plateCenterY;
-        float distanceSquared = dx * dx + dy * dy;
+        // Calculate plate boundaries
+        float plateLeft = plateCenterX - plateWidth / 2;
+        float plateRight = plateCenterX + plateWidth / 2;
+        float plateBottom = plateCenterY - plateHeight / 2;
+        float plateTop = plateCenterY + plateHeight / 2;
 
-        // Check if burger exists and mouse is over plate
-        if (!currentBurger.empty() && distanceSquared <= (plateRadius * plateRadius)) {
+        // Check if burger exists and mouse is over the SQUARE plate
+        if (!currentBurger.empty() &&
+            worldMouseX >= plateLeft && worldMouseX <= plateRight &&
+            worldMouseY >= plateBottom && worldMouseY <= plateTop) {
+
             isDragging = true;
             burgerIsBeingDragged = true;
 
@@ -412,10 +417,9 @@ void Game_Update() {
             burgerDragX = worldMouseX;
             burgerDragY = worldMouseY;
 
-            printf("Started dragging burger!\n");
+            printf("Started dragging burger! (Square collision)\n");
         }
     }
-
     // Continuous drag update (if burger is being dragged)
     if (isDragging && burgerIsBeingDragged) {
         // Update burger position to follow mouse
@@ -433,7 +437,6 @@ void Game_Update() {
         burgerDragY = worldMouseY;
     }
 
-    // Check for mouse release
     // Check for mouse release
     if (AEInputCheckReleased(AEVK_LBUTTON)) {
         if (isDragging && burgerIsBeingDragged) {
@@ -592,7 +595,7 @@ void Game_Draw() {
    // DRAW INGREDIENTS ON PLATE (STACKED)
    // -------------------------------------------------------------------
 
-    float plateX = 400.0f;
+    float plateX = 300.0f;
     float plateY = -175.0f;
     float ingredientSize = 150.0f;
 
@@ -603,7 +606,7 @@ void Game_Draw() {
         drawY = burgerDragY;
     }
     else {
-        drawX = 400.0f;    // Plate X
+        drawX = 300.0f;    // Plate X
         drawY = -175.0f;  // Plate Y
     }
 
@@ -636,7 +639,7 @@ void Game_Draw() {
         // Draw the plate (using a square mesh)
         AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES); // Reuse TableMesh
     }
-
+    
     /*
     What it does: Creates a variable that keeps track of the burger's current height
     Starts at 0: Bottom bun is at the baseGrows: 
