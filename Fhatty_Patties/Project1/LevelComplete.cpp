@@ -142,7 +142,7 @@ void LevelComplete_Update()
 
     continueButton.isHovered = IsButtonHovered(continueButton);
     restartButton.isHovered = IsButtonHovered(restartButton);
-    if (IsButtonClicked(continueButton))  next = GS_MAINMENU;
+    if (IsButtonClicked(continueButton))  next = GS_LEVELS;
     if (IsButtonClicked(restartButton))   next = GS_GAME;
 
 

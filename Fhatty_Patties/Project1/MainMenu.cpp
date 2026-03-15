@@ -142,6 +142,16 @@ void MainMenu_Init()
         dropLanded[i] = false;
     }
 
+    /* Elizabeth - Set wall to reset upon calling page */
+    WallPosY = 900.0f;
+    wallTriggered = false;
+    truckParked = false;
+    truckX = 1400.0f;
+    truckVelX = -900.0f;
+    TruckFinishedTimer = 0.0f;
+    BGAlpha = 0.0f;
+    totalElapsedTime = 0.0f;
+
     pendingNextState = 0;
 }
 
@@ -461,12 +471,19 @@ void MainMenu_Free()
     if (BGMesh)
     {
         AEGfxMeshFree(BGMesh);
+        BGMesh = nullptr;
     }
 
     if (TruckMesh) {
         AEGfxMeshFree(TruckMesh);
         TruckMesh = nullptr;
     }
+
+    if (WallMesh) {
+        AEGfxMeshFree(WallMesh);
+        WallMesh = nullptr;
+    }
+
     Sound_Free(); //stop bgm when leaving
 }
 
@@ -495,6 +512,11 @@ void MainMenu_Unload()
     if (Truck) {
         AEGfxTextureUnload(Truck);
         Truck = nullptr;
+    }
+
+    if (Wall) {
+        AEGfxTextureUnload(Wall);
+        Wall = nullptr;
     }
 
     if (FontId >= 0)
