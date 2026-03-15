@@ -149,9 +149,12 @@ void LevelComplete_Update()
     nextLevelButton.isHovered = IsButtonHovered(nextLevelButton);
 
     if (currentPoints > Level_Manager_GetStarPosition(0)) {
-        if (IsButtonClicked(nextLevelButton)) {
+        if (IsButtonClicked(nextLevelButton) && Level_Manager_GetCurrentLevel() != 5) {
             Level_Manager_LoadLevel(Level_Manager_GetCurrentLevel() + 1);
             next = GS_GAME;
+        }
+        else if (IsButtonClicked(nextLevelButton) && Level_Manager_GetCurrentLevel() == 5) {
+            next = GS_END_CRED;
         }
     }
 }

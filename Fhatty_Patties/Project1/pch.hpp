@@ -23,6 +23,7 @@
 #include "Levels.hpp"
 #include "Points.hpp"
 #include "GraphicManager.hpp"
+#include "Particle_Manager.hpp"
 #include "LevelComplete.hpp"
 #include "Garagedoor.hpp"
 #include "sounds.hpp"

@@ -29,7 +29,7 @@ void School_Credits_Load()
         printf("SUCCESS: Font loaded, ID = %d\n", fontId);
 
     // Load Digipen logo texture
-    pSchoolLogo = AEGfxTextureLoad("Assets/Graphics/DigiPen_Singapore_WEB_RED.png");
+    pSchoolLogo = AEGfxTextureLoad("Assets/Assets/DigiPen_Singapore_WEB_RED.png");
     if (!pSchoolLogo)
         printf("ERROR: Failed to load DigiPen logo\n");
     else

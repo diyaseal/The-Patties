@@ -3,15 +3,28 @@
 #include "pch.hpp"
 
 // ---------------------------------------------------------------------------
-// Global variables for School Credits
+// Global variables for End Credits
 static float totalElapsedTime = 0.0f;            // Timer for screen duration
 static float fade = 1.0f;                   // Start fully visible
 
 // Assets
+// ---------------------------------------------------------------------------
+// FONT
+// ---------------------------------------------------------------------------
 static s8 fontId = -1;                           // Font ID
-static AEGfxVertexList* landMesh = nullptr;
-static AEGfxVertexList* starMesh = nullptr;
 
+// ---------------------------------------------------------------------------
+// LAND
+// ---------------------------------------------------------------------------
+static AEGfxVertexList* landMesh = nullptr;
+static AEGfxTexture* Grass = nullptr;
+static float landRotation = 0.0f;
+static const float LAND_ROTATE_SPEED = 5.0f; // degrees per second
+
+// ---------------------------------------------------------------------------
+// STARS
+// ---------------------------------------------------------------------------
+static AEGfxVertexList* starMesh = nullptr;
 
 struct BackgroundStar {
     float x, y;           // position
@@ -24,8 +37,9 @@ struct BackgroundStar {
 static const int NUM_STARS = 15;
 static BackgroundStar bgStars[NUM_STARS];
 
-static AEGfxTexture* Grass = nullptr;
-
+// ---------------------------------------------------------------------------
+// TRUCK
+// ---------------------------------------------------------------------------
 static AEGfxTexture* Truck = nullptr;
 static AEMtx33 TruckTransform, TruckTranslate, TruckScale;
 static AEGfxVertexList* TruckMesh = nullptr;
@@ -39,7 +53,7 @@ static float truckY = 600.0f;          // starts above screen
 static float truckVelY = 0.0f;
 static bool  truckLanded = false;
 static float truckBounceTimer = 0.0f;
-static const float TRUCK_TARGET_Y = -90.0f;  // resting Y at top middle
+static const float TRUCK_TARGET_Y = -80.0f;  // resting Y at top middle
 static const float TRUCK_GRAVITY = 1200.0f;
 static const float TRUCK_BOUNCE_DAMPEN = 0.4f;
 static const float TRUCK_LAND_THRESHOLD = 30.0f;
@@ -54,8 +68,17 @@ static const float TRUCK_BOB_AMOUNT = 5.0f;   // how many pixels up/down
 
 void End_Credits_Update()
 {
+    // Quit
+    if (AEInputCheckTriggered(AEVK_Q)) {
+        next = GS_MAINMENU;
+    }
+
     float dt = (float)AEFrameRateControllerGetFrameTime();
     totalElapsedTime += dt;
+
+    // Set source first, then update
+    Particle_SetSource(0.0f, truckY + truckBobOffset, truckLanded);
+    Particle_Update(dt);
 
     // Pulse each star
     for (int i = 0; i < NUM_STARS; i++)
@@ -65,6 +88,9 @@ void End_Credits_Update()
         float pulse = 1.0f + 0.5f * sinf(bgStars[i].pulseTimer);
         bgStars[i].currentSize = bgStars[i].baseSize * pulse;
     }
+
+    landRotation += LAND_ROTATE_SPEED * dt;
+    if (landRotation > 360.0f) landRotation -= 360.0f; // keep it clean
 
     // Truck drop + bounce
     if (!truckLanded)
@@ -138,6 +164,8 @@ void End_Credits_Load()
 {
     printf("School_Credits Load\n");
 
+    Particle_Load();
+
     totalElapsedTime = 0.0f;
     landMesh = CreateCircleMeshUV(0.5f, 64);
     starMesh = CreateStarMesh(0.5f, 0.2f);
@@ -178,7 +206,10 @@ void End_Credits_Load()
 void End_Credits_Init()
 {
     printf("End Credits Init called\n");
+
     fade = 1.0f;  // Reset fade when entering screen
+
+    Particle_Init();
 
     // Scatter stars randomly across screen
     srand(72); // fixed seed so positions are consistent each run
@@ -218,12 +249,14 @@ void End_Credits_Draw()
     {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-        AEMtx33 scale, translate, transform;
+        AEMtx33 scale, rotate, translate, transform, temp;
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // no tint, show texture as-is
-
+         
         AEMtx33Scale(&scale, 1800.0f, 1800.0f);
+        AEMtx33RotDeg(&rotate, -landRotation); // rotates clockwise
         AEMtx33Trans(&translate, 0.0f, -980.0f);
-        AEMtx33Concat(&transform, &translate, &scale);
+        AEMtx33Concat(&temp, &rotate, &scale);
+        AEMtx33Concat(&transform, &translate, &temp);
         AEGfxSetTransform(transform.m);
         AEGfxTextureSet(Grass, 0.0f, 0.0f);
         AEGfxMeshDraw(landMesh, AE_GFX_MDM_TRIANGLES);
@@ -267,6 +300,10 @@ void End_Credits_Draw()
         AEGfxMeshDraw(TruckMesh, AE_GFX_MDM_TRIANGLES);
     }
 
+    // -----------------------------------------------------------------------
+    // DRAW SMOKE PARTICLE
+    // -----------------------------------------------------------------------
+    Particle_Draw();
 
     // -----------------------------------------------------------------------
     // DRAW CREDITS TEXT
@@ -366,12 +403,14 @@ void End_Credits_Draw()
 
 void End_Credits_Free()
 {
-    /*printf("School Credits Free called\n");*/
+    printf("End Credits Free called\n");
+    Particle_Free();
 }
 
 void End_Credits_Unload()
 {
-    printf("School Credits Unload called\n");
+    printf("End Credits Unload called\n");
+    Particle_Unload();
     if (fontId >= 0) { AEGfxDestroyFont(fontId); fontId = -1; }
     if (landMesh) { AEGfxMeshFree(landMesh);  landMesh = nullptr; }
     if (starMesh) { AEGfxMeshFree(starMesh);  starMesh = nullptr; }
