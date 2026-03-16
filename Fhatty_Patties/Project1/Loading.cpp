@@ -136,7 +136,7 @@ void Loading_Update()
 
 
     // Smoke
-    Particle_SetSource(truckX - 70.0f, truckY - 100.0f, true, 0.005f, 50.0f);
+    Particle_SetSmoke(truckX - 70.0f, truckY - 100.0f, true, 0.005f, 50.0f);
     Particle_Update(dt);
 
     // Transition once done and truck has moved far enough
