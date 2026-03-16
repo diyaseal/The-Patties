@@ -12,11 +12,11 @@ static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh (T)
 
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
-static AEGfxTexture* GameplayBG_back = nullptr; // game BG
-static AEGfxTexture* GameplayBG_front = nullptr; // game BG
+AEGfxTexture* GameplayBG_back = nullptr; // game BG
+AEGfxTexture* GameplayBG_front = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
-static AEGfxTexture* PlateTexture = nullptr; //plate 
-static AEGfxTexture* LockTexture = nullptr; // (D) Lock icon for locked ingredients
+AEGfxTexture* PlateTexture = nullptr; //plate 
+AEGfxTexture* LockTexture = nullptr; // (D) Lock icon for locked ingredients
 static bool levelEndTriggered = false; // To ensure we only trigger level end sequence once (T)
 
 

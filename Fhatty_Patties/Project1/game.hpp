@@ -11,3 +11,10 @@ void Game_Free();
 void Game_Unload();
 
 extern AEGfxTexture* Ingredients;
+extern AEGfxTexture* GameplayBG_back;
+extern AEGfxTexture* GameplayBG_front;
+extern AEGfxTexture* CustomerTexture[4];
+extern AEGfxTexture* PlateTexture;
+extern AEGfxTexture* LockTexture;
+extern AEGfxTexture* Ingredients;
+
