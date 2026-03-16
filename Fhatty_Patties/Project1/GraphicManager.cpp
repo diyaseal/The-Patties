@@ -1,6 +1,6 @@
 #include "pch.hpp"
 #include <cmath> 
-//diya dont forget u did this :)
+//mesh diya 
 
 AEGfxVertexList* CreateSquareMesh(float x, float y) {
     AEGfxMeshStart();

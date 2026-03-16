@@ -6,6 +6,7 @@
 
 //BGM
 static AEAudio bgmAudio;
+static AEAudio bgmEndCreds;
 
 //SFX
 static AEAudio sfxOnClick;
@@ -13,6 +14,9 @@ static AEAudio sfxCorrect;
 static AEAudio sfxAngryMale;
 static AEAudio sfxAngryFemale;
 static AEAudio sfxdoorClose;
+static AEAudio sfxTruckMove;
+static AEAudio sfxTruckBeep;
+
 //Groups
 static AEAudioGroup bgmGroup;
 static AEAudioGroup sfxGroup;
@@ -26,12 +30,15 @@ void Sound_Load() {
     sfxGroup = AEAudioCreateGroup();
 
     bgmAudio = AEAudioLoadMusic("Assets/Audio/bouken.mp3");
+    bgmEndCreds = AEAudioLoadMusic("Assets/Audio/bgmEnd.mp3");
+
     sfxOnClick = AEAudioLoadMusic("Assets/Audio/onClick.mp3");
     sfxAngryMale = AEAudioLoadMusic("Assets/Audio/mAngry.mp3");
     sfxAngryFemale = AEAudioLoadMusic("Assets/Audio/wAngry.mp3");
     sfxCorrect = AEAudioLoadMusic("Assets/Audio/custHappy.mp3");
     sfxdoorClose = AEAudioLoadSound("Assets/Audio/doorClose.wav");
-
+    sfxTruckMove = AEAudioLoadMusic("Assets/Audio/truckMove.mp3");
+    sfxTruckBeep = AEAudioLoadMusic("Assets/Audio/truckBeep.mp3");
     printf("Sound loaded\n");
 }
 
@@ -41,6 +48,10 @@ void Sound_Load() {
 void Sound_PlayBGM() {
     if (AEAudioIsValidAudio(bgmAudio) && AEAudioIsValidGroup(bgmGroup))
         AEAudioPlay(bgmAudio, bgmGroup, 0.5f, 1.0f, -1);
+}
+void Sound_PlayBGMCreds() {
+    if (AEAudioIsValidAudio(bgmEndCreds) && AEAudioIsValidGroup(bgmGroup))
+        AEAudioPlay(bgmEndCreds, bgmGroup, 0.5f, 1.0f, -1);
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +87,19 @@ void Sound_PlaySFX_doorClose() {
     if (AEAudioIsValidAudio(sfxdoorClose) && AEAudioIsValidGroup(sfxGroup))
         AEAudioPlay(sfxdoorClose, sfxGroup, 1.0f, 1.0f, 0);
 }
-   
+
+void Sound_PlaySFX_TruckMove() {
+    if (AEAudioIsValidAudio(sfxTruckMove) && AEAudioIsValidGroup(sfxGroup))
+        AEAudioPlay(sfxTruckMove, sfxGroup, 1.5f, 1.0f, 0);
+}
+void Sound_StopSFX_TruckMove() {
+    if (AEAudioIsValidGroup(sfxGroup))
+        AEAudioStopGroup(sfxGroup);  // stops all SFX
+}
+void Sound_PlaySFX_TruckBeep() {
+    if (AEAudioIsValidAudio(sfxTruckBeep) && AEAudioIsValidGroup(sfxGroup))
+        AEAudioPlay(sfxTruckBeep, sfxGroup, 1.0f, 1.0f, 0);
+}
 // ---------------------------------------------------------------------------
 // Sound_Free
 // ---------------------------------------------------------------------------
@@ -93,10 +116,14 @@ void Sound_Unload() {
     AEAudioStopGroup(sfxGroup);
 
     AEAudioUnloadAudio(bgmAudio);
+    AEAudioUnloadAudio(bgmEndCreds);
     AEAudioUnloadAudio(sfxCorrect);
     AEAudioUnloadAudio(sfxAngryMale);
     AEAudioUnloadAudio(sfxAngryFemale);
     AEAudioUnloadAudio(sfxOnClick);
+    AEAudioUnloadAudio(sfxdoorClose);
+    AEAudioUnloadAudio(sfxTruckMove);
+    AEAudioUnloadAudio(sfxTruckBeep);
 
     AEAudioUnloadAudioGroup(bgmGroup);
     AEAudioUnloadAudioGroup(sfxGroup);

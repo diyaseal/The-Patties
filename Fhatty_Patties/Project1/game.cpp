@@ -97,14 +97,8 @@ static float TrashHeight = 100.0f; // Height of trash hitbox - adjust as needed
 
 // Track what's on the plate: Set 
 // everything to false first :Diya
-static bool lettuceOnPlate = false;
-static bool cheeseOnPlate = false;
-static bool pattieOnPlate = false;
-static bool tomatoOnPlate = false;
-static bool onionOnPlate = false;
-static bool cucumberOnPlate = false;
-static bool bunTopOnPlate = false;
-static bool bunBottomOnPlate = false;
+static bool lettuceOnPlate , cheeseOnPlate , pattieOnPlate , tomatoOnPlate , onionOnPlate , cucumberOnPlate , bunTopOnPlate , bunBottomOnPlate = false;
+
 
 // ---------------------------------------------------------------------------
 // Helper Functions Syakil 
@@ -128,28 +122,28 @@ static bool IsIngredientUnlocked(IngredientType ingredient) {
     for (const std::string& ing : currentLevelData.ingredients) {
         switch (ingredient) {
         case BOTTOM_BUN:
-            if (ing == "BOTTOM_BUN" || ing == "Bottom Bun" || ing == "bottom_bun") return true;
+            if (ing == "bottom_bun") return true;
             break;
         case TOP_BUN:
-            if (ing == "TOP_BUN" || ing == "Top Bun" || ing == "top_bun") return true;
+            if  (ing == "top_bun") return true;
             break;
         case PATTY:
-            if (ing == "PATTY" || ing == "Patty" || ing == "patty") return true;
+            if ( ing == "patty") return true;
             break;
         case CHEESE:
-            if (ing == "CHEESE" || ing == "Cheese" || ing == "cheese") return true;
+            if (ing == "cheese") return true;
             break;
         case LETTUCE:
-            if (ing == "LETTUCE" || ing == "Lettuce" || ing == "lettuce") return true;
+            if (ing == "lettuce") return true;
             break;
         case TOMATO:
-            if (ing == "TOMATO" || ing == "Tomato" || ing == "tomato") return true;
+            if ( ing == "tomato") return true;
             break;
         case ONION:
-            if (ing == "ONION" || ing == "Onion" || ing == "onion") return true;
+            if ( ing == "onion") return true;
             break;
         case CUCUMBER:
-            if (ing == "CUCUMBER" || ing == "Cucumber" || ing == "cucumber") return true;
+            if ( ing == "cucumber") return true;
             break;
         }
     }
