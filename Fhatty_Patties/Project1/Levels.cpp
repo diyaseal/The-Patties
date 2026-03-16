@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -38,6 +38,12 @@ static float WallPosY = 0.0f;
 static float SlideSpeed = 500.0f;
 static AEGfxVertexList* WallMesh = nullptr;
 static float WallTimer = 0.0f;
+
+//Sound
+static bool pendingStateChange = false;
+static int  pendingNextState = 0;
+static float stateChangeTimer = 0.0f;
+static const float STATE_CHANGE_DELAY = 0.3f;
 
 // Game State Functions
 // ---------------------------------------------------------------------------
@@ -85,6 +91,9 @@ void Levels_Load()
         printf("Wall texture loaded successfully\n");
     else
         printf("ERROR: Failed to load Transition_wall.png\n");
+
+    //Load Sound
+    Sound_Load();
 }
 
 void Levels_Init()
@@ -111,6 +120,13 @@ void Levels_Init()
         // First 3 levels unlocked, last 2 locked for demo
         levelButtons[i].Unlocked = (i < 3);
     }
+
+    totalElapsedTime = 0.0f;
+    WallTimer = 0.0f;  
+    WallPosY = 0.0f;  
+    pendingStateChange = false;
+    pendingNextState = 0;
+    stateChangeTimer = 0.0f;
 }
 
 void Levels_Update()
@@ -139,11 +155,25 @@ void Levels_Update()
 
         // Check if button is clicked
         if (IsButtonClicked(levelButtons[i].button)) {
+            Sound_PlaySFX_OnClick();
             levelButtons[i].button.isClicked = true;
             // ELI also over here is the place to go to the next game state based on what is clicked when u wanna edit
             // go through with me too I wanna understand
             currentLevel = i + 1;  // 1-based level number
-            next = GS_GAME;  // Go to game
+            pendingStateChange = true;      // ← don't switch immediately
+            pendingNextState = GS_GAME; 
+
+            
+        }
+    }
+
+    // Handle delayed state change so click sound can finish
+    if (pendingStateChange) {
+        stateChangeTimer += dt;
+        if (stateChangeTimer >= STATE_CHANGE_DELAY) {
+            next = pendingNextState;
+            pendingStateChange = false;
+            stateChangeTimer = 0.0f;
         }
     }
 }
@@ -272,4 +302,5 @@ void Levels_Unload()
         AEGfxDestroyFont(fontId);
         fontId = -1;
     }
+    Sound_Unload();
 }

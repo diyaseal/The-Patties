@@ -407,7 +407,6 @@ void End_Credits_Free()
 {
     printf("End Credits Free called\n");
     Particle_Free();
-    Sound_Free();
 }
 
 void End_Credits_Unload()
