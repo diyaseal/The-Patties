@@ -1,4 +1,4 @@
- // ---------------------------------------------------------------------------
+﻿ // ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -8,6 +8,7 @@ static AEGfxVertexList* BarMesh = nullptr;  // Square mesh
 static AEGfxVertexList* pointsGainedMesh = nullptr;  // Points gained bar mesh
 static AEGfxVertexList* starMesh = nullptr;  // Star mesh
 const f32 pointsEarnedH = 35.0f;
+static f32 displayPoints = 0.0f;
 
 // Removed duplicate declarations
 static AEMtx33 BarTransform, BarScale, BarTranslate;  // Bar transformation matrices
@@ -35,6 +36,7 @@ void Points_Init() {
     MAX_POINTS += Level_Manager_GetMaxPoints();
 
     currentPoints = 0.0f;
+    displayPoints = 0.0f;
     currentStars = 0;
 
     printf("MAX_POINTS = %.0f\n", MAX_POINTS);
@@ -48,10 +50,15 @@ void Points_Load() {
 
     BarMesh = CreateSquareMesh(0.5f, 0.5f);
     starMesh = CreateStarMesh(0.5f, 0.2f); 
+
+    Particle_Load();
 }
 
 void Points_Update() {
-
+    float dt = (float)AEFrameRateControllerGetFrameTime();
+    // Smooth bar lerp
+    Particle_Update(dt);
+    displayPoints += (currentPoints - displayPoints) * dt * 5.0f;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +85,6 @@ void Points_AddPoints(bool cust) {
     printf("\n");
     printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
-
 void Points_Draw() {
 
     if (MAX_POINTS <= 0.0f) return; // Guard against division by zero
@@ -98,7 +104,7 @@ void Points_Draw() {
     // -------------------------------------------------------------------
     // DRAW POINTS GAINED BAR (on top of gray, behind stars)
     // -------------------------------------------------------------------
-    f32 pointsPercentage = currentPoints / MAX_POINTS;
+    f32 pointsPercentage = displayPoints / MAX_POINTS; // use displayPoints
     if (pointsPercentage > 1.0f) pointsPercentage = 1.0f;
     if (pointsPercentage < 0.0f) pointsPercentage = 0.0f;
 
@@ -132,10 +138,14 @@ void Points_Draw() {
         f32 thresholdPercentage = threshold / MAX_POINTS;
         f32 starX = BAR_LEFT_EDGE + (BAR_WIDTH * thresholdPercentage);
 
-        if (currentPoints >= threshold) {
+        bool earned = currentPoints >= threshold; // stars use real points not display
+
+        if (earned) {
             currentStars++;
+            Particle_SetStarBurst(starX, STAR_Y_POS, i); // trigger burst when earned
             AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f);
-        } else {
+        }
+        else {
             AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f);
         }
 
@@ -150,10 +160,15 @@ void Points_Draw() {
 
         AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
     }
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);          // ✅ reset mode
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // ✅ reset color before particles
+    Particle_DrawStarBurst();
 }
 
 void Points_Free() {
     printf("Points_Free called\n");
+
+    Particle_Free();
 }
 
 void Points_Unload() {
@@ -168,4 +183,7 @@ void Points_Unload() {
         AEGfxMeshFree(starMesh);
         starMesh = nullptr;
     }
+
+    Particle_Unload();
+
 }
