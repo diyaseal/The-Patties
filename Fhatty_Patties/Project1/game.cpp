@@ -128,28 +128,28 @@ static bool IsIngredientUnlocked(IngredientType ingredient) {
     for (const std::string& ing : currentLevelData.ingredients) {
         switch (ingredient) {
         case BOTTOM_BUN:
-            if (ing == "BOTTOM_BUN" || ing == "Bottom Bun" || ing == "bottom_bun") return true;
+            if (ing == "BOTTOM_BUN" || ing == "bottom_bun") return true;
             break;
         case TOP_BUN:
-            if (ing == "TOP_BUN" || ing == "Top Bun" || ing == "top_bun") return true;
+            if (ing == "TOP_BUN" || ing == "top_bun") return true;
             break;
         case PATTY:
-            if (ing == "PATTY" || ing == "Patty" || ing == "patty") return true;
+            if (ing == "PATTY" ||  ing == "patty") return true;
             break;
         case CHEESE:
-            if (ing == "CHEESE" || ing == "Cheese" || ing == "cheese") return true;
+            if (ing == "CHEESE" ||ing == "cheese") return true;
             break;
         case LETTUCE:
-            if (ing == "LETTUCE" || ing == "Lettuce" || ing == "lettuce") return true;
+            if (ing == "LETTUCE" || ing == "lettuce") return true;
             break;
         case TOMATO:
-            if (ing == "TOMATO" || ing == "Tomato" || ing == "tomato") return true;
+            if (ing == "TOMATO" || ing == "tomato") return true;
             break;
         case ONION:
-            if (ing == "ONION" || ing == "Onion" || ing == "onion") return true;
+            if (ing == "ONION" || ing == "onion") return true;
             break;
         case CUCUMBER:
-            if (ing == "CUCUMBER" || ing == "Cucumber" || ing == "cucumber") return true;
+            if (ing == "CUCUMBER" || ing == "cucumber") return true;
             break;
         }
     }
