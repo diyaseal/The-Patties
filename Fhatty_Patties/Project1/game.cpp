@@ -10,13 +10,17 @@ static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh (T)
+static AEGfxVertexList* SodaMesh = nullptr; // (D)
+
+
 
 AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
 AEGfxTexture* GameplayBG_back = nullptr; // game BG
 AEGfxTexture* GameplayBG_front = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
 AEGfxTexture* PlateTexture = nullptr; //plate 
-AEGfxTexture* LockTexture = nullptr; // (D) Lock icon for locked ingredients
+AEGfxTexture* SodaTexture = nullptr; // (D) soda sprite sheet so Customer.cpp can show it in bubble
+AEGfxTexture* LockTexture = nullptr; // (D) lock icon texture
 static bool levelEndTriggered = false; // To ensure we only trigger level end sequence once (T)
 
 
@@ -89,6 +93,12 @@ static float CucumberY = -108.0f;
 static float CucumberWidth = 90.0f;
 static float CucumberHeight = 90.0f;
 
+// (D) Soda machine button hitbox
+static float SodaX = 574.0f;
+static float SodaY = -88.0f;
+static float SodaWidth = 80.0f;
+static float SodaHeight = 80.0f;
+
 // Trash bin hitbox for deleting burgers
 static float TrashX = 629.0f;  // Average of your clicks: (574+683+580+706)/4 ≈ 635.75, adjusted to 629
 static float TrashY = -374.0f;  // Average of your clicks: (-307-315-440-435)/4 ≈ -374.25
@@ -97,8 +107,21 @@ static float TrashHeight = 100.0f; // Height of trash hitbox - adjust as needed
 
 // Track what's on the plate: Set 
 // everything to false first :Diya
-static bool lettuceOnPlate , cheeseOnPlate , pattieOnPlate , tomatoOnPlate , onionOnPlate , cucumberOnPlate , bunTopOnPlate , bunBottomOnPlate = false;
-
+static bool lettuceOnPlate = false;
+static bool cheeseOnPlate = false;
+static bool pattieOnPlate = false;
+static bool tomatoOnPlate = false;
+static bool onionOnPlate = false;
+static bool cucumberOnPlate = false;
+static bool bunTopOnPlate = false;
+static bool bunBottomOnPlate = false;
+static bool sodaOnPlate = false; // (D) soda side item placed on plate
+static bool sodaMachineHasCup = false; // (D) empty/filled cup exists at machine
+static bool sodaIsFilled = false; // (D) becomes true after 5 seconds
+static float sodaFillTimer = 0.0f; // (D) timer for soda fill
+static bool sodaIsBeingDragged = false; // (D) dragging soda from machine to plate
+static float sodaDragX = 0.0f; // (D) soda drag position
+static float sodaDragY = 0.0f; // (D) soda drag position
 
 // ---------------------------------------------------------------------------
 // Helper Functions Syakil 
@@ -114,6 +137,9 @@ static void ResetDragState() {
     burgerIsBeingDragged = false;
     burgerDragX = 400.0f;  // Plate position
     burgerDragY = -225.0f; // Plate position
+    sodaIsBeingDragged = false; // (D)
+    sodaDragX = SodaX; // (D)
+    sodaDragY = SodaY - 55.0f; // (D)
 }
 
 
@@ -122,36 +148,38 @@ static bool IsIngredientUnlocked(IngredientType ingredient) {
     for (const std::string& ing : currentLevelData.ingredients) {
         switch (ingredient) {
         case BOTTOM_BUN:
-            if (ing == "bottom_bun") return true;
+            if ( ing == "bottom_bun") return true;
             break;
         case TOP_BUN:
-            if  (ing == "top_bun") return true;
+            if ( ing == "top_bun") return true;
             break;
         case PATTY:
             if ( ing == "patty") return true;
             break;
         case CHEESE:
-            if (ing == "cheese") return true;
+            if ( ing == "cheese") return true;
             break;
         case LETTUCE:
             if (ing == "lettuce") return true;
             break;
         case TOMATO:
-            if ( ing == "tomato") return true;
+            if (ing == "tomato") return true;
             break;
         case ONION:
-            if ( ing == "onion") return true;
+            if (ing == "onion") return true;
             break;
         case CUCUMBER:
             if ( ing == "cucumber") return true;
             break;
+        case SODA:
+            if ( ing == "soda") return true;
+            break;
         }
     }
-
     return false;
 }
 
-// (D) Helper to draw the lock icon over locked ingredients
+// (D) Helper to draw the lock icon over locked ingredients or soda machine button
 static void DrawLockOverlay(float x, float y, float width, float height) {
     if (!LockTexture || !TableMesh) return;
 
@@ -168,6 +196,13 @@ static void DrawLockOverlay(float x, float y, float width, float height) {
     AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
 }
 
+// (D) Treat soda as a side item: burger order must match in sequence, soda only needs matching presence
+static bool OrderContainsSoda(const std::vector<int>& order) {
+    for (int ingredient : order) {
+        if (ingredient == SODA) return true;
+    }
+    return false;
+}
 // ---------------------------------------------------------------------------
 // Game State Functions
 
@@ -185,9 +220,11 @@ void Game_Load() {
 
     // Load meshes ONCE
     TableMesh = CreateSquareMesh(8.0f, 2.5f);
+    SodaMesh = CreateSodaMesh(0.5f, 0.5f); // (D)
     PlateMesh = CreateCircleMesh(2.0f, 32);
     IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
     BGMesh = CreateSquareMesh(0.5, 0.5);
+
 
     PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
 
@@ -213,21 +250,29 @@ void Game_Load() {
 
     // Load ingredient sprite sheet
     Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
-
-    // (D) Load lock icon for locked ingredients
-    LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png");
-    if (LockTexture) {
-        printf("Lock texture loaded successfully\n");
-    }
-    else {
-        printf("ERROR: Failed to load lock.png\n");
-    }
+    SodaTexture = AEGfxTextureLoad("Assets/Assets/Soda.png"); // (D)
+    LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png"); // (D)
+    
 
     if (Ingredients) {
         printf("Ingredients texture loaded successfully\n");
     }
     else {
         printf("ERROR: Failed to load Ingredients.png\n");
+    }
+
+    if (SodaTexture) {
+        printf("Soda texture loaded successfully\n");
+    }
+    else {
+        printf("ERROR: Failed to load Soda.png\n");
+    }
+
+    if (LockTexture) {
+        printf("Lock texture loaded successfully\n");
+    }
+    else {
+        printf("ERROR: Failed to load lock.png\n");
     }
 
     // Load customer sprite sheet (T)
@@ -242,6 +287,7 @@ void Game_Load() {
         printf("ERROR: Failed to load testCharacter.png\n");
     }
 
+
     printf("Rectangle mesh created\n");
     // Elizabeth: Check if points are loaded
     Points_Load();
@@ -254,25 +300,41 @@ void Game_Load() {
 bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
     const std::vector<int>& customerOrder) {
 
-    // Quick check: sizes must match
-    if (playerBurger.size() != customerOrder.size()) {
-        printf("FAIL: Different number of ingredients (%zu vs %zu)\n",
-            playerBurger.size(), customerOrder.size());
+    // (D) Soda is treated as a side item, so compare soda presence separately
+    bool playerHasSoda = OrderContainsSoda(playerBurger);
+    bool customerWantsSoda = OrderContainsSoda(customerOrder);
+
+    if (playerHasSoda != customerWantsSoda) {
+        printf("FAIL: Soda requirement mismatch");
+            return false;
+    }
+
+    std::vector<int> filteredPlayer;
+    std::vector<int> filteredCustomer;
+
+    for (int ingredient : playerBurger) {
+        if (ingredient != SODA) filteredPlayer.push_back(ingredient);
+    }
+    for (int ingredient : customerOrder) {
+        if (ingredient != SODA) filteredCustomer.push_back(ingredient);
+    }
+
+    if (filteredPlayer.size() != filteredCustomer.size()) {
+        printf("FAIL: Different number of burger ingredients (%zu vs %zu)",
+            filteredPlayer.size(), filteredCustomer.size());
         return false;
     }
 
-    // Check each ingredient in order
-    for (size_t i = 0; i < customerOrder.size(); i++) {
-        if (playerBurger[i] != customerOrder[i]) {
-            printf("FAIL: Wrong ingredient at position %zu\n", i);
-            printf("  Player: %d, Customer wanted: %d\n", playerBurger[i], customerOrder[i]);
-            return false;
+    for (size_t i = 0; i < filteredCustomer.size(); i++) {
+        if (filteredPlayer[i] != filteredCustomer[i]) {
+            printf("FAIL: Wrong ingredient at position %zu", i);
+                printf("Player: %d, Customer wanted: %d", filteredPlayer[i], filteredCustomer[i]);
+                    return false;
         }
     }
 
-    // All ingredients match!
-    printf("SUCCESS: Burger matches order perfectly!\n");
-    return true;
+    printf("SUCCESS: Order matches perfectly!");
+        return true;
 }
 
 void Burger_ServeToCustomer() {
@@ -336,6 +398,16 @@ void Game_Update() {
     f64 dt = AEFrameRateControllerGetFrameTime();
     Customer_Update(static_cast<float>(dt));
     Points_Update();
+
+    // (D) Fill soda over time once the machine starts pouring
+    if (sodaMachineHasCup && !sodaIsFilled) {
+        sodaFillTimer += static_cast<float>(dt);
+        if (sodaFillTimer >= 5.0f) {
+            sodaFillTimer = 5.0f;
+            sodaIsFilled = true;
+            printf("Soda finished filling!\n");
+        }
+    }
 
     // Get mouse position
     s32 mouseX, mouseY;
@@ -453,6 +525,38 @@ void Game_Update() {
             printf("Cucumber added to burger. Total ingredients: %zu\n", currentBurger.size());
         }
 
+
+        // (D) Start filling soda at the machine if soda is unlocked and no soda already exists
+        if (IsIngredientUnlocked(SODA) &&
+            !sodaMachineHasCup && !sodaOnPlate && !sodaIsBeingDragged &&
+            worldMouseX >= SodaX - SodaWidth / 2.0f &&
+            worldMouseX <= SodaX + SodaWidth / 2.0f &&
+            worldMouseY >= SodaY - SodaHeight / 2.0f &&
+            worldMouseY <= SodaY + SodaHeight / 2.0f) {
+
+            sodaMachineHasCup = true;
+            sodaIsFilled = false;
+            sodaFillTimer = 0.0f;
+            sodaDragX = SodaX;
+            sodaDragY = SodaY - 55.0f;
+            printf("Started filling soda...\n");
+        }
+
+        // (D) Only a filled soda can be dragged from the machine
+        if (sodaMachineHasCup && sodaIsFilled &&
+            worldMouseX >= sodaDragX - 35.0f &&
+            worldMouseX <= sodaDragX + 35.0f &&
+            worldMouseY >= sodaDragY - 45.0f &&
+            worldMouseY <= sodaDragY + 45.0f) {
+
+            isDragging = true;
+            sodaIsBeingDragged = true;
+            burgerIsBeingDragged = false;
+            sodaDragX = worldMouseX;
+            sodaDragY = worldMouseY;
+            printf("Started dragging filled soda!\n");
+        }
+
         // Check if player clicks on the plate (burger) to start dragging
         float plateWidth = 200.0f;    // ADJUST THIS to match your plate.png size
         float plateHeight = 100.0f;   // ADJUST THIS to match your plate.png size
@@ -501,9 +605,54 @@ void Game_Update() {
         burgerDragY = worldMouseY;
     }
 
+    if (isDragging && sodaIsBeingDragged) {
+        s32 mouseX, mouseY;
+        AEInputGetCursorPosition(&mouseX, &mouseY);
+
+        float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
+        float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
+
+        float worldMouseX = (float)mouseX - windowWidth / 2.0f;
+        float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
+
+        sodaDragX = worldMouseX;
+        sodaDragY = worldMouseY;
+    }
+
     // Check for mouse release
     if (AEInputCheckReleased(AEVK_LBUTTON)) {
-        if (isDragging && burgerIsBeingDragged) {
+        // (D) Release filled soda onto the plate
+        if (isDragging && sodaIsBeingDragged) {
+            isDragging = false;
+
+            float plateWidth = 200.0f;
+            float plateHeight = 100.0f;
+            float plateCenterX = 300.0f;
+            float plateCenterY = -175.0f;
+
+            bool droppedOnPlate =
+                sodaDragX >= plateCenterX - plateWidth / 2.0f &&
+                sodaDragX <= plateCenterX + plateWidth / 2.0f &&
+                sodaDragY >= plateCenterY - plateHeight / 2.0f &&
+                sodaDragY <= plateCenterY + plateHeight / 2.0f;
+
+            if (droppedOnPlate) {
+                sodaOnPlate = true;
+                sodaMachineHasCup = false;
+                sodaIsFilled = false;
+                sodaFillTimer = 0.0f;
+                sodaIsBeingDragged = false;
+                currentBurger.push_back(SODA);
+                printf("Soda placed on plate!\n");
+            }
+            else {
+                sodaIsBeingDragged = false;
+                sodaDragX = SodaX;
+                sodaDragY = SodaY - 55.0f;
+                printf("Soda returned to machine.\n");
+            }
+        }
+        else if (isDragging && burgerIsBeingDragged) {
             // Mouse released while dragging burger
             isDragging = false;
 
@@ -655,7 +804,7 @@ void Game_Draw() {
     // -------------------------------------------------------------------
     Points_Draw();
 
-    // (D) Draw lock icon on top of any ingredient that is still locked for this level
+    // (D) Draw lock icon on top of any ingredient still locked for this level
     if (!IsIngredientUnlocked(BOTTOM_BUN)) DrawLockOverlay(BunBottomX, BunBottomY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(TOP_BUN)) DrawLockOverlay(BunTopX, BunTopY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(PATTY)) DrawLockOverlay(PattieX, PattieY, 8.0f, 8.0f);
@@ -664,6 +813,25 @@ void Game_Draw() {
     if (!IsIngredientUnlocked(TOMATO)) DrawLockOverlay(TomatoX, TomatoY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(ONION)) DrawLockOverlay(OnionX, OnionY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(CUCUMBER)) DrawLockOverlay(CucumberX, CucumberY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(SODA)) DrawLockOverlay(SodaX, SodaY, 8.0f, 8.0f);
+
+    // (D) Draw soda cup at the machine while it is filling or ready
+    if (sodaMachineHasCup && SodaTexture) {
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxTextureSet(SodaTexture, sodaIsFilled ? 0.5f : 0.0f, 0.0f);
+
+        AEMtx33 sodaScale, sodaTrans, sodaTransform;
+        AEMtx33Scale(&sodaScale, 70.0f, 110.0f);
+        AEMtx33Trans(&sodaTrans,
+            sodaIsBeingDragged ? sodaDragX : SodaX,
+            sodaIsBeingDragged ? sodaDragY : SodaY - 55.0f);
+        AEMtx33Concat(&sodaTransform, &sodaTrans, &sodaScale);
+
+        AEGfxSetTransform(sodaTransform.m);
+        AEGfxMeshDraw(SodaMesh, AE_GFX_MDM_TRIANGLES); // (D)
+    }
+
 
     // -------------------------------------------------------------------
    // DRAW INGREDIENTS ON PLATE (STACKED)
@@ -819,6 +987,17 @@ void Game_Draw() {
         AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
     }
 
+    // (D) Draw soda beside the burger on the same plate once placed
+    if (sodaOnPlate && SodaTexture) {
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxTextureSet(SodaTexture, 1.f / 2.f, 0.f);
+        AEMtx33Scale(&PlateLettuceScale, 70.0f, 110.0f);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX + 90.0f, drawY + 25.0f);
+        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
+        AEGfxSetTransform(PlateLettuceTransform.m);
+        AEGfxMeshDraw(SodaMesh, AE_GFX_MDM_TRIANGLES); // (D)
+    }
+
     GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
 }
 
@@ -835,6 +1014,10 @@ void Burger_Clear() {
     cucumberOnPlate = false;
     bunTopOnPlate = false;
     bunBottomOnPlate = false;
+    sodaOnPlate = false; // (D)
+    sodaMachineHasCup = false; // (D)
+    sodaIsFilled = false; // (D)
+    sodaFillTimer = 0.0f; // (D)
 
     // Reset drag state
     ResetDragState();
@@ -863,7 +1046,12 @@ void Game_Unload() {
         printf("Ingredients texture freed\n");
     }
 
-    // (D) Free lock texture
+    if (SodaTexture) {
+        AEGfxTextureUnload(SodaTexture);
+        SodaTexture = nullptr;
+        printf("Soda texture freed\n");
+    }
+
     if (LockTexture) {
         AEGfxTextureUnload(LockTexture);
         LockTexture = nullptr;
@@ -894,6 +1082,11 @@ void Game_Unload() {
         IngredientsMesh = nullptr;
         printf("Ingredient mesh freed\n");
     }
+    if (SodaMesh) {
+        AEGfxMeshFree(SodaMesh);
+        SodaMesh = nullptr;
+    } // (D)
+
 
     GarageDoor_Unload();
     Points_Unload();
