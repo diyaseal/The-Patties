@@ -51,7 +51,7 @@ static const float EMOTION_DISPLAY_TIME = 1.5f;
 static float spawnTimer = 0.0f;
 static float spawnInterval = 4.0f;  // seconds between spawns
 
-
+//FAHHHHHHHHHHH
 // ---------------------------------------------------------------------------
 // (D) Helper: Check if ingredient is unlocked for current level
 // ---------------------------------------------------------------------------
