@@ -51,7 +51,6 @@ static const float EMOTION_DISPLAY_TIME = 1.5f;
 static float spawnTimer = 0.0f;
 static float spawnInterval = 4.0f;  // seconds between spawns
 
-//FAHHHHHHHHHHH
 // ---------------------------------------------------------------------------
 // (D) Helper: Check if ingredient is unlocked for current level
 // ---------------------------------------------------------------------------
@@ -59,28 +58,28 @@ static bool IsIngredientUnlocked(IngredientType ingredient) {
     for (const std::string& ing : currentLevelData.ingredients) {
         switch (ingredient) {
         case BOTTOM_BUN:
-            if (ing == "BOTTOM_BUN" || ing == "Bottom Bun" || ing == "bottom_bun") return true;
+            if ( ing == "bottom_bun") return true;
             break;
         case TOP_BUN:
-            if (ing == "TOP_BUN" || ing == "Top Bun" || ing == "top_bun") return true;
+            if (ing == "top_bun") return true;
             break;
         case PATTY:
-            if (ing == "PATTY" || ing == "Patty" || ing == "patty") return true;
+            if (ing == "patty") return true;
             break;
         case CHEESE:
-            if (ing == "CHEESE" || ing == "Cheese" || ing == "cheese") return true;
+            if (ing == "cheese") return true;
             break;
         case LETTUCE:
-            if (ing == "LETTUCE" || ing == "Lettuce" || ing == "lettuce") return true;
+            if (ing == "lettuce") return true;
             break;
         case TOMATO:
-            if (ing == "TOMATO" || ing == "Tomato" || ing == "tomato") return true;
+            if (ing == "tomato") return true;
             break;
         case ONION:
-            if (ing == "ONION" || ing == "Onion" || ing == "onion") return true;
+            if (ing == "onion") return true;
             break;
         case CUCUMBER:
-            if (ing == "CUCUMBER" || ing == "Cucumber" || ing == "cucumber") return true;
+            if (ing ==  "cucumber") return true;
             break;
         }
     }
@@ -479,14 +478,14 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
         AEGfxMeshDraw(frameMesh, AE_GFX_MDM_TRIANGLES);
 
         // ---------------------------------------------------------------
-        // DRAW THOUGHT BUBBLE when customer is waiting for food :Diya
+        // DRAW THOUGHT BUBBLE when customer arrives (D)
         // ---------------------------------------------------------------
         if (customer.isWaitingForFood && customer.hasOrder) {
             DrawThoughtBubble(customer.x + 50.0f, customer.y, customer.order);
         }
 
         // ---------------------------------------------------------------
-        // DRAW PATIENCE BAR only when customer has arrived
+        // DRAW PATIENCE BAR only when customer has arrived (Eli)
         // ---------------------------------------------------------------
         if (customer.isWaitingForFood) {
             AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -507,7 +506,7 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
             }
 
-            // Calculate customer patience percentage
+            // Calculate customer patience percentage 
             f32 pct = customer.patience / customer.maxPatience;
             if (pct < 0.0f) pct = 0.0f;
             if (pct > 1.0f) pct = 1.0f;
