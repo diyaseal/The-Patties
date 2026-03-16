@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------------------
 std::vector<Customer> customers;
 extern AEGfxTexture* Ingredients;  // for thought bubble ingredient icons (Diya's code)
+extern AEGfxTexture* SodaTexture; // (D) for soda icon in thought bubble
 static int totalCustomersSpawned = 0;  // tracks lifetime total
 static int CUSTOMERS_PER_LEVEL = 0;  // game ends after this many
 static bool levelcompletelogged = false;
@@ -33,6 +34,7 @@ const float COUNTER_Y = 100.0f;
 // ---------------------------------------------------------------------------
 static AEGfxVertexList* bubbleMesh = nullptr;
 static AEGfxVertexList* ingredientMesh = nullptr;
+static AEGfxVertexList* sodaMesh = nullptr; // (D) square mesh for soda icon
 static AEGfxVertexList* DurationMesh = nullptr;
 AEGfxVertexList* frameMesh = nullptr;
 // ---------------------------------------------------------------------------
@@ -52,6 +54,7 @@ static float spawnTimer = 0.0f;
 static float spawnInterval = 4.0f;  // seconds between spawns
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // (D) Helper: Check if ingredient is unlocked for current level
 // ---------------------------------------------------------------------------
 static bool IsIngredientUnlocked(IngredientType ingredient) {
@@ -64,26 +67,28 @@ static bool IsIngredientUnlocked(IngredientType ingredient) {
             if (ing == "top_bun") return true;
             break;
         case PATTY:
-            if (ing == "patty") return true;
+            if (ing == "PATTY" || ing == "Patty" || ing == "patty") return true;
             break;
         case CHEESE:
-            if (ing == "cheese") return true;
+            if (ing == "CHEESE" || ing == "Cheese" || ing == "cheese") return true;
             break;
         case LETTUCE:
-            if (ing == "lettuce") return true;
+            if (ing == "LETTUCE" || ing == "Lettuce" || ing == "lettuce") return true;
             break;
         case TOMATO:
-            if (ing == "tomato") return true;
+            if (ing == "TOMATO" || ing == "Tomato" || ing == "tomato") return true;
             break;
         case ONION:
-            if (ing == "onion") return true;
+            if (ing == "ONION" || ing == "Onion" || ing == "onion") return true;
             break;
         case CUCUMBER:
-            if (ing ==  "cucumber") return true;
+            if (ing == "CUCUMBER" || ing == "Cucumber" || ing == "cucumber") return true;
+            break;
+        case SODA:
+            if (ing == "SODA" || ing == "Soda" || ing == "soda") return true;
             break;
         }
     }
-
     return false;
 }
 
@@ -108,8 +113,9 @@ void Customer_Init() {
     srand(static_cast<unsigned int>(time(nullptr)));
 
     DurationMesh = CreateSquareMesh(0.5f, 0.5f);
-    bubbleMesh = CreateSquareMesh(0.5f, 0.5f);
+    bubbleMesh = CreateCircleMesh(0.5f, 32); // (D) rounder thought bubble
     ingredientMesh = CreateIngredientMesh(0.5f, 0.5f);
+    sodaMesh = CreateSodaMesh(0.5f, 0.5f); // (D) soda icon uses full-square UVs
 
     printf("Customer system initialized\n");
 
@@ -160,147 +166,125 @@ void Customer_Spawn() {
 void RandomOrder(Customer* customer) {
     customer->order.clear();
 
-    // (D) Only allow customer orders to use ingredients unlocked for the current level
+    // (D) Customer can only ask for ingredients unlocked for the current level
+    if (IsIngredientUnlocked(BOTTOM_BUN)) customer->order.push_back(BOTTOM_BUN);
+    if (IsIngredientUnlocked(PATTY)) customer->order.push_back(PATTY);
 
-    // Always start with bottom bun if unlocked
-    if (IsIngredientUnlocked(BOTTOM_BUN)) {
-        customer->order.push_back(BOTTOM_BUN);
-    }
+    if (IsIngredientUnlocked(CHEESE) && rand() % 2 == 0) customer->order.push_back(CHEESE);
+    if (IsIngredientUnlocked(LETTUCE) && rand() % 2 == 0) customer->order.push_back(LETTUCE);
+    if (IsIngredientUnlocked(TOMATO) && rand() % 2 == 0) customer->order.push_back(TOMATO);
+    if (IsIngredientUnlocked(ONION) && rand() % 2 == 0) customer->order.push_back(ONION);
+    if (IsIngredientUnlocked(CUCUMBER) && rand() % 2 == 0) customer->order.push_back(CUCUMBER);
 
-    // Always have patty if unlocked
-    if (IsIngredientUnlocked(PATTY)) {
-        customer->order.push_back(PATTY);
-    }
+    if (IsIngredientUnlocked(TOP_BUN)) customer->order.push_back(TOP_BUN);
 
-    // Randomise only unlocked ingredients
-    if (IsIngredientUnlocked(CHEESE) && rand() % 2 == 0) {
-        customer->order.push_back(CHEESE);
-    }
-
-    if (IsIngredientUnlocked(LETTUCE) && rand() % 2 == 0) {
-        customer->order.push_back(LETTUCE);
-    }
-
-    if (IsIngredientUnlocked(TOMATO) && rand() % 2 == 0) {
-        customer->order.push_back(TOMATO);
-    }
-
-    if (IsIngredientUnlocked(ONION) && rand() % 2 == 0) {
-        customer->order.push_back(ONION);
-    }
-
-    if (IsIngredientUnlocked(CUCUMBER) && rand() % 2 == 0) {
-        customer->order.push_back(CUCUMBER);
-    }
-
-    // Always end with top bun if unlocked
-    if (IsIngredientUnlocked(TOP_BUN)) {
-        customer->order.push_back(TOP_BUN);
-    }
+    // (D) Soda is a side item and appears after the burger in the order bubble
+    if (IsIngredientUnlocked(SODA) && rand() % 2 == 0) customer->order.push_back(SODA);
 
     customer->hasOrder = true;
-
-    //// Print order for debugging
-    //printf("Customer order: ");
-    //for (int ingredient : customer->order) {
-    //    printf("%d ", ingredient);
-    //}
-    //printf("\n");
 }
 // ---------------------------------------------------------------------------
 // Draw Thought Bubble with Ingredients :Diya
 // ---------------------------------------------------------------------------
 static void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
-    // Bubble position (above customer's head)
-    float bubbleX = customerX + 50.0f;  // Slightly right of customer
-    float bubbleY = customerY + 180.0f; // Above customer's head
+    if (order.empty()) return; // (D) nothing to draw
 
-    // Bubble size
-    float bubbleWidth = 200.0f;
-    float bubbleHeight = 120.0f;
+    float bubbleX = customerX + 55.0f;
+    float bubbleY = customerY + 180.0f;
 
-    // DRAW BUBBLE BACKGROUND (white circle/rounded square)
+    // (D) Wrap icons so late-game orders stay inside the bubble
+    const float iconSize = 32.0f;
+    const float iconSpacing = 38.0f;
+    const int maxPerRow = 4;
+
+    int count = (int)order.size();
+    int rows = (count + maxPerRow - 1) / maxPerRow;
+    if (rows < 1) rows = 1;
+
+    float bubbleWidth = (rows > 1) ? 195.0f : 175.0f;
+    float bubbleHeight = (rows > 1) ? 135.0f : 100.0f;
+
+    // (D) Proper outline: bigger black oval behind smaller white oval
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.9f); // White with slight transparency
+    AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Scale and position bubble
     AEMtx33 bubbleScale, bubbleTrans, bubbleTransform;
+    AEMtx33Scale(&bubbleScale, bubbleWidth + 8.0f, bubbleHeight + 8.0f);
+    AEMtx33Trans(&bubbleTrans, bubbleX, bubbleY);
+    AEMtx33Concat(&bubbleTransform, &bubbleTrans, &bubbleScale);
+    AEGfxSetTransform(bubbleTransform.m);
+    AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
+
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.95f);
     AEMtx33Scale(&bubbleScale, bubbleWidth, bubbleHeight);
     AEMtx33Trans(&bubbleTrans, bubbleX, bubbleY);
     AEMtx33Concat(&bubbleTransform, &bubbleTrans, &bubbleScale);
-
     AEGfxSetTransform(bubbleTransform.m);
     AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
 
-    // DRAW BUBBLE OUTLINE (black border)
-    AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 1.0f);
-    AEGfxSetTransform(bubbleTransform.m);
-    AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
+    for (int i = 0; i < count; i++) {
+        int row = i / maxPerRow;
+        int col = i % maxPerRow;
 
-    // DRAW INGREDIENT ICONS inside bubble
-    float iconSize = 40.0f;
-    float startX = bubbleX - (order.size() * iconSize) / 2.0f + iconSize / 2.0f;
-    float iconY = bubbleY;
-
-    for (size_t i = 0; i < order.size(); i++) {
-        float iconX = startX + i * iconSize;
-
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-
-        // Select correct texture based on ingredient
-        switch (order[i]) {
-        case BOTTOM_BUN:
-            AEGfxTextureSet(Ingredients, 3.f / 4.f, 1.f / 2.f);
-            break;
-        case TOP_BUN:
-            AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);
-            break;
-        case PATTY:
-            AEGfxTextureSet(Ingredients, 0.f, 0.f);
-            break;
-        case CHEESE:
-            AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f);
-            break;
-        case LETTUCE:
-            AEGfxTextureSet(Ingredients, 2.f / 4.f, 0.f);
-            break;
-        case TOMATO:
-            AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);
-            break;
-        case ONION: // (D) Added onion icon support in customer thought bubble
-            AEGfxTextureSet(Ingredients, 1.f / 4.f, 1.f / 2.f);
-            break;
-        case CUCUMBER: // (D) Added cucumber icon support in customer thought bubble
-            AEGfxTextureSet(Ingredients, 2.f / 4.f, 1.f / 2.f);
-            break;
-            // Add more cases as needed
+        int itemsThisRow = maxPerRow;
+        if (row == rows - 1) {
+            itemsThisRow = count - row * maxPerRow;
+            if (itemsThisRow <= 0) itemsThisRow = maxPerRow;
         }
 
-        // Scale and position ingredient icon
+        float rowWidth = (itemsThisRow - 1) * iconSpacing;
+        float startX = bubbleX - rowWidth / 2.0f;
+        float iconX = startX + col * iconSpacing;
+        float iconY = bubbleY + 18.0f - row * 38.0f;
+
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+
+        bool useSodaMesh = false;
+        switch (order[i]) {
+        case BOTTOM_BUN: AEGfxTextureSet(Ingredients, 3.f / 4.f, 1.f / 2.f); break;
+        case TOP_BUN:    AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f); break;
+        case PATTY:      AEGfxTextureSet(Ingredients, 0.f, 0.f); break;
+        case CHEESE:     AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f); break;
+        case LETTUCE:    AEGfxTextureSet(Ingredients, 2.f / 4.f, 0.f); break;
+        case TOMATO:     AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f); break;
+        case ONION:      AEGfxTextureSet(Ingredients, 1.f / 4.f, 1.f / 2.f); break; // (D)
+        case CUCUMBER:   AEGfxTextureSet(Ingredients, 2.f / 4.f, 1.f / 2.f); break; // (D)
+        case SODA:       AEGfxTextureSet(SodaTexture, 1.f / 2.f, 0.f); // (D) use right half of soda sheet
+        useSodaMesh = true;// (D) draw soda with sodaMesh, not ingredientMesh
+        break;
+
+        }
+
         AEMtx33 iconScale, iconTrans, iconTransform;
         AEMtx33Scale(&iconScale, iconSize, iconSize);
         AEMtx33Trans(&iconTrans, iconX, iconY);
         AEMtx33Concat(&iconTransform, &iconTrans, &iconScale);
 
         AEGfxSetTransform(iconTransform.m);
-        AEGfxMeshDraw(ingredientMesh, AE_GFX_MDM_TRIANGLES);
+        AEGfxMeshDraw(useSodaMesh ? sodaMesh : ingredientMesh, AE_GFX_MDM_TRIANGLES);
     }
 
-    // DRAW BUBBLE TAIL (small circle connecting to customer)
-    float tailX = customerX + 30.0f;
-    float tailY = customerY + 140.0f;
-    float tailSize = 20.0f;
+    // Tail circles
+    float tailX = customerX + 25.0f;
+    float tailY = customerY + 138.0f;
+    float tailSize = 18.0f;
 
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.9f);
-
-    AEMtx33Scale(&bubbleScale, tailSize, tailSize);
-    AEMtx33Trans(&bubbleTrans, tailX, tailY);
-    AEMtx33Concat(&bubbleTransform, &bubbleTrans, &bubbleScale);
-
-    AEGfxSetTransform(bubbleTransform.m);
+    AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 1.0f);
+    AEMtx33 tailScale, tailTrans, tailTransform;
+    AEMtx33Scale(&tailScale, tailSize + 4.0f, tailSize + 4.0f);
+    AEMtx33Trans(&tailTrans, tailX, tailY);
+    AEMtx33Concat(&tailTransform, &tailTrans, &tailScale);
+    AEGfxSetTransform(tailTransform.m);
     AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
 
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 0.95f);
+    AEMtx33Scale(&tailScale, tailSize, tailSize);
+    AEMtx33Trans(&tailTrans, tailX, tailY);
+    AEMtx33Concat(&tailTransform, &tailTrans, &tailScale);
+    AEGfxSetTransform(tailTransform.m);
+    AEGfxMeshDraw(bubbleMesh, AE_GFX_MDM_TRIANGLES);
 }
 
 // ---------------------------------------------------------------------------
@@ -391,8 +375,9 @@ void Customer_Update(float dt) {
                     case CHEESE:     printf("Cheese ");     break;
                     case LETTUCE:    printf("Lettuce ");    break;
                     case TOMATO:     printf("Tomato ");     break;
-                    case ONION:      printf("Onion ");      break; // (D) Added onion order debug print
-                    case CUCUMBER:   printf("Cucumber ");   break; // (D) Added cucumber order debug print
+                    case ONION:      printf("Onion ");      break; // (D)
+                    case CUCUMBER:   printf("Cucumber ");   break; // (D)
+                    case SODA:       printf("Soda ");       break; // (D)
                     }
                 }
                 printf("\nCustomer arrived at slot %d\n", c.slotIndex);
@@ -478,23 +463,22 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
         AEGfxMeshDraw(frameMesh, AE_GFX_MDM_TRIANGLES);
 
         // ---------------------------------------------------------------
-        // DRAW THOUGHT BUBBLE when customer arrives (D)
+        // DRAW THOUGHT BUBBLE when customer is waiting for food :Diya
         // ---------------------------------------------------------------
         if (customer.isWaitingForFood && customer.hasOrder) {
             DrawThoughtBubble(customer.x + 50.0f, customer.y, customer.order);
         }
 
         // ---------------------------------------------------------------
-        // DRAW PATIENCE BAR only when customer has arrived (Eli)
+        // DRAW PATIENCE BAR only when customer has arrived
         // ---------------------------------------------------------------
         if (customer.isWaitingForFood) {
             AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-            // Vertical bar — narrow width, taller height
-            const float bar_w = 10.0f;
-            const float bar_h = 140.0f;
-            const float bar_x = customer.x - 20.0f;  // left side of customer
-            const float bar_y = customer.y + 160.0f;  // center of bar vertically
+            const float bar_w = 140.0f, bar_h = 10.0f;
+            const float bar_x = customer.x + 10.0f;
+            const float bar_y = customer.y + 160.0f;
+
 
             // Grey Background Bar
             {
@@ -507,21 +491,18 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
             }
 
-            // Filled Bar
+            // Calculate customer patience percentage
             f32 pct = customer.patience / customer.maxPatience;
             if (pct < 0.0f) pct = 0.0f;
             if (pct > 1.0f) pct = 1.0f;
-
             if (pct > 0.0f) {
-                f32 fillH = bar_h * pct;                      // shrinks downward as patience drops
-                f32 offsetY = -(bar_h - fillH) / 2.0f;          // anchors to top edge
+                f32 fillW = bar_w * pct;
+                f32 offsetX = -(bar_w - fillW) / 2.0f;
 
                 AEMtx33 s, t, m;
-                AEMtx33Scale(&s, bar_w, fillH);
-                AEMtx33Trans(&t, bar_x, bar_y + offsetY);
+                AEMtx33Scale(&s, fillW, bar_h);
+                AEMtx33Trans(&t, bar_x + offsetX, bar_y);
                 AEMtx33Concat(&m, &t, &s);
-
-                // Green at top (high patience) → red at bottom (low patience)
                 AEGfxSetColorToMultiply(1.0f - pct, pct, 0.0f, 1.0f);
                 AEGfxSetTransform(m.m);
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
@@ -551,6 +532,10 @@ void Customer_Free() {
     if (ingredientMesh) {
         AEGfxMeshFree(ingredientMesh);
         ingredientMesh = nullptr;
+    }
+    if (sodaMesh) {
+        AEGfxMeshFree(sodaMesh);
+        sodaMesh = nullptr;
     }
     printf("Customer system freed\n");
 }

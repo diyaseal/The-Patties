@@ -6,4 +6,5 @@ AEGfxVertexList* CreateCircleMeshUV(float radius, int segments);
 AEGfxVertexList* CreateIngredientMesh(float x, float y);
 AEGfxVertexList* CreateTruckMesh(float x, float y);
 AEGfxVertexList* CreateStarMesh(float outerRadius, float innerRadius);
+AEGfxVertexList* CreateSodaMesh(float x, float y);
 AEGfxVertexList* CreateCustomerMesh();

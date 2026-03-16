@@ -40,6 +40,7 @@ enum IngredientType {
     TOMATO,
     ONION,
     CUCUMBER,
+    SODA,
 };
 
 #endif //PCH_H

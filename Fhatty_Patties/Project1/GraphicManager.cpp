@@ -23,6 +23,25 @@ AEGfxVertexList* CreateSquareMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
+AEGfxVertexList* CreateSodaMesh(float x, float y) { // (D) soda asset mesh 
+    AEGfxMeshStart();
+
+    AEGfxTriAdd(
+        -x, -y, 0xFFFFFFFF, 0.0f, 1.0f,   // bottom-left
+        x, -y, 0xFFFFFFFF, 0.5f, 1.0f,   // bottom-right
+        -x, y, 0xFFFFFFFF, 0.0f, 0.0f    // top-left
+    );
+
+    AEGfxTriAdd(
+        x, -y, 0xFFFFFFFF, 0.5f, 1.0f,   // bottom-right
+        x, y, 0xFFFFFFFF, 0.5f, 0.0f,   // top-right
+        -x, y, 0xFFFFFFFF, 0.0f, 0.0f    // top-left
+    );
+
+    return AEGfxMeshEnd();
+}
+
+
 // remove later if not needed, but this is a simple way to create a circle mesh using triangles
 AEGfxVertexList* CreateCircleMesh(float radius, int segments)
 {
