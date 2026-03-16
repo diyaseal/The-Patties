@@ -201,6 +201,8 @@ void End_Credits_Load()
     else
         printf("ERROR: Failed to load Food_truck.png\n");
 
+    Sound_Load();
+    Sound_PlayBGMCreds();   
 }
 
 void End_Credits_Init()
@@ -405,6 +407,7 @@ void End_Credits_Free()
 {
     printf("End Credits Free called\n");
     Particle_Free();
+    Sound_Free();
 }
 
 void End_Credits_Unload()
@@ -417,4 +420,6 @@ void End_Credits_Unload()
 
     if (TruckMesh) { AEGfxMeshFree(TruckMesh); TruckMesh = nullptr; }
     if (Truck) { AEGfxTextureUnload(Truck); Truck = nullptr; }
+
+    Sound_Unload();
 }

@@ -57,6 +57,7 @@ static const float TRUCK_Y = -125.0f;  // fixed vertical position
 static const float TRUCK_DECEL = 2600.0f;  // braking force px/s�
 static bool  truckParked = false;     // true once fully stopped
 static float TruckFinishedTimer = 0.0f;
+static bool truckDriveSoundPlayed = false;
 // ---------------------------------------------------------------------------
 static AEGfxTexture* Wall = nullptr;
 static AEMtx33 WallTransform, WallTranslate, WallScale;
@@ -153,6 +154,7 @@ void MainMenu_Init()
     totalElapsedTime = 0.0f;
 
     pendingNextState = 0;
+    truckDriveSoundPlayed = false;
 }
 
 void MainMenu_Update()
@@ -179,6 +181,12 @@ void MainMenu_Update()
     // Truck Drive-In
     if (!truckParked)
     {
+        //tebs: Play drive sound once when truck starts moving
+        if (!truckDriveSoundPlayed) {
+            Sound_PlaySFX_TruckMove();
+            truckDriveSoundPlayed = true;
+        }
+
         float distToTarget = truckX - TRUCK_TARGET_X;  
 
         if (distToTarget > 0.0f)
@@ -197,6 +205,8 @@ void MainMenu_Update()
                 truckVelX = 0.0f;
                 truckParked = true;
                 truckFrame = 0;
+                Sound_StopSFX_TruckMove();
+                Sound_PlaySFX_TruckBeep(); //tebs: truck beep beep wld played 
             }
 
             // for ELI
@@ -289,6 +299,7 @@ void MainMenu_Update()
             else if (btn == &bottomBun) {
                 printf("Bottom Bun clicked - Quit!\n");      
                 pendingNextState = GS_QUIT;
+                wallTriggered = true;
             }
         }
         else btn->isClicked = false;
@@ -525,5 +536,6 @@ void MainMenu_Unload()
         AEGfxDestroyFont(FontId);
         FontId = -1;
     }
-    Sound_Unload(); //free memory
+
+    Sound_Unload();
 }
