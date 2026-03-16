@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------------
 // Loading.cpp
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
@@ -7,25 +7,43 @@
 // Loading State Variables
 // ---------------------------------------------------------------------------
 static s8 fontId = -1;
-static AEGfxVertexList* barMesh = nullptr;
 static AEGfxVertexList* bgMesh = nullptr;
+static AEGfxTexture* background = nullptr; // game BG
+static AEMtx33 bgScale, bgTranslate, bgTransform;
 
-static int   loadStep = 0;     // which asset we're loading next
-static int   totalSteps = 0;     // set on init
-static float displayProgress = 0.0f; // smoothed visual progress
+static float loadingTimer = 0.0f;
+static const float MIN_LOADING_TIME = 3.0f;
+
+static int   loadStep = 0;
+static int   totalSteps = 0;
+static float displayProgress = 0.0f;
 static bool  loadingDone = false;
 
-// Each step has a label so the screen shows what's loading
+// ---------------------------------------------------------------------------
+// Truck Variables
+// ---------------------------------------------------------------------------
+static AEGfxTexture* LoadTruck = nullptr;
+static AEGfxVertexList* LoadTruckMesh = nullptr;
+
+static float truckX = 1000.0f;  // starts off right side
+static float truckY = -125.0f;  // vertical position
+
+static int   truckFrame = 0;
+static float truckFrameTimer = 0.0f;
+
+static const float TRUCK_FRAME_DURATION = 1.0f / 8.0f;
+static const float TRUCK_FRAME_UV[2] = { 0.0f, 0.5f };
+static const float TRUCK_START_X = 1000.0f;
+static const float TRUCK_END_X = -1000.0f;
+
+// ---------------------------------------------------------------------------
+// Load Steps
+// ---------------------------------------------------------------------------
 struct LoadStep {
     const char* label;
     void (*loadFunc)();
 };
 
-// -----------------------------------------------------------------------
-// Define every asset load call as a step
-// Add/remove steps to match your game's actual loads
-// -----------------------------------------------------------------------
-static void Step_Fonts() { /* fonts loaded in each state's own Load */ }
 static void Step_Ingredients() { Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png"); }
 static void Step_GameBG_Back() { GameplayBG_back = AEGfxTextureLoad("Assets/Assets/Gameplay_back.png"); }
 static void Step_GameBG_Front() { GameplayBG_front = AEGfxTextureLoad("Assets/Assets/Gameplay_front.png"); }
@@ -35,20 +53,19 @@ static void Step_Customer2() { CustomerTexture[2] = AEGfxTextureLoad("Assets/Ass
 static void Step_Customer3() { CustomerTexture[3] = AEGfxTextureLoad("Assets/Assets/diyacust.png"); }
 static void Step_Lock() { LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png"); }
 static void Step_Plate() { PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png"); }
-static void Step_Truck() { /* loaded in MainMenu_Load */ }
 static void Step_Sound() { Sound_Load(); }
 
 static LoadStep steps[] = {
-    { "Loading ingredients...",     Step_Ingredients  },
-    { "Loading background...",      Step_GameBG_Back  },
-    { "Loading foreground...",      Step_GameBG_Front },
-    { "Loading characters...",      Step_Customer0    },
-    { "Loading characters...",      Step_Customer1    },
-    { "Loading characters...",      Step_Customer2    },
-    { "Loading characters...",      Step_Customer3    },
-    { "Loading UI...",              Step_Lock         },
-    { "Loading UI...",              Step_Plate        },
-    { "Loading audio...",           Step_Sound        },
+    { "Loading ingredients...",  Step_Ingredients  },
+    { "Loading background...",   Step_GameBG_Back  },
+    { "Loading foreground...",   Step_GameBG_Front },
+    { "Loading characters...",   Step_Customer0    },
+    { "Loading characters...",   Step_Customer1    },
+    { "Loading characters...",   Step_Customer2    },
+    { "Loading characters...",   Step_Customer3    },
+    { "Loading UI...",           Step_Lock         },
+    { "Loading UI...",           Step_Plate        },
+    { "Loading audio...",        Step_Sound        },
 };
 
 // ---------------------------------------------------------------------------
@@ -56,9 +73,13 @@ static LoadStep steps[] = {
 // ---------------------------------------------------------------------------
 void Loading_Load()
 {
-    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 32);
-    barMesh = CreateSquareMesh(0.5f, 0.5f);
+    fontId = AEGfxCreateFont("Assets/Font/HollyBerryPop-LVxvE.ttf", 32);
     bgMesh = CreateSquareMesh(0.5f, 0.5f);
+    background = AEGfxTextureLoad("Assets/Assets/Loading_BG.png");
+    LoadTruckMesh = CreateTruckMesh(0.5f, 0.5f);
+    LoadTruck = AEGfxTextureLoad("Assets/Assets/Food_Truck.png");
+
+    Particle_Load();
 }
 
 void Loading_Init()
@@ -66,14 +87,24 @@ void Loading_Init()
     loadStep = 0;
     displayProgress = 0.0f;
     loadingDone = false;
+    loadingTimer = 0.0f;
     totalSteps = sizeof(steps) / sizeof(steps[0]);
+
+    // Reset truck
+    truckX = TRUCK_START_X;
+    truckFrame = 0;
+    truckFrameTimer = 0.0f;
+
+    Particle_Init();
 }
 
 void Loading_Update()
 {
     float dt = (float)AEFrameRateControllerGetFrameTime();
 
-    // Load ONE asset per frame so the screen can still render
+    loadingTimer += dt;
+
+    // Load one asset per frame
     if (loadStep < totalSteps)
     {
         steps[loadStep].loadFunc();
@@ -84,14 +115,33 @@ void Loading_Update()
         loadingDone = true;
     }
 
-    // Smooth the progress bar toward actual progress
+    // Smooth progress 0 → 1
     float targetProgress = (float)loadStep / (float)totalSteps;
     displayProgress += (targetProgress - displayProgress) * dt * 8.0f;
     if (displayProgress > 1.0f) displayProgress = 1.0f;
 
-    // Only move on once bar has visually filled
-    if (loadingDone && displayProgress >= 0.99f)
-        next = GS_GAME; // go to first real screen
+    // -----------------------------------------------------------------------
+    // Move truck left based on progress
+    // -----------------------------------------------------------------------
+    float targetX = TRUCK_START_X + (TRUCK_END_X - TRUCK_START_X) * displayProgress;
+    truckX += (targetX - truckX) * dt * 3.0f; // smooth follow
+
+    // Wheel animation
+    truckFrameTimer += dt;
+    if (truckFrameTimer >= TRUCK_FRAME_DURATION)
+    {
+        truckFrameTimer -= TRUCK_FRAME_DURATION;
+        truckFrame = (truckFrame + 1) % 2;
+    }
+
+
+    // Smoke
+    Particle_SetSmoke(truckX - 70.0f, truckY - 100.0f, true, 0.005f, 50.0f);
+    Particle_Update(dt);
+
+    // Transition once done and truck has moved far enough
+    if (loadingDone && displayProgress >= 0.99f && loadingTimer >= MIN_LOADING_TIME)
+        next = GS_GAME;
 }
 
 void Loading_Draw()
@@ -99,40 +149,41 @@ void Loading_Draw()
     AEGfxSetBackgroundColor(0.05f, 0.05f, 0.05f);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
-    // -----------------------------------------------------------------------
-    // GREY BACKGROUND BAR
-    // -----------------------------------------------------------------------
-    const float BAR_W = 600.0f;
-    const float BAR_H = 30.0f;
-    const float BAR_Y = -300.0f;
+    // -------------------------------------------------------------------
+    // DRAW BACK BG
+    // -------------------------------------------------------------------
+    AEMtx33Scale(&bgScale, 1600.0f, 900.0f);
+    AEMtx33Trans(&bgTranslate, 0.0f, 0.0f);
+    AEMtx33Concat(&bgTransform, &bgTranslate, &bgScale);
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetTransform(bgTransform.m);
+    AEGfxTextureSet(background, 0.f, 0.f);
+    AEGfxMeshDraw(bgMesh, AE_GFX_MDM_TRIANGLES);
 
+
+    // -----------------------------------------------------------------------
+    // DRAW SMOKE (behind truck)
+    // -----------------------------------------------------------------------
+    Particle_Draw();
+
+    // -----------------------------------------------------------------------
+    // DRAW TRUCK
+    // -----------------------------------------------------------------------
+    if (LoadTruck && LoadTruckMesh)
     {
-        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-        AEGfxSetColorToMultiply(0.2f, 0.2f, 0.2f, 1.0f);
-        AEMtx33 s, t, m;
-        AEMtx33Scale(&s, BAR_W, BAR_H);
-        AEMtx33Trans(&t, 0.0f, BAR_Y);
-        AEMtx33Concat(&m, &t, &s);
-        AEGfxSetTransform(m.m);
-        AEGfxMeshDraw(barMesh, AE_GFX_MDM_TRIANGLES);
-    }
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxSetTransparency(1.0f);
 
-    // -----------------------------------------------------------------------
-    // FILLED PROGRESS BAR
-    // -----------------------------------------------------------------------
-    if (displayProgress > 0.0f)
-    {
-        float fillW = BAR_W * displayProgress;
-        float offsetX = -(BAR_W - fillW) / 2.0f;
-
-        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-        AEGfxSetColorToMultiply(1.0f, 0.75f, 0.0f, 1.0f); // gold
         AEMtx33 s, t, m;
-        AEMtx33Scale(&s, fillW, BAR_H);
-        AEMtx33Trans(&t, offsetX, BAR_Y);
+        AEMtx33Scale(&s, 350.0f, 350.0f);
+        AEMtx33Trans(&t, truckX, truckY);
         AEMtx33Concat(&m, &t, &s);
+
         AEGfxSetTransform(m.m);
-        AEGfxMeshDraw(barMesh, AE_GFX_MDM_TRIANGLES);
+        AEGfxTextureSet(LoadTruck, TRUCK_FRAME_UV[truckFrame], 0.f);
+        AEGfxMeshDraw(LoadTruckMesh, AE_GFX_MDM_TRIANGLES);
     }
 
     // -----------------------------------------------------------------------
@@ -140,31 +191,33 @@ void Loading_Draw()
     // -----------------------------------------------------------------------
     if (fontId >= 0)
     {
-        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 
-        // Game title
-        AEGfxPrint(fontId, "FATTY PATTIES", -0.22f, 0.1f, 1.5f, 1.0f, 0.85f, 0.0f, 1.0f);
+        AEGfxPrint(fontId, "LOADING", -0.12f, 0.8f, 2.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-        // Current step label
-        const char* label = (loadStep < totalSteps)
-            ? steps[loadStep].label
-            : "Done!";
-        AEGfxPrint(fontId, label, -0.18f, -0.55f, 0.6f, 0.8f, 0.8f, 0.8f, 1.0f);
+        //const char* label = (loadStep < totalSteps) ? steps[loadStep].label : "Ready!";
+        //AEGfxPrint(fontId, label, -0.18f, -0.55f, 0.6f, 0.8f, 0.8f, 0.8f, 1.0f);
 
-        // Percentage
         char pctStr[16];
-        sprintf_s(pctStr, "%d%%", (int)(displayProgress * 100.0f));
-        AEGfxPrint(fontId, pctStr, -0.04f, -0.65f, 0.6f, 1.0f, 1.0f, 1.0f, 1.0f);
+        int pct = (int)(displayProgress * 100.0f);
+        if (pct > 100) pct = 100;
+        sprintf_s(pctStr, "%d%%", pct);
+        AEGfxPrint(fontId, pctStr, -0.025f, 0.65f, 1.5f, 0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     AEGfxSetBlendMode(AE_GFX_BM_NONE);
 }
 
-void Loading_Free() {}
+void Loading_Free()
+{
+    Particle_Free();
+}
 
 void Loading_Unload()
 {
-    if (fontId >= 0) { AEGfxDestroyFont(fontId); fontId = -1; }
-    if (barMesh) { AEGfxMeshFree(barMesh);   barMesh = nullptr; }
-    if (bgMesh) { AEGfxMeshFree(bgMesh);    bgMesh = nullptr; }
+    Particle_Unload();
+    if (fontId >= 0) { AEGfxDestroyFont(fontId);          fontId = -1; }
+    if (bgMesh) { AEGfxMeshFree(bgMesh);             bgMesh = nullptr; }
+    if (LoadTruckMesh) { AEGfxMeshFree(LoadTruckMesh);      LoadTruckMesh = nullptr; }
+    if (LoadTruck) { AEGfxTextureUnload(LoadTruck);     LoadTruck = nullptr; }
 }
