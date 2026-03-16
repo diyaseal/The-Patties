@@ -11,7 +11,8 @@
 struct SmokeParticle {
     float x, y;          // position
     float velX, velY;    // velocity
-    float size;          // current size
+    float baseSize;          // original size
+    float size;           // current size  
     float alpha;         // transparency
     float lifetime;      // how long it has lived
     float maxLifetime;   // when it dies
@@ -23,7 +24,7 @@ static SmokeParticle smokeParticles[MAX_SMOKE];
 static AEGfxVertexList* smokeMesh = nullptr;
 
 static float spawnTimer = 0.0f;
-static const float SPAWN_INTERVAL = 0.15f; // seconds between spawns
+static float spawnRate = 0.15f; // seconds between spawns
 
 // ---------------------------------------------------------------------------
 // Spawn offset — where smoke comes out relative to truck
@@ -37,6 +38,7 @@ static const float EXHAUST_OFFSET_Y = -5.0f; // near top of truck
 // ---------------------------------------------------------------------------
 static float sourceX = 0.0f;
 static float sourceY = 0.0f;
+static float size = 0.0f;
 static bool  emitting = false;
 
 // ---------------------------------------------------------------------------
@@ -54,7 +56,8 @@ static void SpawnSmoke(float truckX, float truckY)
             p.y = truckY + EXHAUST_OFFSET_Y;
             p.velX = 30.0f + (rand() % 40);  // drifts left (truck faces left)
             p.velY = 10.0f + (rand() % 30);  // rises upward
-            p.size = 8.0f + (rand() % 8);   // starts small
+            p.baseSize = size + (rand() % 8);   // starts small
+            p.size = p.baseSize;
             p.alpha = 0.6f + (rand() % 30) / 100.0f; // 0.6 to 0.9
             p.lifetime = 0.0f;
             p.maxLifetime = 1.5f + (rand() % 100) / 100.0f; // 1.5 to 2.5s
@@ -63,11 +66,13 @@ static void SpawnSmoke(float truckX, float truckY)
     }
 }
 
-void Particle_SetSource(float truckX, float truckY, bool truckLanded)
+void Particle_SetSource(float truckX, float truckY, bool truckLanded, float spawnInterval, float sz)
 {
     sourceX = truckX + EXHAUST_OFFSET_X;
     sourceY = truckY + EXHAUST_OFFSET_Y;
     emitting = truckLanded;
+    spawnRate = spawnInterval; 
+    size = sz;
 }
 
 // ---------------------------------------------------------------------------
@@ -93,7 +98,7 @@ void Particle_Update(float dt)
     if (emitting)
     {
         spawnTimer += dt;
-        if (spawnTimer >= SPAWN_INTERVAL)
+        if (spawnTimer >= spawnRate)
         {
             spawnTimer = 0.0f;
             SpawnSmoke(sourceX, sourceY); // uses stored source
@@ -114,7 +119,7 @@ void Particle_Update(float dt)
         p.y += p.velY * dt;
         p.velX *= (1.0f - dt * 0.5f);
         p.velY *= (1.0f - dt * 0.3f);
-        p.size = 8.0f + (60.0f * lifeRatio);
+        p.size = p.baseSize + (60.0f * lifeRatio * (p.baseSize / 8.0f));
         p.alpha = 0.7f * (1.0f - lifeRatio);
     }
 }
@@ -134,7 +139,7 @@ void Particle_Draw()
         float lifeRatio = p.lifetime / p.maxLifetime;
 
         // Color shifts white → grey as it ages
-        float brightness = 0.9f - (lifeRatio * 0.5f); // 0.9 → 0.4
+        float brightness = 0.7f - (lifeRatio * 0.5f); // 0.9 → 0.4
 
         AEGfxSetColorToMultiply(brightness, brightness, brightness, p.alpha);
 

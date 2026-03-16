@@ -77,7 +77,7 @@ void End_Credits_Update()
     totalElapsedTime += dt;
 
     // Set source first, then update
-    Particle_SetSource(0.0f, truckY + truckBobOffset, truckLanded);
+    Particle_SetSource(0.0f, truckY + truckBobOffset, truckLanded, 0.15f, 8.0f);
     Particle_Update(dt);
 
     // Pulse each star

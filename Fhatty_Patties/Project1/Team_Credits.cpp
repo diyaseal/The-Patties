@@ -95,7 +95,7 @@ void Team_Credits_Draw() {
         AEGfxPrint(
             fontId2,
             "THE PATTIES",
-            -0.4f,   // X (normalized)
+            -0.38f,   // X (normalized)
             -0.3f,    // Y (normalized)
             2.6f,     // Scale
             1.0f, 1.0f, 1.0f, fade);
@@ -111,7 +111,7 @@ void Team_Credits_Draw() {
         AEGfxSetTransparency(fade);
 
         AEMtx33Scale(&TeamScale, 600.0f, 300.0f);
-        AEMtx33Trans(&TeamTranslate, 0.0f, 100.0f); 
+        AEMtx33Trans(&TeamTranslate, 10.0f, 100.0f); 
         AEMtx33Concat(&TeamTransform, &TeamTranslate, &TeamScale);
 
         AEGfxSetTransform(TeamTransform.m);
