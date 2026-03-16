@@ -114,8 +114,8 @@ void Customer_Init() {
 
     DurationMesh = CreateSquareMesh(0.5f, 0.5f);
     bubbleMesh = CreateCircleMesh(0.5f, 32); // (D) rounder thought bubble
-    ingredientMesh = CreateIngredientMesh(0.5f, 0.5f);
-    sodaMesh = CreateSodaMesh(0.5f, 0.5f); // (D) soda icon uses full-square UVs
+    ingredientMesh = CreateIngredientMesh(0.7f,0.7f);
+    sodaMesh = CreateSodaMesh(0.7f, 0.7f); // (D) soda icon uses full-square UVs
 
     printf("Customer system initialized\n");
 

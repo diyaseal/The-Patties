@@ -399,11 +399,11 @@ void Game_Update() {
     Customer_Update(static_cast<float>(dt));
     Points_Update();
 
-    // (D) Fill soda over time once the machine starts pouring
+    // (D) Fill soda over time once the machine starts pouring //tebbie pls do the sound queen thanks 
     if (sodaMachineHasCup && !sodaIsFilled) {
         sodaFillTimer += static_cast<float>(dt);
-        if (sodaFillTimer >= 5.0f) {
-            sodaFillTimer = 5.0f;
+        if (sodaFillTimer >= 3.0f) {
+            sodaFillTimer = 3.0f;
             sodaIsFilled = true;
             printf("Soda finished filling!\n");
         }
