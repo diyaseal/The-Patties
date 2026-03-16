@@ -1,11 +1,13 @@
 #include "pch.hpp"
-static AEGfxTexture* pTeamLogo = nullptr;      // DigiPen logo texture
-static AEGfxVertexList* pTeamMesh = nullptr;     // Mesh for logo
+
+static AEGfxTexture* pTeamLogo = nullptr;
+static AEMtx33 TeamTransform, TeamTranslate, TeamScale;
+static AEGfxVertexList* pTeamMesh = nullptr;
+
 static float totalElapsedTime = 0.0f;            // Timer for screen duration
 static float fade = 1.0f;                   // Start fully visible
 static s8 fontId1 = -1;                           // Font ID 1
 static s8 fontId2 = -2;                           // Font ID 2
-
 
 void Team_Credits_Load() {
 	printf("Team_Credits Load\n");
@@ -27,15 +29,17 @@ void Team_Credits_Load() {
     else
         printf("SUCCESS: Font loaded, ID = %d\n", fontId2);
 
-    // Load Digipen logo texture
-    //pSchoolLogo = AEGfxTextureLoad("Assets/Graphics/DigiPen_Singapore_WEB_RED.png");
-    //if (!pSchoolLogo)
-    //    printf("ERROR: Failed to load DigiPen logo\n");
-    //else
-    //    printf("SUCCESS: DigiPen logo loaded\n");
+    // -------------------------------------------------------------------
+    // LOAD LOGO
+    // -------------------------------------------------------------------
+    pTeamLogo = AEGfxTextureLoad("Assets/Assets/Food_truck.png");
+    if (!pTeamLogo)
+        printf("ERROR: Failed to load DigiPen logo\n");
+    else
+        printf("SUCCESS: DigiPen logo loaded\n");
 
-    //pLogoMesh = CreateSquareMesh(0.5, 0.5);
-    //printf(pLogoMesh ? "SUCCESS: Logo mesh created\n" : "ERROR: Failed to create logo mesh\n");
+    pTeamMesh = CreateSquareMesh(0.5, 0.5);
+    printf(pTeamMesh ? "SUCCESS: Logo mesh created\n" : "ERROR: Failed to create logo mesh\n");
 }
 
 void Team_Credits_Init() {
@@ -90,13 +94,29 @@ void Team_Credits_Draw() {
 
         AEGfxPrint(
             fontId2,
-            "FATTY PATTIES",
-            -0.30f,   // X (normalized)
-            0.0f,    // Y (normalized)
-            3.0f,     // Scale
+            "THE PATTIES",
+            -0.4f,   // X (normalized)
+            -0.3f,    // Y (normalized)
+            2.6f,     // Scale
             1.0f, 1.0f, 1.0f, fade);
 
         AEGfxSetBlendMode(AE_GFX_BM_NONE);  // Reset blend mode
+    }
+
+    if (pTeamLogo && pTeamMesh)
+    {
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxSetTransparency(fade);
+
+        AEMtx33Scale(&TeamScale, 600.0f, 300.0f);
+        AEMtx33Trans(&TeamTranslate, 0.0f, 100.0f); 
+        AEMtx33Concat(&TeamTransform, &TeamTranslate, &TeamScale);
+
+        AEGfxSetTransform(TeamTransform.m);
+        AEGfxTextureSet(pTeamLogo, 0, 0.f);
+        AEGfxMeshDraw(pTeamMesh, AE_GFX_MDM_TRIANGLES);
     }
 }
 void Team_Credits_Free() {

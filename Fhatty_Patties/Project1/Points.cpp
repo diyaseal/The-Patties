@@ -41,10 +41,10 @@ void Points_Init() {
 }
 
 void Points_Load() {
-    printf("Loaded stars: %.0f %.0f %.0f\n",
-        currentLevelData.starPositions[0],
-        currentLevelData.starPositions[1],
-        currentLevelData.starPositions[2]);
+    //printf("Loaded stars: %.0f %.0f %.0f\n",
+    //    currentLevelData.starPositions[0],
+    //    currentLevelData.starPositions[1],
+    //    currentLevelData.starPositions[2]);
 
     BarMesh = CreateSquareMesh(0.5f, 0.5f);
     starMesh = CreateStarMesh(0.5f, 0.2f); 
@@ -71,10 +71,10 @@ void Points_AddPoints(bool cust) {
     Level_Manager_UpdateHighestPoints(currentPoints);
 
     // Display Stars Position in Console
-    printf("Stars: ");
-    for (int i = 0; i < 3; ++i) {
-        printf("Stars: %.1f", Level_Manager_GetStarPosition(i));
-    }
+    //printf("Stars: ");
+    //for (int i = 0; i < 3; ++i) {
+    //    printf("Stars: %.1f", Level_Manager_GetStarPosition(i));
+    //}
     printf("\n");
     printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
@@ -104,6 +104,7 @@ void Points_Draw() {
 
     if (pointsPercentage > 0.0f) {
         f32 filledWidth = BAR_WIDTH * pointsPercentage;
+        // to anchor the bar
         f32 offsetX = -(BAR_WIDTH - filledWidth) / 2.0f;
 
         AEMtx33 pgScale, pgTranslate, pgTransform;

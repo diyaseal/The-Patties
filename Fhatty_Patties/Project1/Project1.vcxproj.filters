@@ -46,8 +46,13 @@
     <ClCompile Include="sounds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Particle_Mananger.cpp" />
     <ClCompile Include="End_Credits.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Particle_Mananger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Loading.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -97,9 +102,16 @@
     <ClInclude Include="Garagedoor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sounds.hpp" />
-    <ClInclude Include="Particle_Manager.hpp" />
     <ClInclude Include="End_Credits.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle_Manager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sounds.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Loading.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

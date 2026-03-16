@@ -73,6 +73,14 @@ void GSM_Update()
         fpFree = Levels_Free;
         fpUnload = Levels_Unload;
         break;
+    case GS_LOADING:
+        fpLoad = Loading_Load;
+        fpInit = Loading_Init;
+        fpUpdate = Loading_Update;
+        fpDraw = Loading_Draw;
+        fpFree = Loading_Free;
+        fpUnload = Loading_Unload;
+        break;
     case GS_GAME:
         // Level 1 function pointers
         fpLoad = Game_Load;              // Add this line

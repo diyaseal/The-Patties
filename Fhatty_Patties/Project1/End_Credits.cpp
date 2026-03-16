@@ -226,7 +226,7 @@ void End_Credits_Init()
         bgStars[i].pulseTimer = (rand() % 100) / 100.0f * 6.28f;   // random start offset
     }
 
-    // ... existing code ...
+    // Set truck values
     truckY = 600.0f;
     truckVelY = 0.0f;
     truckLanded = false;

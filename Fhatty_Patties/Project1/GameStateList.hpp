@@ -29,6 +29,7 @@ enum GS_STATES
 	GS_GAME,  // Level 1 game state
 	GS_LVLCMP,     // Level complete state
 	GS_END_CRED,     // End Credits
+	GS_LOADING,
 
 	GS_QUIT,        // Quit game state - signals program termination
 	GS_RESTART      // Restart state - signals level restart

@@ -161,7 +161,7 @@ void Levels_Update()
             // go through with me too I wanna understand
             currentLevel = i + 1;  // 1-based level number
             pendingStateChange = true;      // ← don't switch immediately
-            pendingNextState = GS_GAME; 
+            pendingNextState = GS_LOADING; 
 
             
         }
@@ -174,6 +174,7 @@ void Levels_Update()
             next = pendingNextState;
             pendingStateChange = false;
             stateChangeTimer = 0.0f;
+            next = GS_LOADING;  // Go to game
         }
     }
 }

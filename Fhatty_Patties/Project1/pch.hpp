@@ -14,6 +14,7 @@
 #include "GameStateManager.hpp"
 #include "Level_Manager.hpp"
 #include "Customer.hpp"
+#include "Loading.hpp"
 #include "game.hpp"
 #include "utils.hpp"
 #include "School_Credits.hpp"
