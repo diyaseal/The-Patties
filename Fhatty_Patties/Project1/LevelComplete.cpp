@@ -41,16 +41,19 @@ static void DrawRect(float cx, float cy, float w, float h,
 // DrawStar
 // ---------------------------------------------------------------------------
 static void DrawStar(float cx, float cy, float size,
-    float r, float g, float b, float a)
+    float red, float green, float blue, float alpha)
 {
     if (!pStarMesh) return;
-    AEMtx33 s, t, m;
+    AEMtx33 s, t, r, temp, m;
     AEMtx33Scale(&s, size, size);
+    AEMtx33RotDeg(&r, 180.0f);
     AEMtx33Trans(&t, cx, cy);
-    AEMtx33Concat(&m, &t, &s);
+
+    AEMtx33Concat(&temp, &r, &s);
+    AEMtx33Concat(&m, &t, &temp);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
-    AEGfxSetColorToMultiply(r, g, b, a);
+    AEGfxSetColorToMultiply(red, green, blue, alpha);
     AEGfxSetTransform(m.m);
     AEGfxMeshDraw(pStarMesh, AE_GFX_MDM_TRIANGLES);
 }

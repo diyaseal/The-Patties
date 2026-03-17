@@ -160,8 +160,8 @@ void Points_Draw() {
 
         AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
     }
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR);          // ✅ reset mode
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // ✅ reset color before particles
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);          // reset mode
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // reset color before particles
     Particle_DrawStarBurst();
 }
 
