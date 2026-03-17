@@ -6,15 +6,13 @@ extern const float EXIT_X = 800.0f;
 
 // ---------------------------------------------------------------------------
 // Global variables for Game State:Diya
-static AEGfxVertexList* TableMesh = nullptr;  // Square mesh
+static AEGfxVertexList* SquareMesh = nullptr;  // Square mesh
 static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
 static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
 static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh (T)
 static AEGfxVertexList* SodaMesh = nullptr; // (D)
 
-
-
-AEGfxTexture* Ingredients = nullptr; // Ingredients Mesh (not static so other pages can use it)
+AEGfxTexture* Ingredients = nullptr; 
 AEGfxTexture* GameplayBG_back = nullptr; // game BG
 AEGfxTexture* GameplayBG_front = nullptr; // game BG
 AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
@@ -181,7 +179,7 @@ static bool IsIngredientUnlocked(IngredientType ingredient) {
 
 // (D) Helper to draw the lock icon over locked ingredients or soda machine button
 static void DrawLockOverlay(float x, float y, float width, float height) {
-    if (!LockTexture || !TableMesh) return;
+    if (!LockTexture || !SquareMesh) return;
 
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
@@ -193,7 +191,7 @@ static void DrawLockOverlay(float x, float y, float width, float height) {
     AEMtx33Concat(&lockTransform, &lockTranslate, &lockScale);
 
     AEGfxSetTransform(lockTransform.m);
-    AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
 }
 
 // (D) Treat soda as a side item: burger order must match in sequence, soda only needs matching presence
@@ -219,7 +217,7 @@ void Game_Load() {
     printf("Game_Load called\n");
 
     // Load meshes ONCE
-    TableMesh = CreateSquareMesh(8.0f, 2.5f);
+    SquareMesh = CreateSquareMesh(8.0f, 2.5f);
     SodaMesh = CreateSodaMesh(0.5f, 0.5f); // (D)
     PlateMesh = CreateCircleMesh(2.0f, 32);
     IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
@@ -879,7 +877,7 @@ void Game_Draw() {
         AEGfxSetTransform(PlateImageTransform.m);
 
         // Draw the plate (using a square mesh)
-        AEGfxMeshDraw(TableMesh, AE_GFX_MDM_TRIANGLES); // Reuse TableMesh
+        AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES); // Reuse SquareMesh
     }
 
     /*
@@ -1067,9 +1065,9 @@ void Game_Unload() {
     }
 
     // Clean up mesh
-    if (TableMesh) {
-        AEGfxMeshFree(TableMesh);
-        TableMesh = nullptr;
+    if (SquareMesh) {
+        AEGfxMeshFree(SquareMesh);
+        SquareMesh = nullptr;
         printf("Table mesh freed\n");
     }
     if (PlateMesh) {
