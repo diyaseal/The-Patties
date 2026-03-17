@@ -475,9 +475,11 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
         if (customer.isWaitingForFood) {
             AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-            const float bar_w = 140.0f, bar_h = 10.0f;
-            const float bar_x = customer.x + 10.0f;
-            const float bar_y = customer.y + 160.0f;
+            // Vertical bar — narrow width, taller height
+            const float bar_w = 10.0f;
+            const float bar_h = 140.0f;
+            const float bar_x = customer.x - 20.0f;  // left side of customer
+            const float bar_y = customer.y + 160.0f;  // center of bar vertically
 
 
             // Grey Background Bar
@@ -498,11 +500,17 @@ void Customer_Draw(AEGfxTexture* customerTexture[]) {
             if (pct > 0.0f) {
                 f32 fillW = bar_w * pct;
                 f32 offsetX = -(bar_w - fillW) / 2.0f;
+                f32 fillH = bar_h * pct;                      // shrinks downward as patience drops
+                f32 offsetY = -(bar_h - fillH) / 2.0f;          // anchors to top edge
 
                 AEMtx33 s, t, m;
                 AEMtx33Scale(&s, fillW, bar_h);
                 AEMtx33Trans(&t, bar_x + offsetX, bar_y);
+                AEMtx33Scale(&s, bar_w, fillH);
+                AEMtx33Trans(&t, bar_x, bar_y + offsetY);
                 AEMtx33Concat(&m, &t, &s);
+
+                // Green at top (high patience) → red at bottom (low patience)
                 AEGfxSetColorToMultiply(1.0f - pct, pct, 0.0f, 1.0f);
                 AEGfxSetTransform(m.m);
                 AEGfxMeshDraw(DurationMesh, AE_GFX_MDM_TRIANGLES);
