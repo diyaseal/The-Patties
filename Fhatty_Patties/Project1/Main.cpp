@@ -13,7 +13,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    //_CrtSetBreakAlloc(238);
+   // _CrtSetBreakAlloc(12304);
 
     int gGameRunning = 1;
 
@@ -47,7 +47,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         AESysFrameStart();
 
         // Check for exit
-        if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist())
+        if (0 == AESysDoesWindowExist())
             gGameRunning = 0;
 
         // Call Update function

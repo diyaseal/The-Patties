@@ -109,6 +109,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="Particle_Mananger.cpp" />
     <ClCompile Include="Points.cpp" />
     <ClCompile Include="School_Credits.cpp" />
+    <ClCompile Include="Settings.cpp" />
     <ClCompile Include="sounds.cpp" />
     <ClCompile Include="End_Credits.cpp" />
     <ClCompile Include="Loading.cpp" />
@@ -132,6 +133,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="pch.hpp" />
     <ClInclude Include="Points.hpp" />
     <ClInclude Include="School_Credits.hpp" />
+    <ClInclude Include="Settings.hpp" />
     <ClInclude Include="sounds.hpp" />
     <ClInclude Include="Team_Credits.hpp" />
     <ClInclude Include="Utils.hpp" />

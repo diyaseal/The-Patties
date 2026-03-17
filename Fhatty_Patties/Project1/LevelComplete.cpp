@@ -88,8 +88,8 @@ void LevelComplete_Load()
         return;
     }
 
-    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 48);
-    fontSmall = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 32);
+    fontId = AEGfxCreateFont("Assets/Font/Starbim.ttf", 48);
+    fontSmall = AEGfxCreateFont("Assets/Font/HollyBerryPop-LVxvE.ttf", 32);
 
     if (fontId < 0 || fontSmall < 0)
         printf("ERROR: LevelComplete failed to load fonts!\n");
@@ -182,18 +182,27 @@ void LevelComplete_Draw()
     // 5. Dark score row
     DrawRect(0.0f, 55.0f, 770.0f, 75.0f, 0.25f, 0.25f, 0.25f, 1.0f, s);
 
-    // 6. Main Menu button (red)
+    bool showNextLevel = (currentPoints > Level_Manager_GetStarPosition(0));
+
+    if (showNextLevel) {
+        continueButton.x = -260.0f;
+        restartButton.x = 0.0f;
+        nextLevelButton.x = 260.0f;
+    }
+    else {
+        continueButton.x = -130.0f;
+        restartButton.x = 130.0f;
+    }
+
     DrawRect(continueButton.x, continueButton.y,
         continueButton.width, continueButton.height,
         continueButton.isHovered ? 0.6f : 0.85f, 0.1f, 0.1f, 1.0f, s);
 
-    // 7. Restart button (blue)
     DrawRect(restartButton.x, restartButton.y,
         restartButton.width, restartButton.height,
         0.1f, 0.1f, restartButton.isHovered ? 0.6f : 0.9f, 1.0f, s);
 
-    // 8. Next Level button (green)
-    if (currentPoints > Level_Manager_GetStarPosition(0)) {
+    if (showNextLevel) {
         DrawRect(nextLevelButton.x, nextLevelButton.y,
             nextLevelButton.width, nextLevelButton.height,
             0.1f, nextLevelButton.isHovered ? 0.4f : 0.6f, 0.1f, 1.0f, s);
@@ -221,18 +230,23 @@ void LevelComplete_Draw()
     {
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
-        AEGfxPrint(fontId, "LEVEL COMPLETE!", -0.26f, 0.28f, 1.2f, 1.0f, 0.85f, 0.0f, 1.0f);
+        AEGfxPrint(fontId, "A LEVEL COMPLETE! A", -0.43f, 0.28f, 1.2f, 1.0f, 0.85f, 0.0f, 1.0f);
         AEGfxPrint(fontSmall, "SCORE", -0.28f, 0.09f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
         char scoreStr[16];
         sprintf_s(scoreStr, "%d", static_cast<int>(currentPoints));
         AEGfxPrint(fontSmall, scoreStr, 0.22f, 0.09f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
-        AEGfxPrint(fontSmall, "MAIN MENU", -0.42f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxPrint(fontSmall, "RESTART", -0.07f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
-        if (currentPoints > Level_Manager_GetStarPosition(0)) {
+        if (showNextLevel) {
+            AEGfxPrint(fontSmall, "LEVEL SELECT", -0.43f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(fontSmall, "RESTART", -0.07f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(fontSmall, "NEXT LEVEL", 0.23f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
+        else {
+            AEGfxPrint(fontSmall, "LEVEL SELECT", -0.28f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(fontSmall, "RESTART", 0.10f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
         AEGfxPrint(fontSmall, "HIGH SCORE: ", -0.11f, -0.10f, 0.8f, 0.0f, 0.0f, 0.0f, 1.0f);
         char    highScoreStr[16];
         sprintf_s(highScoreStr, "%d", static_cast<int>(Level_Manager_GetHighestPoints()));

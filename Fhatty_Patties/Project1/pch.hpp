@@ -28,6 +28,7 @@
 #include "LevelComplete.hpp"
 #include "Garagedoor.hpp"
 #include "sounds.hpp"
+#include "Settings.hpp"
 
 //enum of ingredient type used in game.cpp 
 //on click order :Syakil / diya 

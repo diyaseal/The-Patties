@@ -105,6 +105,13 @@ static int FindFreeSlot() {
 // Initialize Customer System
 // ---------------------------------------------------------------------------
 void Customer_Init() {
+    // Safety: free any existing meshes before recreating
+    if (frameMesh) { AEGfxMeshFree(frameMesh);      frameMesh = nullptr; }
+    if (DurationMesh) { AEGfxMeshFree(DurationMesh);   DurationMesh = nullptr; }
+    if (bubbleMesh) { AEGfxMeshFree(bubbleMesh);      bubbleMesh = nullptr; }
+    if (ingredientMesh) { AEGfxMeshFree(ingredientMesh); ingredientMesh = nullptr; }
+    if (sodaMesh) { AEGfxMeshFree(sodaMesh);        sodaMesh = nullptr; }
+
     customers.clear();
     for (int i = 0; i < MAX_SLOTS; i++) slotOccupied[i] = false;
     CUSTOMERS_PER_LEVEL = Level_Manager_GetCustomerCount();
@@ -112,10 +119,11 @@ void Customer_Init() {
     totalCustomersSpawned = 0;
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    DurationMesh = CreateSquareMesh(0.5f, 0.5f);
-    bubbleMesh = CreateCircleMesh(0.5f, 32); // (D) rounder thought bubble
-    ingredientMesh = CreateIngredientMesh(0.7f,0.7f);
-    sodaMesh = CreateSodaMesh(0.7f, 0.7f); // (D) soda icon uses full-square UVs
+    if (!DurationMesh) DurationMesh = CreateSquareMesh(0.5f, 0.5f);
+    if (!bubbleMesh)   bubbleMesh = CreateCircleMesh(0.5f, 32); // (D) rounder thought bubble
+    if (!ingredientMesh) ingredientMesh = CreateIngredientMesh(0.7f, 0.7f);
+    if (!sodaMesh)     sodaMesh = CreateSodaMesh(0.7f, 0.7f); // (D) soda icon uses full-square UVs
+    if (!frameMesh)    frameMesh = CreateCustomerMesh(); 
 
     printf("Customer system initialized\n");
 

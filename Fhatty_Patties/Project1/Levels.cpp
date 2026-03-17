@@ -94,6 +94,9 @@ void Levels_Load()
 
     //Load Sound
     Sound_Load();
+    Sound_StopBGM();
+    Sound_PlayBGMLevel();
+    Settings_Load();
 }
 
 void Levels_Init()
@@ -303,5 +306,27 @@ void Levels_Unload()
         AEGfxDestroyFont(fontId);
         fontId = -1;
     }
+    if (Lock) {
+        AEGfxTextureUnload(Lock);
+        Lock = nullptr;
+    }
+    if (LockMesh) {
+        AEGfxMeshFree(LockMesh);
+        LockMesh = nullptr;
+    }
+    if (Wall) {
+        AEGfxTextureUnload(Wall);
+        Wall = nullptr;
+    }
+    if (WallMesh) {
+        AEGfxMeshFree(WallMesh);
+        WallMesh = nullptr;
+    }
+    if (Ingredients) {
+        AEGfxTextureUnload(Ingredients);
+        Ingredients = nullptr;
+    }
+
     Sound_Unload();
+    Settings_Unload();
 }

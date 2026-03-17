@@ -7,6 +7,7 @@
 //BGM
 static AEAudio bgmAudio;
 static AEAudio bgmEndCreds;
+static AEAudio bgmLevel;
 
 //SFX
 static AEAudio sfxOnClick;
@@ -31,6 +32,7 @@ void Sound_Load() {
 
     bgmAudio = AEAudioLoadMusic("Assets/Audio/bouken.mp3");
     bgmEndCreds = AEAudioLoadMusic("Assets/Audio/bgmEnd.mp3");
+    bgmLevel = AEAudioLoadMusic("Assets/Audio/boukencut.mp3");
 
     sfxOnClick = AEAudioLoadMusic("Assets/Audio/onClick.mp3");
     sfxAngryMale = AEAudioLoadMusic("Assets/Audio/mAngry.mp3");
@@ -40,6 +42,10 @@ void Sound_Load() {
     sfxTruckMove = AEAudioLoadMusic("Assets/Audio/truckMove.mp3");
     sfxTruckBeep = AEAudioLoadMusic("Assets/Audio/truckBeep.mp3");
     printf("Sound loaded\n");
+
+    // reapply saved volumes to the new groups
+    Sound_SetMusicVolume(Settings_GetMusicVolume() * Settings_GetMasterVolume());
+    Sound_SetSFXVolume(Settings_GetSFXVolume() * Settings_GetMasterVolume());
 }
 
 // ---------------------------------------------------------------------------
@@ -52,6 +58,10 @@ void Sound_PlayBGM() {
 void Sound_PlayBGMCreds() {
     if (AEAudioIsValidAudio(bgmEndCreds) && AEAudioIsValidGroup(bgmGroup))
         AEAudioPlay(bgmEndCreds, bgmGroup, 0.5f, 1.0f, -1);
+}
+void Sound_PlayBGMLevel() {
+    if (AEAudioIsValidAudio(bgmLevel) && AEAudioIsValidGroup(bgmGroup))
+        AEAudioPlay(bgmLevel, bgmGroup, 0.5f, 1.0f, -1);
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +110,27 @@ void Sound_PlaySFX_TruckBeep() {
     if (AEAudioIsValidAudio(sfxTruckBeep) && AEAudioIsValidGroup(sfxGroup))
         AEAudioPlay(sfxTruckBeep, sfxGroup, 1.0f, 1.0f, 0);
 }
+
+// ---------------------------------------------------------------------------
+// Sound Settings
+// ---------------------------------------------------------------------------
+void Sound_SetMusicVolume(float volume) {
+    if (AEAudioIsValidGroup(bgmGroup))
+        AEAudioSetGroupVolume(bgmGroup, volume);
+}
+
+void Sound_SetSFXVolume(float volume) {
+    if (AEAudioIsValidGroup(sfxGroup))
+        AEAudioSetGroupVolume(sfxGroup, volume);
+}
+
+void Sound_SetMasterVolume(float volume) {
+    if (AEAudioIsValidGroup(bgmGroup))
+        AEAudioSetGroupVolume(bgmGroup, volume * Settings_GetMusicVolume());
+    if (AEAudioIsValidGroup(sfxGroup))
+        AEAudioSetGroupVolume(sfxGroup, volume * Settings_GetSFXVolume());
+}
+
 // ---------------------------------------------------------------------------
 // Sound_Free
 // ---------------------------------------------------------------------------
@@ -117,6 +148,8 @@ void Sound_Unload() {
 
     AEAudioUnloadAudio(bgmAudio);
     AEAudioUnloadAudio(bgmEndCreds);
+    AEAudioUnloadAudio(bgmLevel);
+
     AEAudioUnloadAudio(sfxCorrect);
     AEAudioUnloadAudio(sfxAngryMale);
     AEAudioUnloadAudio(sfxAngryFemale);

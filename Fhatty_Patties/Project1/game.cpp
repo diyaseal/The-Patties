@@ -201,6 +201,68 @@ static bool OrderContainsSoda(const std::vector<int>& order) {
     }
     return false;
 }
+
+//------------------------- Pause menu (tebs) ------------------------------
+static s8   GameFontId = -1;
+static s8   GameFontIdSmall = -1;
+static bool isPaused = false;
+
+static float PauseMenuBtnX = 0.0f;
+static float PauseMenuBtnY = -30.0f;
+static float PauseMenuBtnWidth = 260.0f;
+static float PauseMenuBtnHeight = 55.0f;
+
+static float PauseSettingsBtnX = 0.0f;
+static float PauseSettingsBtnY = -100.0f;
+static float PauseSettingsBtnWidth = 260.0f;
+static float PauseSettingsBtnHeight = 55.0f;
+
+static float PauseResumeBtnX = 0.0f;
+static float PauseResumeBtnY = 60.0f;
+static float PauseResumeBtnWidth = 300.0f;
+static float PauseResumeBtnHeight = 55.0f;
+//---------------------------------------------------------------------------
+
+static void DrawRoundedRect(AEGfxVertexList* squareMesh, AEGfxVertexList* circleMesh,
+    float cx, float cy, float w, float h, float r,
+    float red, float green, float blue, float alpha = 1.0f)
+{
+    AEMtx33 s, t, m;
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetColorToMultiply(red, green, blue, alpha);
+
+    // Horizontal slab
+    AEMtx33Scale(&s, w, h - r * 2.0f);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(squareMesh, AE_GFX_MDM_TRIANGLES);
+
+    // Vertical slab
+    AEMtx33Scale(&s, w - r * 2.0f, h);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(squareMesh, AE_GFX_MDM_TRIANGLES);
+
+    // 4 corner circles — using PlateMesh radius=2.0, so scale = r/2
+    float offX = w * 0.5f - r;
+    float offY = h * 0.5f - r;
+    float corners[4][2] = {
+        { cx - offX, cy + offY },
+        { cx + offX, cy + offY },
+        { cx - offX, cy - offY },
+        { cx + offX, cy - offY },
+    };
+    for (int i = 0; i < 4; i++) {
+        AEMtx33Scale(&s, r / 2.0f, r / 2.0f);
+        AEMtx33Trans(&t, corners[i][0], corners[i][1]);
+        AEMtx33Concat(&m, &t, &s);
+        AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(circleMesh, AE_GFX_MDM_TRIANGLES);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Game State Functions
 
@@ -293,6 +355,10 @@ void Game_Load() {
     GarageDoor_Load();
     Sound_Load();
     Sound_PlayBGM();
+    Settings_Load();
+
+    GameFontId = AEGfxCreateFont("Assets/Font/Fredoka-Bold.ttf", 30);
+    GameFontIdSmall = AEGfxCreateFont("Assets/Font/Nunito-Bold.ttf", 24);
 }
 
 bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
@@ -394,6 +460,52 @@ void Game_Update() {
     // Your update logic goes here
     // Example: Move the square, check collisions, etc. :Diya 
     f64 dt = AEFrameRateControllerGetFrameTime();
+    // Settings popup steals all input while open
+    Settings_Update((float)dt, GameFontId);
+    if (Settings_IsOpen()) return;
+
+    // ESC toggles pause
+    if (AEInputCheckTriggered(AEVK_ESCAPE)) {
+        isPaused = !isPaused;
+        printf(isPaused ? "Game PAUSED\n" : "Game RESUMED\n");
+    }
+
+    // Pause menu input — block all gameplay while paused
+    if (isPaused) {
+        s32 mouseX, mouseY;
+        AEInputGetCursorPosition(&mouseX, &mouseY);
+        float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
+        float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
+        float worldMouseX = (float)mouseX - windowWidth / 2.0f;
+        float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
+
+        if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+            // Back to Main Menu
+            if (worldMouseX >= PauseMenuBtnX - PauseMenuBtnWidth / 2.0f &&
+                worldMouseX <= PauseMenuBtnX + PauseMenuBtnWidth / 2.0f &&
+                worldMouseY >= PauseMenuBtnY - PauseMenuBtnHeight / 2.0f &&
+                worldMouseY <= PauseMenuBtnY + PauseMenuBtnHeight / 2.0f) {
+                isPaused = false;
+                next = GS_MAINMENU;
+            }
+            // Settings button
+            if (worldMouseX >= PauseSettingsBtnX - PauseSettingsBtnWidth / 2.0f &&
+                worldMouseX <= PauseSettingsBtnX + PauseSettingsBtnWidth / 2.0f &&
+                worldMouseY >= PauseSettingsBtnY - PauseSettingsBtnHeight / 2.0f &&
+                worldMouseY <= PauseSettingsBtnY + PauseSettingsBtnHeight / 2.0f) {
+                Settings_Open();
+            }
+            // Resume button
+            if (worldMouseX >= PauseResumeBtnX - PauseResumeBtnWidth / 2.0f &&
+                worldMouseX <= PauseResumeBtnX + PauseResumeBtnWidth / 2.0f &&
+                worldMouseY >= PauseResumeBtnY - PauseResumeBtnHeight / 2.0f &&
+                worldMouseY <= PauseResumeBtnY + PauseResumeBtnHeight / 2.0f) {
+                isPaused = false;
+            }
+        }
+        return; // block all gameplay
+    }
+
     Customer_Update(static_cast<float>(dt));
     Points_Update();
 
@@ -997,6 +1109,139 @@ void Game_Draw() {
     }
 
     GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
+
+    Settings_Draw(GameFontId, BGMesh, PlateMesh);
+
+    // -------------------------------------------------------------------
+    // PAUSE MENU OVERLAY
+    // -------------------------------------------------------------------
+    if (isPaused) {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEMtx33 s, t, m;
+
+        // Dark backdrop
+        AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.6f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEMtx33Scale(&s, 1600.0f, 900.0f);
+        AEMtx33Trans(&t, 0.0f, 0.0f);
+        AEMtx33Concat(&m, &t, &s);
+        AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        // Layout
+        float panelCX = 0.0f, panelCY = 0.0f;
+        float panelW = 400.0f, panelH = 420.0f, panelR = 30.0f;
+        float titleH = 70.0f;
+        float titleCY = panelCY + panelH * 0.5f - titleH * 0.5f;
+        float btnW = 300.0f, btnH = 55.0f, btnR = 28.0f;
+        float btn1Y = panelCY - 30.0f;   // Back to Main Menu
+        float btn2Y = panelCY - 110.0f;  // Settings
+        float btn3Y = panelCY + 55.0f;   // Resume
+
+        // Sync hitboxes
+        PauseMenuBtnX = panelCX; PauseMenuBtnY = btn1Y;
+        PauseMenuBtnWidth = btnW;    PauseMenuBtnHeight = btnH;
+        PauseSettingsBtnX = panelCX; PauseSettingsBtnY = btn2Y;
+        PauseSettingsBtnWidth = btnW;    PauseSettingsBtnHeight = btnH;
+        PauseResumeBtnX = panelCX; PauseResumeBtnY = btn3Y;
+        PauseResumeBtnWidth = btnW;    PauseResumeBtnHeight = btnH;
+
+        // ---------------------------------------------------------------
+        // LAYER 1: Full rounded cream panel (bottom layer)
+        // ---------------------------------------------------------------
+        DrawRoundedRect(BGMesh, PlateMesh,
+            panelCX, panelCY, panelW, panelH, panelR,
+            0.98f, 0.96f, 0.90f);
+
+        // ---------------------------------------------------------------
+        // LAYER 2: Orange title bar — drawn as a PLAIN rectangle
+        // positioned to sit flush with the top of the panel interior
+        // We draw it INSIDE the rounded area so no corners poke out
+        // ---------------------------------------------------------------
+        float titleBarTop = panelCY + panelH * 0.5f;        // top of panel
+        float titleBarBottom = titleBarTop - titleH;            // bottom of title bar
+        float titleBarCY = (titleBarTop + titleBarBottom) * 0.5f;
+
+        // Horizontal fill (full width, sits inside the rounded panel)
+        AEGfxSetColorToMultiply(0.85f, 0.31f, 0.055f, 1.0f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEMtx33Scale(&s, panelW - panelR * 2.0f, titleH);
+        AEMtx33Trans(&t, panelCX, titleBarCY);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        // Side fills (narrow strips on left/right to reach panel edge)
+        // but stop short of the very top rounded corners
+        AEMtx33Scale(&s, panelR * 2.0f, titleH - panelR);
+        AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR, titleBarCY - panelR * 0.5f);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR, titleBarCY - panelR * 0.5f);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        // Top-left and top-right orange corner circles
+        // (these sit inside the panel's own rounded corners — same radius)
+        AEMtx33Scale(&s, panelR / 2.0f, panelR / 2.0f);
+        AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR,
+            panelCY + panelH * 0.5f - panelR);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
+
+        AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR,
+            panelCY + panelH * 0.5f - panelR);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
+
+        // ---------------------------------------------------------------
+        // LAYER 3: Pill buttons
+        // ---------------------------------------------------------------
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn3Y, btnW, btnH, btnR,
+            0.85f, 0.31f, 0.055f);  // orange Resume
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn1Y, btnW, btnH, btnR,
+            0.17f, 0.17f, 0.17f);   // dark Back to Main Menu
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn2Y, btnW, btnH, btnR,
+            0.17f, 0.17f, 0.17f);   // dark Settings
+
+        // ---------------------------------------------------------------
+        // LAYER 4: Text
+        // ---------------------------------------------------------------
+        if (GameFontId >= 0) {
+            AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+            AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+            char pauseTitle[] = "PAUSED";
+            char hintText[] = "Press ESC to Resume";
+            char menuLabel[] = "Back to Main Menu";
+            char settingsLabel[] = "Settings";
+            char resumeLabel[] = "Resume";
+
+            AEGfxPrint(GameFontId, pauseTitle,
+                -0.13f, (titleBarCY - 14.0f) / 450.0f,
+                1.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+            s8 hintFont = (GameFontIdSmall >= 0) ? GameFontIdSmall : GameFontId;
+            AEGfxPrint(hintFont, hintText,
+                -0.10f, (titleBarBottom - 30.0f) / 450.0f,
+                0.75f, 0.5f, 0.5f, 0.5f, 1.0f);
+
+            AEGfxPrint(GameFontId, resumeLabel,
+                -0.07f, (btn3Y - 10.0f) / 450.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+            AEGfxPrint(GameFontId, menuLabel,
+                -0.15f, (btn1Y - 10.0f) / 450.0f,
+                0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+            AEGfxPrint(GameFontId, settingsLabel,
+                -0.08f, (btn2Y - 10.0f) / 450.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+    }
+
+    Settings_Draw(GameFontId, BGMesh, PlateMesh);
 }
 
 void Burger_Clear() {
@@ -1064,6 +1309,20 @@ void Game_Unload() {
         }
     }
 
+    if (PlateTexture) {
+        AEGfxTextureUnload(PlateTexture);
+        PlateTexture = nullptr;
+    }
+    if (GameplayBG_back) {
+        AEGfxTextureUnload(GameplayBG_back);
+        GameplayBG_back = nullptr;
+    }
+    if (GameplayBG_front) {
+        AEGfxTextureUnload(GameplayBG_front);
+        GameplayBG_front = nullptr;
+    }
+
+
     // Clean up mesh
     if (SquareMesh) {
         AEGfxMeshFree(SquareMesh);
@@ -1085,10 +1344,19 @@ void Game_Unload() {
         SodaMesh = nullptr;
     } // (D)
 
+    if (GameFontId >= 0) {
+        AEGfxDestroyFont(GameFontId);
+        GameFontId = -1;
+    }
+    if (GameFontIdSmall >= 0) {
+        AEGfxDestroyFont(GameFontIdSmall);
+        GameFontIdSmall = -1;
+    }
 
     GarageDoor_Unload();
     Points_Unload();
     Level_Manager_Unload();
     Sound_Unload();
+    Settings_Unload();
 }
 

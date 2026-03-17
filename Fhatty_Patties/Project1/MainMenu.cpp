@@ -65,6 +65,7 @@ static float WallPosY = 900.0f;
 static float SlideSpeed = 500.0f;
 static AEGfxVertexList* WallMesh = nullptr;
 static bool  wallTriggered = false;   // true once Top Bun is clicked
+static AEGfxVertexList* CircleMesh = nullptr; 
 // ---------------------------------------------------------------------------
 // Game State Functions
 
@@ -111,6 +112,7 @@ void MainMenu_Load()
     // Load Audio
     Sound_Load();
     Sound_PlayBGM(); //Load sound then play BGM
+    Settings_Load();
 }
 
 void MainMenu_Init()
@@ -155,11 +157,18 @@ void MainMenu_Init()
 
     pendingNextState = 0;
     truckDriveSoundPlayed = false;
+
+    CircleMesh = CreateCircleMesh(2.0f, 32);
 }
 
 void MainMenu_Update()
 {
     float dt = (float)AEFrameRateControllerGetFrameTime();
+
+    // Settings panel steals all input while open
+    Settings_Update(dt, FontId);
+    if (Settings_IsOpen()) return;   // block everything else
+
     totalElapsedTime += dt;
 
     // Get mouse position
@@ -294,7 +303,7 @@ void MainMenu_Update()
             }
             else if (btn == &lettuce) {
                 printf("Lettuce clicked - Settings Menu!\n");
-                // pendingNextState = GS_SETTINGS;
+                Settings_Open();
             }
             else if (btn == &bottomBun) {
                 printf("Bottom Bun clicked - Quit!\n");      
@@ -464,6 +473,9 @@ void MainMenu_Draw()
     AEGfxSetTransparency(1.0f);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+    // Draw settings panel on top of everything
+    Settings_Draw(FontId, BGMesh, CircleMesh);  // BGMesh is a plain square mesh, perfect for this
 }
 
 void MainMenu_Free()
@@ -497,22 +509,21 @@ void MainMenu_Free()
     }
 
     Sound_Free(); //stop bgm when leaving
+
+    if (CircleMesh) { 
+        AEGfxMeshFree(CircleMesh); 
+        CircleMesh = nullptr; 
+    }
 }
 
 void MainMenu_Unload()
 {
     printf("MainMenu Unload called\n");
 
-    // Unload only once
-    if (topBun.texture) {
-        AEGfxTextureUnload(topBun.texture);
-
-        // Set all pointers to nullptr after unloading
-        topBun.texture = nullptr;
-        cheese.texture = nullptr;
-        patty.texture = nullptr;
-        lettuce.texture = nullptr;
-        bottomBun.texture = nullptr;
+    if (Ingredients) {
+        AEGfxTextureUnload(Ingredients);
+        Ingredients = nullptr;
+        topBun.texture = cheese.texture = patty.texture = lettuce.texture = bottomBun.texture = nullptr;
     }
 
     if (BG)
@@ -536,6 +547,6 @@ void MainMenu_Unload()
         AEGfxDestroyFont(FontId);
         FontId = -1;
     }
-
     Sound_Unload();
+    Settings_Unload();
 }
