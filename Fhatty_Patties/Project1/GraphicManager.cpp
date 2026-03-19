@@ -221,3 +221,43 @@ AEGfxVertexList* CreateStarMesh(float outerRadius, float innerRadius)
 
     return AEGfxMeshEnd();
 }
+
+void DrawRoundedRect(AEGfxVertexList* squareMesh, AEGfxVertexList* circleMesh,
+    float cx, float cy, float w, float h, float r,
+    float red, float green, float blue, float alpha)
+{
+    AEMtx33 s, t, m;
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetColorToMultiply(red, green, blue, alpha);
+
+    // Horizontal slab
+    AEMtx33Scale(&s, w, h - r * 2.0f);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(squareMesh, AE_GFX_MDM_TRIANGLES);
+
+    // Vertical slab
+    AEMtx33Scale(&s, w - r * 2.0f, h);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(squareMesh, AE_GFX_MDM_TRIANGLES);
+
+    // 4 corner circles
+    float offX = w * 0.5f - r;
+    float offY = h * 0.5f - r;
+    float corners[4][2] = {
+        { cx - offX, cy + offY },
+        { cx + offX, cy + offY },
+        { cx - offX, cy - offY },
+        { cx + offX, cy - offY },
+    };
+    for (int i = 0; i < 4; i++) {
+        AEMtx33Scale(&s, r / 2.0f, r / 2.0f);
+        AEMtx33Trans(&t, corners[i][0], corners[i][1]);
+        AEMtx33Concat(&m, &t, &s);
+        AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(circleMesh, AE_GFX_MDM_TRIANGLES);
+    }
+}
