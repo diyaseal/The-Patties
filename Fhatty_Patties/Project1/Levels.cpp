@@ -10,7 +10,19 @@ static s8 fontId = -1;                           // Font ID
 static AEGfxTexture* LevelBG = nullptr;
 static AEGfxVertexList* LevelMesh = nullptr;
 static AEMtx33 LevelTransform, LevelTranslate, LevelScale;
+
+static float titleY = 225.0f, titleX = 0.0f;
+static AEMtx33 titleTransform, titleTranslate, titleScale;
+static AEGfxVertexList* titleMesh = nullptr;
 // ---------------------------------------------------------------------------
+static AEGfxVertexList* backBtnMesh = nullptr;
+static AEMtx33 backBtnTransform, backBtnTranslate, backBtnScale;
+static Button backButton;
+const float BACK_BTN_WIDTH = 200.0f;
+const float BACK_BTN_HEIGHT = 60.0f;
+const float BACK_BTN_X = 0.0f;
+const float BACK_BTN_Y = -250.0f;
+
 static AEGfxTexture* Ingredients = nullptr;
 static AEGfxVertexList* IngredientsMesh = nullptr;
 static LevelButton  levelButtons[5];
@@ -38,8 +50,10 @@ static float WallPosY = 0.0f;
 static float SlideSpeed = 500.0f;
 static AEGfxVertexList* WallMesh = nullptr;
 static float WallTimer = 0.0f;
-
+// ---------------------------------------------------------------------------
 //Sound
+
+// ---------------------------------------------------------------------------
 static bool pendingStateChange = false;
 static int  pendingNextState = 0;
 static float stateChangeTimer = 0.0f;
@@ -49,6 +63,9 @@ static const float STATE_CHANGE_DELAY = 0.3f;
 // ---------------------------------------------------------------------------
 void Levels_Load()
 {
+    //BACK BTTN
+    backBtnMesh = CreateSquareMesh(0.5f, 0.5f);
+
     //Load BG
     LevelMesh = CreateSquareMesh(0.5f, 0.5f);
     LevelBG = AEGfxTextureLoad("Assets/Assets/level_page.png");
@@ -58,7 +75,7 @@ void Levels_Load()
         printf("ERROR: Failed to load LevelBG!\n");
 
     //Load font
-    fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
+    fontId = AEGfxCreateFont("Assets/Font/Fredoka-Bold.ttf", 28);
     if (fontId < 0)
         printf("ERROR: Failed to load font!\n");
     else
@@ -92,6 +109,7 @@ void Levels_Load()
     else
         printf("ERROR: Failed to load Transition_wall.png\n");
 
+    titleMesh = CreateSquareMesh(0.5, 0.5);
     //Load Sound
     Sound_Load();
     Sound_StopBGM();
@@ -111,17 +129,26 @@ void Levels_Init()
         levelButtons[i].button.isHovered = false;
         levelButtons[i].button.isClicked = false;
 
-        //ELI OVER HERE U CAN INPUT SAVED DATA STUFF
-        // Demo stars (replace with actual saved data)
         Level_Manager_LoadLevel(i + 1);
         levelButtons[i].starsEarned = Level_Manager_GetStarsEarned();
 
-        // Level 1: 3 stars, Level 2: 2 stars, Level 3: 1 star, etc.
-        //levelButtons[i].starsEarned = 3 - i;
-        //if (levelButtons[i].starsEarned < 0) levelButtons[i].starsEarned = 0;
+        // Level 1 is always unlocked.
+        // Every subsequent level unlocks only if the previous level has at least 1 star.
+        if (i == 0)
+        {
+            levelButtons[i].Unlocked = true;
+        }
+        else
+        {
+            // Check previous level's star count
+            Level_Manager_LoadLevel(i);         // i is 0-based, so this loads level (i), i.e. the one before button i
+            int prevStars = Level_Manager_GetStarsEarned();
+            levelButtons[i].Unlocked = (prevStars >= 1);
 
-        // First 3 levels unlocked, last 2 locked for demo
-        levelButtons[i].Unlocked = (i < 3);
+            // Restore this button's own star data
+            Level_Manager_LoadLevel(i + 1);
+            levelButtons[i].starsEarned = Level_Manager_GetStarsEarned();
+        }
     }
 
     totalElapsedTime = 0.0f;
@@ -130,6 +157,13 @@ void Levels_Init()
     pendingStateChange = false;
     pendingNextState = 0;
     stateChangeTimer = 0.0f;
+
+    backButton.x = BACK_BTN_X;
+    backButton.y = BACK_BTN_Y;
+    backButton.width = BACK_BTN_WIDTH;
+    backButton.height = BACK_BTN_HEIGHT;
+    backButton.isHovered = false;
+    backButton.isClicked = false;
 }
 
 void Levels_Update()
@@ -165,9 +199,15 @@ void Levels_Update()
             currentLevel = i + 1;  // 1-based level number
             pendingStateChange = true;      // ← don't switch immediately
             pendingNextState = GS_LOADING; 
-
-            
         }
+    }
+
+    // Back button
+    backButton.isHovered = IsButtonHovered(backButton);
+    if (IsButtonClicked(backButton)) {
+        Sound_PlaySFX_OnClick();
+        pendingStateChange = true;
+        pendingNextState = GS_MAINMENU;  // change to your main menu state
     }
 
     // Handle delayed state change so click sound can finish
@@ -177,7 +217,7 @@ void Levels_Update()
             next = pendingNextState;
             pendingStateChange = false;
             stateChangeTimer = 0.0f;
-            next = GS_LOADING;  // Go to game
+            //next = GS_LOADING;  // Go to game
         }
     }
 }
@@ -192,7 +232,32 @@ void Levels_Draw()
     AEGfxSetTransform(LevelTransform.m);
     AEGfxTextureSet(LevelBG, 0.f, 0.f);
     AEGfxMeshDraw(LevelMesh, AE_GFX_MDM_TRIANGLES);
+    // ---------------------------------------------------------------------------
+    // Draw Level Title
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(1.0f, 0.75f, 0.85f, 1.0f);
+    AEMtx33Scale(&titleScale, 900, 100);
+    AEMtx33Trans(&titleTranslate, titleX, titleY);
+    AEMtx33Concat(&titleTransform, &titleTranslate, &titleScale);
+    AEGfxSetTransform(titleTransform.m);
+    AEGfxMeshDraw(titleMesh, AE_GFX_MDM_TRIANGLES);
 
+    // Draw "SELECT LEVEL" shadow on title bar
+    if (fontId >= 0) {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxPrint(fontId, "SELECT LEVEL",
+            (titleX / 800.0f) - 0.31f,
+            (titleY / 450.0f) - 0.05f,
+            2.5f, 0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    // Draw "SELECT LEVEL" text on title bar
+    if (fontId >= 0) {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxPrint(fontId, "SELECT LEVEL",
+            (titleX / 800.0f) - 0.3f,
+            (titleY / 450.0f) - 0.05f,
+            2.5f, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
     // ---------------------------------------------------------------------------
     // Draw all level buttons
     for (int i = 0; i < 5; i++) {
@@ -207,23 +272,30 @@ void Levels_Draw()
         const f32 starX = levelButtons[i].button.x - 85.0f;
         const f32 starSpace = 40.0f;
 
-        for (int j = 1; j <= 3; j++)
-        {
-            if (j <= levelButtons[i].starsEarned)  // colors all earned stars
-                AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
-            else
-                AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
-
-            AEMtx33Scale(&StarScale, star_size, star_size);
-            AEMtx33Trans(&StarTranslate, starX + (j * starSpace), starY);
-            AEMtx33Concat(&StarTransform, &StarTranslate, &StarScale);
-            AEGfxSetTransform(StarTransform.m);
-            AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
-        }
-        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // reset color after stars
-
         // Draw ingredient icon (if unlocked)
         if (levelButtons[i].Unlocked && Ingredients) {
+            for (int j = 1; j <= 3; j++)
+            {
+                AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 1.0f); // BLACK
+                AEMtx33Scale(&StarScale, star_size + 15.0f, star_size + 15.0f);
+                AEMtx33Trans(&StarTranslate, starX + (j * starSpace), starY);
+                AEMtx33Concat(&StarTransform, &StarTranslate, &StarScale);
+                AEGfxSetTransform(StarTransform.m);
+                AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
+
+                if (j <= levelButtons[i].starsEarned)  // colors all earned stars
+                    AEGfxSetColorToMultiply(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+                else
+                    AEGfxSetColorToMultiply(0.4f, 0.4f, 0.4f, 1.0f); // Gray
+
+                AEMtx33Scale(&StarScale, star_size, star_size);
+                AEMtx33Trans(&StarTranslate, starX + (j * starSpace), starY);
+                AEMtx33Concat(&StarTransform, &StarTranslate, &StarScale);
+                AEGfxSetTransform(StarTransform.m);
+                AEGfxMeshDraw(starMesh, AE_GFX_MDM_TRIANGLES);
+            }
+            AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f); // reset color after stars
+
             AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
             AEMtx33Scale(&scale, levelButtons[i].button.width, levelButtons[i].button.height);
             AEMtx33Trans(&translate, levelButtons[i].button.x, levelButtons[i].button.y + 15); // Shift up for stars
@@ -238,18 +310,27 @@ void Levels_Draw()
             AEMtx33Trans(&translate, levelButtons[i].button.x, levelButtons[i].button.y + 15); // Shift up for stars
             AEMtx33Concat(&transform, &translate, &scale);
             AEGfxSetTransform(transform.m);
-            AEGfxTextureSet(Lock, INGREDIENT_DATA[i].x, INGREDIENT_DATA[i].y);
+            AEGfxTextureSet(Lock, 0.0f, 0.0f);
             AEGfxMeshDraw(LockMesh, AE_GFX_MDM_TRIANGLES);
             // Draw lock icon or text for locked levels
             if (fontId >= 0) {
+                float lockedNormX = (levelButtons[i].button.x / 800.0f) - 0.05f;  // 0.07f offsets for text width
+                float lockedNormY = (levelButtons[i].button.y / 450.0f);
+                // shadow
                 AEGfxSetRenderMode(AE_GFX_RM_COLOR);
                 AEGfxPrint(fontId, "LOCKED",
-                    (levelButtons[i].button.x / 800),
-                    (levelButtons[i].button.y / 450) - 0.05f,
-                    0.6f, 0.0f, 0.0f, 0.0f, 1.0f);
+                    lockedNormX - 0.005f,
+                    lockedNormY - 0.05f,
+                    1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+                // actual
+                AEGfxPrint(fontId, "LOCKED",
+                    lockedNormX,
+                    lockedNormY - 0.05f,
+                    1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
         
+
         // Draw level number
         if (fontId >= 0 && levelButtons[i].Unlocked) {
             char levelText[16];
@@ -258,9 +339,37 @@ void Levels_Draw()
             float normY = (levelButtons[i].button.y / 450.0f) + 0.15f;
             if (normX >= -1.0f && normX <= 1.0f && normY >= -1.0f && normY <= 1.0f) {
                 AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-                AEGfxPrint(fontId, levelText, normX, normY, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f);
+                AEGfxPrint(fontId, levelText, normX - 0.005f, normY, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+                AEGfxPrint(fontId, levelText, normX, normY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
+    }
+    
+    // Back button shadow
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(0.6f, 0.45f, 0.51f, 1.0f); // darker shade of pink
+    AEMtx33Scale(&backBtnScale, BACK_BTN_WIDTH + 6.0f, BACK_BTN_HEIGHT + 6.0f);
+    AEMtx33Trans(&backBtnTranslate, BACK_BTN_X + 4.0f, BACK_BTN_Y - 4.0f); // offset down-right
+    AEMtx33Concat(&backBtnTransform, &backBtnTranslate, &backBtnScale);
+    AEGfxSetTransform(backBtnTransform.m);
+    AEGfxMeshDraw(backBtnMesh, AE_GFX_MDM_TRIANGLES);
+
+    // Back button (same pink as title)
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(1.0f, 0.75f, 0.85f, 1.0f);
+    AEMtx33Scale(&backBtnScale, BACK_BTN_WIDTH, BACK_BTN_HEIGHT);
+    AEMtx33Trans(&backBtnTranslate, BACK_BTN_X, BACK_BTN_Y);
+    AEMtx33Concat(&backBtnTransform, &backBtnTranslate, &backBtnScale);
+    AEGfxSetTransform(backBtnTransform.m);
+    AEGfxMeshDraw(backBtnMesh, AE_GFX_MDM_TRIANGLES);
+
+    // Back button label
+    if (fontId >= 0) {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxPrint(fontId, "BACK",
+            (BACK_BTN_X / 800.0f) - 0.05f,
+            (BACK_BTN_Y / 450.0f) - 0.02f,
+            1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     // Wall
@@ -325,6 +434,10 @@ void Levels_Unload()
     if (Ingredients) {
         AEGfxTextureUnload(Ingredients);
         Ingredients = nullptr;
+    }
+    if (backBtnMesh) {
+        AEGfxMeshFree(backBtnMesh);
+        backBtnMesh = nullptr;
     }
 
     Sound_Unload();

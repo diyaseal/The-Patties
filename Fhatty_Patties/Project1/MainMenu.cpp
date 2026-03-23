@@ -294,7 +294,8 @@ void MainMenu_Update()
             }
             else if (btn == &cheese) {
                 printf("Cheese clicked - Tutorial!\n");
-                // pendingNextState = GS_TUTORIAL;
+                wallTriggered = true;
+                pendingNextState = GS_TUTORIAL;
             }
             else if (btn == &patty) {
                 printf("Patty clicked - Credits Page!\n");

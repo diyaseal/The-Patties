@@ -106,6 +106,14 @@ void GSM_Update()
         fpFree = End_Credits_Free;
         fpUnload = End_Credits_Unload;
         break;
+    case GS_TUTORIAL:
+        fpLoad = Tutorial_Load;
+        fpInit = Tutorial_Init;
+        fpUpdate = Tutorial_Update;
+        fpDraw = Tutorial_Draw;
+        fpFree = Tutorial_Free;
+        fpUnload = Tutorial_Unload;
+        break;
     case GS_RESTART:
         // No function pointers for restart - handled in main loop
         break;

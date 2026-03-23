@@ -31,7 +31,6 @@ TBurgerTransform, TBurgerScale, TBurgerTranslate,
 BBurgerTransform, BBurgerScale, BBurgerTranslate,  // Transformation matrices
 BGTransform, BGScale, BGTranslate,
 PlateImageTransform, PlateImageScale, PlateImageTranslate;
-;
 
 // Ingredient positions on the plate
 static AEMtx33 PlateLettuceTransform, PlateLettuceScale, PlateLettuceTranslate;
@@ -299,7 +298,7 @@ void Game_Load() {
     }
 
     // Load FRONT BG 
-    GameplayBG_front = AEGfxTextureLoad("Assets/Assets/Gameplay_front.png");
+    GameplayBG_front = AEGfxTextureLoad("Assets/Assets/Gameplay_front1.png");
 
     if (GameplayBG_front) {
         printf("GameplayBG front texture loaded successfully\n");
@@ -670,8 +669,8 @@ void Game_Update() {
         // Check if player clicks on the plate (burger) to start dragging
         float plateWidth = 200.0f;    // ADJUST THIS to match your plate.png size
         float plateHeight = 100.0f;   // ADJUST THIS to match your plate.png size
-        float plateCenterX = 300.0f;  // Where you draw the plate
-        float plateCenterY = -175.0f; // Where you draw the plate
+        float plateCenterX = 275.0f;  // Where you draw the plate
+        float plateCenterY = -125.0f; // Where you draw the plate
 
         // Calculate plate boundaries
         float plateLeft = plateCenterX - plateWidth / 2;
@@ -737,8 +736,8 @@ void Game_Update() {
 
             float plateWidth = 200.0f;
             float plateHeight = 100.0f;
-            float plateCenterX = 300.0f;
-            float plateCenterY = -175.0f;
+            float plateCenterX = 275.0f;
+            float plateCenterY = -125.0f;
 
             bool droppedOnPlate =
                 sodaDragX >= plateCenterX - plateWidth / 2.0f &&
@@ -923,7 +922,7 @@ void Game_Draw() {
     if (!IsIngredientUnlocked(TOMATO)) DrawLockOverlay(TomatoX, TomatoY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(ONION)) DrawLockOverlay(OnionX, OnionY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(CUCUMBER)) DrawLockOverlay(CucumberX, CucumberY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(SODA)) DrawLockOverlay(SodaX, SodaY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(SODA)) DrawLockOverlay(SodaX - 13.0f, SodaY + 28.0f, 8.0f, 8.0f);
 
     // (D) Draw soda cup at the machine while it is filling or ready
     if (sodaMachineHasCup && SodaTexture) {
@@ -958,8 +957,8 @@ void Game_Draw() {
         drawY = burgerDragY;
     }
     else {
-        drawX = 300.0f;    // Plate X
-        drawY = -175.0f;  // Plate Y
+        drawX = plateX;    // Plate X
+        drawY = plateY;    // Plate Y
     }
 
     // -------------------------------------------------------------------

@@ -11,10 +11,19 @@ static AEAudio bgmLevel;
 
 //SFX
 static AEAudio sfxOnClick;
+static AEAudio sfxHover;
+
 static AEAudio sfxCorrect;
+static AEAudio sfxCompleteAll;
+static AEAudio sfxLevelComplete;
+static AEAudio sfxUnlock;
+
 static AEAudio sfxAngryMale;
 static AEAudio sfxAngryFemale;
 static AEAudio sfxdoorClose;
+static AEAudio sfxStack;
+static AEAudio sfxPour;
+
 static AEAudio sfxTruckMove;
 static AEAudio sfxTruckBeep;
 
@@ -35,9 +44,18 @@ void Sound_Load() {
     bgmLevel = AEAudioLoadMusic("Assets/Audio/boukencut.mp3");
 
     sfxOnClick = AEAudioLoadMusic("Assets/Audio/onClick.mp3");
+    sfxHover = AEAudioLoadMusic("Assets/Audio/Hover.wav");
+
     sfxAngryMale = AEAudioLoadMusic("Assets/Audio/mAngry.mp3");
     sfxAngryFemale = AEAudioLoadMusic("Assets/Audio/wAngry.mp3");
+    sfxStack = AEAudioLoadMusic("Assets/Audio/foodStacking.wav");
+    sfxPour = AEAudioLoadMusic("Assets/Audio/pour.wav");
+
     sfxCorrect = AEAudioLoadMusic("Assets/Audio/custHappy.mp3");
+    sfxCompleteAll = AEAudioLoadMusic("Assets/Audio/CompleteAll.wav");
+    sfxLevelComplete = AEAudioLoadMusic("Assets/Audio/levelComplete.wav");
+    sfxUnlock = AEAudioLoadMusic("Assets/Audio/UnlockLevel.wav");
+
     sfxdoorClose = AEAudioLoadSound("Assets/Audio/doorClose.wav");
     sfxTruckMove = AEAudioLoadMusic("Assets/Audio/truckMove.mp3");
     sfxTruckBeep = AEAudioLoadMusic("Assets/Audio/truckBeep.mp3");
