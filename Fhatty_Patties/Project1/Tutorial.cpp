@@ -302,7 +302,7 @@ void Tutorial_Update() {
     // -----------------------------------------------------------------------
     if (tutorialPhase == TUTE_SHOW_ORDER) {
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-            if (showOrderStep < 2)
+            if (showOrderStep < 1)
                 showOrderStep++;            // advance to next tip
             else
                 SetPhase(TUTE_BUILD_BURGER); // third click: move on
