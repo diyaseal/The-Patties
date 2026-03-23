@@ -185,7 +185,8 @@ void LevelComplete_Draw()
     // 5. Dark score row
     DrawRect(0.0f, 55.0f, 770.0f, 75.0f, 0.25f, 0.25f, 0.25f, 1.0f, s);
 
-    bool showNextLevel = (currentPoints > Level_Manager_GetStarPosition(0));
+	// 6. Button layout — check if player earned enough points to unlock next level
+    bool showNextLevel = (currentPoints >= Level_Manager_GetStarPosition(0));
 
     if (showNextLevel) {
         continueButton.x = -260.0f;
@@ -246,8 +247,8 @@ void LevelComplete_Draw()
             AEGfxPrint(fontSmall, "NEXT LEVEL", 0.23f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
         else {
-            AEGfxPrint(fontSmall, "LEVEL SELECT", -0.28f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
-            AEGfxPrint(fontSmall, "RESTART", 0.10f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(fontSmall, "LEVEL SELECT", -0.27f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(fontSmall, "RESTART", 0.09f, -0.30f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
 
         AEGfxPrint(fontSmall, "HIGH SCORE: ", -0.11f, -0.10f, 0.8f, 0.0f, 0.0f, 0.0f, 1.0f);

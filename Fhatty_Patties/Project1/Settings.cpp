@@ -158,39 +158,7 @@ void Settings_Draw(s8 fontId, AEGfxVertexList* squareMesh, AEGfxVertexList* circ
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-    // Helper lambda-style inline rounded rect
-    // We reuse the same pattern as the pause menu
-    auto DrawRR = [&](float cx, float cy, float w, float h, float r,
-        float red, float grn, float blu, float a = 1.0f) {
-            AEMtx33 s, t, m;
-            AEGfxSetColorToMultiply(red, grn, blu, a);
-            AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
-
-            AEMtx33Scale(&s, w, h - r * 2.0f);
-            AEMtx33Trans(&t, cx, cy);
-            AEMtx33Concat(&m, &t, &s);
-            AEGfxSetTransform(m.m);
-            AEGfxMeshDraw(squareMesh, AE_GFX_MDM_TRIANGLES);
-
-            AEMtx33Scale(&s, w - r * 2.0f, h);
-            AEMtx33Trans(&t, cx, cy);
-            AEMtx33Concat(&m, &t, &s);
-            AEGfxSetTransform(m.m);
-            AEGfxMeshDraw(squareMesh, AE_GFX_MDM_TRIANGLES);
-
-            float offX = w * 0.5f - r, offY = h * 0.5f - r;
-            float corners[4][2] = {
-                {cx - offX, cy + offY}, {cx + offX, cy + offY},
-                {cx - offX, cy - offY}, {cx + offX, cy - offY}
-            };
-            for (int i = 0; i < 4; i++) {
-                AEMtx33Scale(&s, r / 2.0f, r / 2.0f);
-                AEMtx33Trans(&t, corners[i][0], corners[i][1]);
-                AEMtx33Concat(&m, &t, &s);
-                AEGfxSetTransform(m.m);
-                AEGfxMeshDraw(circleMesh, AE_GFX_MDM_TRIANGLES);
-            }
-        };
+   
 
     // -------------------------------------------------------------------
     // 1. Dark backdrop
@@ -208,7 +176,7 @@ void Settings_Draw(s8 fontId, AEGfxVertexList* squareMesh, AEGfxVertexList* circ
     // 2. Rounded panel (cream)
     // -------------------------------------------------------------------
     float panelR = 24.0f;
-    DrawRR(PANEL_X, PANEL_Y, PANEL_W, PANEL_H, panelR, 0.98f, 0.95f, 0.88f);
+    DrawRoundedRect(squareMesh, circleMesh, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, panelR, 0.98f, 0.95f, 0.88f);
 
     // -------------------------------------------------------------------
     // 3. Title bar — orange, only top corners rounded
@@ -298,7 +266,7 @@ void Settings_Draw(s8 fontId, AEGfxVertexList* squareMesh, AEGfxVertexList* circ
     // -------------------------------------------------------------------
     // 5. Close button (rounded red square)
     // -------------------------------------------------------------------
-    DrawRR(CLOSE_X, CLOSE_Y, CLOSE_R * 2.0f, CLOSE_R * 2.0f, CLOSE_R,
+    DrawRoundedRect(squareMesh, circleMesh, CLOSE_X, CLOSE_Y, CLOSE_R * 2.0f, CLOSE_R * 2.0f, CLOSE_R,
         0.85f, 0.18f, 0.10f);
 
     if (settingsFontId >= 0) {
