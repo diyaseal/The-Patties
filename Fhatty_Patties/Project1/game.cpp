@@ -51,50 +51,50 @@ static bool burgerIsBeingDragged = false;
 // then i put the hitbox area set to 100 : Diya 
 static float BunTopX = -523.0f;
 static float BunTopY = -81.0f;
-static float BunTopWidth = 100.0f;
+static float BunTopWidth = 120.0f;
 static float BunTopHeight = 100.0f;
 
 static float BunBottomX = -560.0f;
 static float BunBottomY = -180.0f;
-static float BunBottomWidth = 90.0f;
-static float BunBottomHeight = 90.0f;
+static float BunBottomWidth = 120.0f;
+static float BunBottomHeight = 100.0f;
 
 static float PattieX = -275.0f; //updated hitbox
 static float PattieY = -110.0f;
-static float PattieWidth = 90.0f;
-static float PattieHeight = 90.0f;
+static float PattieWidth = 83.0f;
+static float PattieHeight = 83.0f;
 
 static float CheeseX = -150.0f; //updated hitbox
 static float CheeseY = -110.0f;
-static float CheeseWidth = 90.0f;
-static float CheeseHeight = 90.0f;
+static float CheeseWidth = 83.0f;
+static float CheeseHeight = 83.0f;
 
 static float LettuceX = -150.0f; //updated hitbox
 static float LettuceY = -170.0f;
-static float LettuceWidth = 110.0f;
-static float LettuceHeight = 110.0f;
+static float LettuceWidth = 90.0f;
+static float LettuceHeight = 83.0f;
 
 static float TomatoX = -300.0f;   //updated hitbox  
 static float TomatoY = -175.0f;
-static float TomatoWidth = 90.0f;
-static float TomatoHeight = 90.0f;
+static float TomatoWidth = 83.0f;
+static float TomatoHeight = 83.0f;
 
 // Add these with your other ingredient position variables
 static float OnionX = 3.0f;          // From click (3.00, -175.00)
 static float OnionY = -175.0f;
-static float OnionWidth = 90.0f;
-static float OnionHeight = 90.0f;
+static float OnionWidth = 83.0f;
+static float OnionHeight = 83.0f;
 
 static float CucumberX = -18.0f;      // From click (-18.00, -108.00)
 static float CucumberY = -108.0f;
-static float CucumberWidth = 90.0f;
-static float CucumberHeight = 90.0f;
+static float CucumberWidth = 83.0f;
+static float CucumberHeight = 83.0f;
 
 // (D) Soda machine button hitbox
 static float SodaX = 574.0f;
 static float SodaY = -88.0f;
-static float SodaWidth = 80.0f;
-static float SodaHeight = 80.0f;
+static float SodaWidth = 70.0f;
+static float SodaHeight = 70.0f;
 
 // Trash bin hitbox for deleting burgers
 static float TrashX = 629.0f;  // Average of your clicks: (574+683+580+706)/4 ≈ 635.75, adjusted to 629
@@ -104,21 +104,17 @@ static float TrashHeight = 100.0f; // Height of trash hitbox - adjust as needed
 
 // Track what's on the plate: Set 
 // everything to false first :Diya
-static bool lettuceOnPlate = false;
-static bool cheeseOnPlate = false;
-static bool pattieOnPlate = false;
-static bool tomatoOnPlate = false;
-static bool onionOnPlate = false;
-static bool cucumberOnPlate = false;
-static bool bunTopOnPlate = false;
-static bool bunBottomOnPlate = false;
-static bool sodaOnPlate = false; // (D) soda side item placed on plate
-static bool sodaMachineHasCup = false; // (D) empty/filled cup exists at machine
-static bool sodaIsFilled = false; // (D) becomes true after 5 seconds
+
+
+static bool lettuceOnPlate, cheeseOnPlate, pattieOnPlate, tomatoOnPlate, onionOnPlate
+, cucumberOnPlate, bunTopOnPlate, bunBottomOnPlate, sodaOnPlate, sodaMachineHasCup, sodaIsFilled
+, sodaIsBeingDragged = false;
+
 static float sodaFillTimer = 0.0f; // (D) timer for soda fill
-static bool sodaIsBeingDragged = false; // (D) dragging soda from machine to plate
 static float sodaDragX = 0.0f; // (D) soda drag position
 static float sodaDragY = 0.0f; // (D) soda drag position
+
+
 
 // ---------------------------------------------------------------------------
 // Helper Functions Syakil 
@@ -628,10 +624,10 @@ void Game_Update() {
         }
 
         // Check if player clicks on the plate (burger) to start dragging
-        float plateWidth = 200.0f;    // ADJUST THIS to match your plate.png size
-        float plateHeight = 100.0f;   // ADJUST THIS to match your plate.png size
-        float plateCenterX = 275.0f;  // Where you draw the plate
-        float plateCenterY = -125.0f; // Where you draw the plate
+        float plateWidth = 300.0f;    // ADJUST THIS to match your plate.png size
+        float plateHeight = 300.0f;   // ADJUST THIS to match your plate.png size
+        float plateCenterX = 290.0f;  // Where you draw the plate
+        float plateCenterY = -210.0f; // Where you draw the plate
 
         // Calculate plate boundaries
         float plateLeft = plateCenterX - plateWidth / 2;
@@ -695,8 +691,8 @@ void Game_Update() {
         if (isDragging && sodaIsBeingDragged) {
             isDragging = false;
 
-            float plateWidth = 200.0f;
-            float plateHeight = 100.0f;
+            float plateWidth = 300.0f;
+            float plateHeight = 150.0f;
             float plateCenterX = 275.0f;
             float plateCenterY = -125.0f;
 
