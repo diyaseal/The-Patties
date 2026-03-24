@@ -245,70 +245,7 @@ void Game_Load() {
     PlateMesh = CreateCircleMesh(2.0f, 32);
     IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
     BGMesh = CreateSquareMesh(0.5, 0.5);
-
-
-    PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
-
-    // Load BACK BG 
-    GameplayBG_back = AEGfxTextureLoad("Assets/Assets/Gameplay_back.png");
-
-    if (GameplayBG_back) {
-        printf("GameplayBG back texture loaded successfully\n");
-    }
-    else {
-        printf("ERROR: Failed to load Gameplay_back.png\n");
-    }
-
-    // Load FRONT BG 
-    GameplayBG_front = AEGfxTextureLoad("Assets/Assets/Gameplay_front1.png");
-
-    if (GameplayBG_front) {
-        printf("GameplayBG front texture loaded successfully\n");
-    }
-    else {
-        printf("ERROR: Failed to load Gameplay_front.png\n");
-    }
-
-    // Load ingredient sprite sheet
-    Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png");
-    SodaTexture = AEGfxTextureLoad("Assets/Assets/Soda.png"); // (D)
-    LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png"); // (D)
     
-
-    if (Ingredients) {
-        printf("Ingredients texture loaded successfully\n");
-    }
-    else {
-        printf("ERROR: Failed to load Ingredients.png\n");
-    }
-
-    if (SodaTexture) {
-        printf("Soda texture loaded successfully\n");
-    }
-    else {
-        printf("ERROR: Failed to load Soda.png\n");
-    }
-
-    if (LockTexture) {
-        printf("Lock texture loaded successfully\n");
-    }
-    else {
-        printf("ERROR: Failed to load lock.png\n");
-    }
-
-    // Load customer sprite sheet (T)
-    CustomerTexture[0] = AEGfxTextureLoad("Assets/Assets/syakilcust.png");
-    CustomerTexture[1] = AEGfxTextureLoad("Assets/Assets/elicust.png");
-    CustomerTexture[2] = AEGfxTextureLoad("Assets/Assets/tebcust.png");
-    CustomerTexture[3] = AEGfxTextureLoad("Assets/Assets/diyacust.png");
-
-    if (CustomerTexture) {
-    }
-    else {
-        printf("ERROR: Failed to load testCharacter.png\n");
-    }
-
-
     printf("Rectangle mesh created\n");
     // Elizabeth: Check if points are loaded
     Points_Load();
@@ -1325,6 +1262,11 @@ void Game_Unload() {
     if (IngredientsMesh) {
         AEGfxMeshFree(IngredientsMesh);
         IngredientsMesh = nullptr;
+        printf("Ingredient mesh freed\n");
+    }
+    if (BGMesh) {
+        AEGfxMeshFree(BGMesh);
+        BGMesh = nullptr;
         printf("Ingredient mesh freed\n");
     }
     if (SodaMesh) {
