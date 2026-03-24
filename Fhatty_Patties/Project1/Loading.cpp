@@ -224,4 +224,5 @@ void Loading_Unload()
     if (bgMesh) { AEGfxMeshFree(bgMesh);             bgMesh = nullptr; }
     if (LoadTruckMesh) { AEGfxMeshFree(LoadTruckMesh);      LoadTruckMesh = nullptr; }
     if (LoadTruck) { AEGfxTextureUnload(LoadTruck);     LoadTruck = nullptr; }
+    if (background) { AEGfxTextureUnload(background);     background = nullptr; }
 }

@@ -28,8 +28,8 @@ static AEGfxVertexList* SodaMesh = nullptr;
 
 // These are defined as globals in game.cpp and referenced here via extern
 // so that Customer.cpp's DrawThoughtBubble can find them during the tutorial.
-extern AEGfxTexture* Ingredients;
-extern AEGfxTexture* SodaTexture;
+//extern AEGfxTexture* Ingredients;
+//extern AEGfxTexture* SodaTexture;
 
 static AEGfxTexture* GameplayBG_back = nullptr;
 static AEGfxTexture* GameplayBG_front = nullptr;

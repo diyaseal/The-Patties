@@ -105,12 +105,13 @@ void LevelComplete_Load()
     if (fontId < 0 || fontSmall < 0)
         printf("ERROR: LevelComplete failed to load fonts!\n");
 
-    pMesh = CreateSquareMesh(0.5f, 0.5f);
-    pStarMesh = CreateStarMesh(0.5f, 0.2f);
-    pCircleMesh = CreateCircleMesh(2.0f, 32);
+    if (!pMesh)
+        pMesh = CreateSquareMesh(0.5f, 0.5f);
+    if (!pStarMesh)
+        pStarMesh = CreateStarMesh(0.5f, 0.2f);
+    if (!pCircleMesh)
+        pCircleMesh = CreateCircleMesh(2.0f, 32);
 
-    if (!pMesh || !pStarMesh)
-        printf("ERROR: LevelComplete failed to create meshes!\n");
 
     pBgTexture = AEGfxTextureLoad("Assets/Assets/Transition_wall.png");
     if (!pBgTexture)

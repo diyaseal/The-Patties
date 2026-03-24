@@ -234,7 +234,7 @@ void Particle_Update(float dt)
         // Star Burst Update
         // ---------------------------------------------------------------------------
 
-        // ✅ Spawn one particle at a time on timer — same as smoke
+        // Spawn one particle at a time on timer — same as smoke
     if (emittingStar)
     {
         starBurstTimer += dt;

@@ -129,8 +129,6 @@ void Customer_Init() {
 
     Customer_Spawn();  // spawn first customer immediately
     levelcompletelogged = false;
-
-    frameMesh = CreateCustomerMesh();
 }
 
 // ---------------------------------------------------------------------------
