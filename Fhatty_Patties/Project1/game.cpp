@@ -216,6 +216,11 @@ static float PauseResumeBtnX = 0.0f;
 static float PauseResumeBtnY = 60.0f;
 static float PauseResumeBtnWidth = 300.0f;
 static float PauseResumeBtnHeight = 55.0f;
+
+static float PauseRestartBtnX = 0.0f;
+static float PauseRestartBtnY = 20.0f;   
+static float PauseRestartBtnWidth = 260.0f;
+static float PauseRestartBtnHeight = 55.0f;
 //---------------------------------------------------------------------------
 
 
@@ -458,6 +463,17 @@ void Game_Update() {
                 worldMouseY <= PauseResumeBtnY + PauseResumeBtnHeight / 2.0f) {
                 isPaused = false;
             }
+
+            // Restart button
+            if (worldMouseX >= PauseRestartBtnX - PauseRestartBtnWidth / 2.0f &&
+                worldMouseX <= PauseRestartBtnX + PauseRestartBtnWidth / 2.0f &&
+                worldMouseY >= PauseRestartBtnY - PauseRestartBtnHeight / 2.0f &&
+                worldMouseY <= PauseRestartBtnY + PauseRestartBtnHeight / 2.0f) {
+                isPaused = false;
+                Burger_Clear();
+                printf("Restarting level %d\n", currentLevel);
+                next = GS_GAME; // or however your engine restarts the current level
+            }
         }
         return; // block all gameplay
     }
@@ -465,12 +481,13 @@ void Game_Update() {
     Customer_Update(static_cast<float>(dt));
     Points_Update();
 
-    // (D) Fill soda over time once the machine starts pouring //tebbie pls do the sound queen thanks 
+    // (D) Fill soda over time once the machine starts pouring
     if (sodaMachineHasCup && !sodaIsFilled) {
         sodaFillTimer += static_cast<float>(dt);
         if (sodaFillTimer >= 3.0f) {
             sodaFillTimer = 3.0f;
             sodaIsFilled = true;
+            Sound_StopSFX_Pour();
             printf("Soda finished filling!\n");
         }
     }
@@ -605,6 +622,7 @@ void Game_Update() {
             sodaFillTimer = 0.0f;
             sodaDragX = SodaX;
             sodaDragY = SodaY - 55.0f;
+            Sound_PlaySFX_Pour();
             printf("Started filling soda...\n");
         }
 
@@ -1085,13 +1103,14 @@ void Game_Draw() {
 
         // Layout
         float panelCX = 0.0f, panelCY = 0.0f;
-        float panelW = 400.0f, panelH = 420.0f, panelR = 30.0f;
+        float panelW = 400.0f, panelH = 560.0f, panelR = 30.0f;
         float titleH = 70.0f;
         float titleCY = panelCY + panelH * 0.5f - titleH * 0.5f;
         float btnW = 300.0f, btnH = 55.0f, btnR = 28.0f;
-        float btn1Y = panelCY - 30.0f;   // Back to Main Menu
-        float btn2Y = panelCY - 110.0f;  // Settings
-        float btn3Y = panelCY + 55.0f;   // Resume
+        float btn3Y = panelCY + 110.0f;  // Resume       (top)
+        float btn4Y = panelCY + 30.0f;   // Restart
+        float btn1Y = panelCY - 55.0f;   // Back to Main Menu
+        float btn2Y = panelCY - 140.0f;  // Settings     (bottom)
 
         // Sync hitboxes
         PauseMenuBtnX = panelCX; PauseMenuBtnY = btn1Y;
@@ -1100,6 +1119,8 @@ void Game_Draw() {
         PauseSettingsBtnWidth = btnW;    PauseSettingsBtnHeight = btnH;
         PauseResumeBtnX = panelCX; PauseResumeBtnY = btn3Y;
         PauseResumeBtnWidth = btnW;    PauseResumeBtnHeight = btnH;
+        PauseRestartBtnX = panelCX; PauseRestartBtnY = btn4Y;
+        PauseRestartBtnWidth = btnW; PauseRestartBtnHeight = btnH;
 
         // ---------------------------------------------------------------
         // LAYER 1: Full rounded cream panel (bottom layer)
@@ -1158,6 +1179,8 @@ void Game_Draw() {
             0.17f, 0.17f, 0.17f);   // dark Back to Main Menu
         DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn2Y, btnW, btnH, btnR,
             0.17f, 0.17f, 0.17f);   // dark Settings
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn4Y, btnW, btnH, btnR,
+            0.17f, 0.17f, 0.17f);   // dark Restart
 
         // ---------------------------------------------------------------
         // LAYER 4: Text
@@ -1171,6 +1194,7 @@ void Game_Draw() {
             char menuLabel[] = "Back to Main Menu";
             char settingsLabel[] = "Settings";
             char resumeLabel[] = "Resume";
+            char restartLabel[] = "Restart";
 
             AEGfxPrint(GameFontId, pauseTitle,
                 -0.13f, (titleBarCY - 14.0f) / 450.0f,
@@ -1192,6 +1216,10 @@ void Game_Draw() {
             AEGfxPrint(GameFontId, settingsLabel,
                 -0.08f, (btn2Y - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+            AEGfxPrint(GameFontId, restartLabel,
+                -0.07f, (btn4Y - 10.0f) / 450.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
 
@@ -1211,10 +1239,16 @@ void Burger_Clear() {
     cucumberOnPlate = false;
     bunTopOnPlate = false;
     bunBottomOnPlate = false;
-    sodaOnPlate = false; // (D)
-    sodaMachineHasCup = false; // (D)
-    sodaIsFilled = false; // (D)
-    sodaFillTimer = 0.0f; // (D)
+
+    // Only clear soda if it was part of the served order (was on plate)
+    // If it's still filling or ready at machine, leave it alone
+    if (sodaOnPlate) {
+        sodaOnPlate = false;
+        sodaMachineHasCup = false;
+        sodaIsFilled = false;
+        sodaFillTimer = 0.0f;
+        printf("Soda was served, clearing it.\n");
+    }
 
     // Reset drag state
     ResetDragState();

@@ -12,6 +12,11 @@ void Sound_PlaySFX_doorClose();
 void Sound_PlaySFX_TruckMove();
 void Sound_StopSFX_TruckMove();
 void Sound_PlaySFX_TruckBeep();
+void Sound_PlaySFX_Pour();
+void Sound_StopSFX_Pour();
+void Sound_PlaySFX_LevelComplete();
+void Sound_PlaySFX_CompleteAll();
+void Sound_PlaySFX_Lose();
 
 void Sound_SetMasterVolume(float volume);
 void Sound_SetMusicVolume(float volume);

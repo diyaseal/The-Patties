@@ -53,7 +53,6 @@ static void Step_Customer2() { CustomerTexture[2] = AEGfxTextureLoad("Assets/Ass
 static void Step_Customer3() { CustomerTexture[3] = AEGfxTextureLoad("Assets/Assets/diyacust.png"); }
 static void Step_Lock() { LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png"); }
 static void Step_Plate() { PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png"); }
-static void Step_Sound() { Sound_Load(); }
 
 static LoadStep steps[] = {
     { "Loading ingredients...",  Step_Ingredients  },
@@ -65,7 +64,6 @@ static LoadStep steps[] = {
     { "Loading characters...",   Step_Customer3    },
     { "Loading UI...",           Step_Lock         },
     { "Loading UI...",           Step_Plate        },
-    { "Loading audio...",        Step_Sound        },
 };
 
 // ---------------------------------------------------------------------------
@@ -79,6 +77,7 @@ void Loading_Load()
     LoadTruckMesh = CreateTruckMesh(0.5f, 0.5f);
     LoadTruck = AEGfxTextureLoad("Assets/Assets/Food_Truck.png");
 
+    Sound_Load();
     Particle_Load();
 }
 
@@ -96,6 +95,7 @@ void Loading_Init()
     truckFrameTimer = 0.0f;
 
     Particle_Init();
+    Sound_PlaySFX_TruckMove();
 }
 
 void Loading_Update()
@@ -141,7 +141,10 @@ void Loading_Update()
 
     // Transition once done and truck has moved far enough
     if (loadingDone && displayProgress >= 0.99f && loadingTimer >= MIN_LOADING_TIME)
+    {
+        Sound_StopSFX_TruckMove();
         next = GS_GAME;
+    }
 }
 
 void Loading_Draw()
@@ -215,6 +218,7 @@ void Loading_Free()
 
 void Loading_Unload()
 {
+    Sound_Unload();
     Particle_Unload();
     if (fontId >= 0) { AEGfxDestroyFont(fontId);          fontId = -1; }
     if (bgMesh) { AEGfxMeshFree(bgMesh);             bgMesh = nullptr; }
