@@ -1,4 +1,4 @@
-#include "pch.hpp"
+﻿#include "pch.hpp"
 
 // ---------------------------------------------------------------------------
 // Audio assets and groups
@@ -17,6 +17,7 @@ static AEAudio sfxCorrect;
 static AEAudio sfxCompleteAll;
 static AEAudio sfxLevelComplete;
 static AEAudio sfxUnlock;
+static AEAudio sfxLose;
 
 static AEAudio sfxAngryMale;
 static AEAudio sfxAngryFemale;
@@ -48,13 +49,14 @@ void Sound_Load() {
 
     sfxAngryMale = AEAudioLoadMusic("Assets/Audio/mAngry.mp3");
     sfxAngryFemale = AEAudioLoadMusic("Assets/Audio/wAngry.mp3");
-    sfxStack = AEAudioLoadMusic("Assets/Audio/foodStacking.wav");
-    sfxPour = AEAudioLoadMusic("Assets/Audio/pour.wav");
+    sfxStack = AEAudioLoadSound("Assets/Audio/foodStacking.wav");
+    sfxPour = AEAudioLoadMusic("Assets/Audio/pour2.mp3");
+    sfxLose = AEAudioLoadMusic("Assets/Audio/lose.mp3");
 
     sfxCorrect = AEAudioLoadMusic("Assets/Audio/custHappy.mp3");
     sfxCompleteAll = AEAudioLoadMusic("Assets/Audio/CompleteAll.wav");
     sfxLevelComplete = AEAudioLoadMusic("Assets/Audio/levelComplete.wav");
-    sfxUnlock = AEAudioLoadMusic("Assets/Audio/UnlockLevel.wav");
+    sfxUnlock = AEAudioLoadSound("Assets/Audio/UnlockLevel.wav");
 
     sfxdoorClose = AEAudioLoadSound("Assets/Audio/doorClose.wav");
     sfxTruckMove = AEAudioLoadMusic("Assets/Audio/truckMove.mp3");
@@ -71,15 +73,15 @@ void Sound_Load() {
 // ---------------------------------------------------------------------------
 void Sound_PlayBGM() {
     if (AEAudioIsValidAudio(bgmAudio) && AEAudioIsValidGroup(bgmGroup))
-        AEAudioPlay(bgmAudio, bgmGroup, 0.5f, 1.0f, -1);
+        AEAudioPlay(bgmAudio, bgmGroup, 0.25f, 1.0f, -1);
 }
 void Sound_PlayBGMCreds() {
     if (AEAudioIsValidAudio(bgmEndCreds) && AEAudioIsValidGroup(bgmGroup))
-        AEAudioPlay(bgmEndCreds, bgmGroup, 0.5f, 1.0f, -1);
+        AEAudioPlay(bgmEndCreds, bgmGroup, 0.25f, 1.0f, -1);
 }
 void Sound_PlayBGMLevel() {
     if (AEAudioIsValidAudio(bgmLevel) && AEAudioIsValidGroup(bgmGroup))
-        AEAudioPlay(bgmLevel, bgmGroup, 0.5f, 1.0f, -1);
+        AEAudioPlay(bgmLevel, bgmGroup, 0.25f, 1.0f, -1);
 }
 
 // ---------------------------------------------------------------------------
@@ -118,7 +120,7 @@ void Sound_PlaySFX_doorClose() {
 
 void Sound_PlaySFX_TruckMove() {
     if (AEAudioIsValidAudio(sfxTruckMove) && AEAudioIsValidGroup(sfxGroup))
-        AEAudioPlay(sfxTruckMove, sfxGroup, 1.5f, 1.0f, 0);
+        AEAudioPlay(sfxTruckMove, sfxGroup, 1.0f, 1.0f, 0);
 }
 void Sound_StopSFX_TruckMove() {
     if (AEAudioIsValidGroup(sfxGroup))
@@ -128,7 +130,30 @@ void Sound_PlaySFX_TruckBeep() {
     if (AEAudioIsValidAudio(sfxTruckBeep) && AEAudioIsValidGroup(sfxGroup))
         AEAudioPlay(sfxTruckBeep, sfxGroup, 1.0f, 1.0f, 0);
 }
+void Sound_PlaySFX_Pour() {
+    if (AEAudioIsValidAudio(sfxPour) && AEAudioIsValidGroup(sfxGroup))
+        AEAudioPlay(sfxPour, sfxGroup, 1.5f, 1.0f, 0);
+}
 
+void Sound_StopSFX_Pour() {
+    // Let it finish naturally since we can't stop individual sounds
+    // Or if your engine supports: AEAudioStop(sfxPour);
+}
+
+void Sound_PlaySFX_LevelComplete() {
+
+    if (AEAudioIsValidAudio(sfxLevelComplete) && AEAudioIsValidGroup(sfxGroup))
+        AEAudioPlay(sfxLevelComplete, sfxGroup, 1.0f, 1.0f, 0);
+}
+
+void Sound_PlaySFX_CompleteAll() {
+    if (AEAudioIsValidAudio(sfxCompleteAll) && AEAudioIsValidGroup(sfxGroup))
+        AEAudioPlay(sfxCompleteAll, sfxGroup, 1.0f, 1.0f, 0);
+}
+void Sound_PlaySFX_Lose() {
+    if (AEAudioIsValidAudio(sfxLose) && AEAudioIsValidGroup(sfxGroup))
+        AEAudioPlay(sfxLose, sfxGroup, 1.0f, 1.0f, 0);
+}
 // ---------------------------------------------------------------------------
 // Sound Settings
 // ---------------------------------------------------------------------------
@@ -169,9 +194,17 @@ void Sound_Unload() {
     AEAudioUnloadAudio(bgmLevel);
 
     AEAudioUnloadAudio(sfxCorrect);
+    AEAudioUnloadAudio(sfxCompleteAll);   
+    AEAudioUnloadAudio(sfxLevelComplete); 
+    AEAudioUnloadAudio(sfxUnlock);        
     AEAudioUnloadAudio(sfxAngryMale);
     AEAudioUnloadAudio(sfxAngryFemale);
     AEAudioUnloadAudio(sfxOnClick);
+    AEAudioUnloadAudio(sfxHover);     
+    AEAudioUnloadAudio(sfxStack);         
+    AEAudioUnloadAudio(sfxPour);
+    AEAudioUnloadAudio(sfxLose);
+
     AEAudioUnloadAudio(sfxdoorClose);
     AEAudioUnloadAudio(sfxTruckMove);
     AEAudioUnloadAudio(sfxTruckBeep);
