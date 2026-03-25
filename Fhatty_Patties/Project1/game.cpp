@@ -409,7 +409,7 @@ void Game_Update() {
                 isPaused = false;
                 Burger_Clear();
                 printf("Restarting level %d\n", currentLevel);
-                next = GS_GAME; // or however your engine restarts the current level
+                next = GS_LOADING; // or however your engine restarts the current level
             }
         }
         return; // block all gameplay

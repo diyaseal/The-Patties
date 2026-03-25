@@ -219,7 +219,7 @@ void LevelComplete_Update()
     if (currentPoints > Level_Manager_GetStarPosition(0)) {
         if (IsButtonClicked(nextLevelButton) && Level_Manager_GetCurrentLevel() != 5) {
             currentLevel = Level_Manager_GetCurrentLevel() + 1;
-            next = GS_GAME;
+            next = GS_LOADING;
         }
         else if (IsButtonClicked(nextLevelButton) && Level_Manager_GetCurrentLevel() == 5) {
             next = GS_END_CRED;
