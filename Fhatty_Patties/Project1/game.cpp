@@ -1224,6 +1224,7 @@ void Burger_Clear() {
 
 void Game_Free() {
     printf("Game_Free called\n");
+    Burger_Clear();
     Customer_Free();
     // Free any dynamic memory here
     Points_Free();
