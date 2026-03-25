@@ -26,6 +26,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // reset the system modules
     AESysReset();
 
+    // Initialize audio system BEFORE any game state loads
+    AEAudioInit();
+
     // GSM initialize - Initialize Game State Manager with starting state (Level 1)
     GSM_Init(GS_SCH_CRED);
     AEFrameRateControllerReset();
@@ -98,6 +101,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //MainMenu_Free();
     //MainMenu_Unload();
     // Free the system
+    AEAudioExit();
     AESysExit();
 
     return 0;

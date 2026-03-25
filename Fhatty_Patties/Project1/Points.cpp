@@ -5,7 +5,6 @@
 // ---------------------------------------------------------------------------
 // Global variables for Point State
 static AEGfxVertexList* BarMesh = nullptr;  // Square mesh
-static AEGfxVertexList* pointsGainedMesh = nullptr;  // Points gained bar mesh
 static AEGfxVertexList* starMesh = nullptr;  // Star mesh
 const f32 pointsEarnedH = 35.0f;
 static f32 displayPoints = 0.0f;

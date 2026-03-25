@@ -18,6 +18,12 @@ static float       popupScale = 0.0f;
 static const float POPUP_GROW_SPEED = 3.0f;
 //static const int   DISPLAY_SCORE = 1000;
 
+static AEGfxVertexList* pCircleMesh = nullptr;
+
+// Confirmation popup
+static bool showConfirmPopup = false;
+static bool confirmIsRestart = false; // true = restart, false = level select
+
 // ---------------------------------------------------------------------------
 // DrawRect
 // ---------------------------------------------------------------------------
@@ -91,21 +97,27 @@ void LevelComplete_Load()
         return;
     }
 
+    Sound_Load();
+
     fontId = AEGfxCreateFont("Assets/Font/Starbim.ttf", 48);
     fontSmall = AEGfxCreateFont("Assets/Font/HollyBerryPop-LVxvE.ttf", 32);
 
     if (fontId < 0 || fontSmall < 0)
         printf("ERROR: LevelComplete failed to load fonts!\n");
 
-    pMesh = CreateSquareMesh(0.5f, 0.5f);
-    pStarMesh = CreateStarMesh(0.5f, 0.2f);
+    if (!pMesh)
+        pMesh = CreateSquareMesh(0.5f, 0.5f);
+    if (!pStarMesh)
+        pStarMesh = CreateStarMesh(0.5f, 0.2f);
+    if (!pCircleMesh)
+        pCircleMesh = CreateCircleMesh(2.0f, 32);
 
-    if (!pMesh || !pStarMesh)
-        printf("ERROR: LevelComplete failed to create meshes!\n");
 
     pBgTexture = AEGfxTextureLoad("Assets/Assets/Transition_wall.png");
     if (!pBgTexture)
         printf("ERROR: LevelComplete failed to load background texture!\n");
+
+    
 }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +140,15 @@ void LevelComplete_Init()
     nextLevelButton.x = 260.0f;  nextLevelButton.y = -130.0f;
     nextLevelButton.width = 200.0f; nextLevelButton.height = 65.0f;
     nextLevelButton.isHovered = nextLevelButton.isClicked = false;
+
+    bool canProgress = (currentPoints >= Level_Manager_GetStarPosition(0));
+
+    if (canProgress && Level_Manager_GetCurrentLevel() == 5)
+        Sound_PlaySFX_CompleteAll();
+    else if (canProgress)
+        Sound_PlaySFX_LevelComplete();
+    else
+        Sound_PlaySFX_Lose();       // ← no stars, can't progress
 }
 
 // ---------------------------------------------------------------------------
@@ -140,17 +161,61 @@ void LevelComplete_Update()
     if (popupScale < 1.0f) {
         popupScale += POPUP_GROW_SPEED * static_cast<float>(dt);
         if (popupScale > 1.0f) popupScale = 1.0f;
-        return;  // no button input while animating
+        return;
     }
 
+    // Block main buttons while confirm popup is open
+    if (showConfirmPopup) {
+        // Get mouse position
+        s32 mouseX, mouseY;
+        AEInputGetCursorPosition(&mouseX, &mouseY);
+        float worldMouseX = (float)mouseX - 800.0f;
+        float worldMouseY = -(float)mouseY + 450.0f;
+
+        // Confirm popup button positions
+        float yesBtnX = -80.0f, yesBtnY = -30.0f;
+        float noBtnX = 80.0f, noBtnY = -30.0f;
+        float popBtnW = 130.0f, popBtnH = 50.0f;
+
+        if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+            // YES — confirm action
+            if (worldMouseX >= yesBtnX - popBtnW / 2.0f &&
+                worldMouseX <= yesBtnX + popBtnW / 2.0f &&
+                worldMouseY >= yesBtnY - popBtnH / 2.0f &&
+                worldMouseY <= yesBtnY + popBtnH / 2.0f) {
+                showConfirmPopup = false;
+                if (confirmIsRestart)
+                    next = GS_GAME;
+                else
+                    next = GS_LEVELS;
+            }
+            // NO — cancel, close popup
+            if (worldMouseX >= noBtnX - popBtnW / 2.0f &&
+                worldMouseX <= noBtnX + popBtnW / 2.0f &&
+                worldMouseY >= noBtnY - popBtnH / 2.0f &&
+                worldMouseY <= noBtnY + popBtnH / 2.0f) {
+                showConfirmPopup = false;
+            }
+        }
+        return; // block everything else while popup is open
+    }
+
+    // Normal button logic
     continueButton.isHovered = IsButtonHovered(continueButton);
     restartButton.isHovered = IsButtonHovered(restartButton);
-    if (IsButtonClicked(continueButton))  next = GS_LEVELS;
-    if (IsButtonClicked(restartButton))   next = GS_GAME;
 
+    // Level Select — show confirm
+    if (IsButtonClicked(continueButton)) {
+        showConfirmPopup = true;
+        confirmIsRestart = false;
+    }
+    // Restart — show confirm
+    if (IsButtonClicked(restartButton)) {
+        showConfirmPopup = true;
+        confirmIsRestart = true;
+    }
 
     nextLevelButton.isHovered = IsButtonHovered(nextLevelButton);
-
     if (currentPoints > Level_Manager_GetStarPosition(0)) {
         if (IsButtonClicked(nextLevelButton) && Level_Manager_GetCurrentLevel() != 5) {
             currentLevel = Level_Manager_GetCurrentLevel() + 1;
@@ -256,6 +321,40 @@ void LevelComplete_Draw()
         sprintf_s(highScoreStr, "%d", static_cast<int>(Level_Manager_GetHighestPoints()));
         AEGfxPrint(fontSmall, highScoreStr, 0.08f, -0.10f, 0.8f, 0.0f, 0.0f, 0.0f, 1.0f);
     }
+
+    // Confirm popup
+    if (showConfirmPopup && fontSmall >= 0)
+    {
+        float popBtnW = 130.0f, popBtnH = 50.0f;
+        float yesBtnX = -80.0f, yesBtnY = -30.0f;
+        float noBtnX = 80.0f, noBtnY = -30.0f;
+
+        // Dark overlay (flat is fine)
+        DrawRect(0.0f, 0.0f, 1600.0f, 900.0f, 0.0f, 0.0f, 0.0f, 0.5f);
+
+        // Popup panel — rounded cream
+        DrawRoundedRect(pMesh, pCircleMesh,
+            0.0f, 10.0f, 340.0f, 180.0f, 20.0f,
+            0.98f, 0.96f, 0.90f, 1.0f);
+
+        // YES button — rounded orange
+        DrawRoundedRect(pMesh, pCircleMesh,
+            yesBtnX, yesBtnY, popBtnW, popBtnH, 25.0f,
+            0.85f, 0.31f, 0.055f, 1.0f);
+
+        // NO button — rounded dark
+        DrawRoundedRect(pMesh, pCircleMesh,
+            noBtnX, noBtnY, popBtnW, popBtnH, 25.0f,
+            0.17f, 0.17f, 0.17f, 1.0f);
+
+        // Text
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        const char* msg = confirmIsRestart ? "Restart level?" : "Go to Level Select?";
+        AEGfxPrint(fontSmall, msg, -0.18f, 0.09f, 0.85f, 0.2f, 0.2f, 0.2f, 1.0f);
+        AEGfxPrint(fontSmall, "YES", -0.12f, -0.09f, 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxPrint(fontSmall, "NO", 0.09f, -0.09f, 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -267,6 +366,7 @@ void LevelComplete_Free()
     continueButton = {};
     restartButton = {};
     nextLevelButton = {};
+    showConfirmPopup = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -281,4 +381,7 @@ void LevelComplete_Unload()
     if (fontId >= 0) { AEGfxDestroyFont(fontId);    fontId = -1; }
     if (fontSmall >= 0) { AEGfxDestroyFont(fontSmall); fontSmall = -1; }
     if (pBgTexture) { AEGfxTextureUnload(pBgTexture); pBgTexture = nullptr; }
+    if (pCircleMesh) { AEGfxMeshFree(pCircleMesh); pCircleMesh = nullptr; }
+
+    Sound_Unload();
 }

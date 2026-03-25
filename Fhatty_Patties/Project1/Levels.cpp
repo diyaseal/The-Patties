@@ -37,8 +37,6 @@ const float START_X = -600.0f;
 const float START_Y = 0.f;
 // ---------------------------------------------------------------------------
 // Star rating textures and mesh
-static AEGfxTexture* starEmptyTex = nullptr;
-static AEGfxTexture* starFilledTex = nullptr;
 static AEGfxVertexList* starMesh = nullptr;
 
 // Star transformation matrices
@@ -438,6 +436,10 @@ void Levels_Unload()
     if (backBtnMesh) {
         AEGfxMeshFree(backBtnMesh);
         backBtnMesh = nullptr;
+    }
+    if (titleMesh) {
+        AEGfxMeshFree(titleMesh);
+        titleMesh = nullptr;
     }
 
     Sound_Unload();

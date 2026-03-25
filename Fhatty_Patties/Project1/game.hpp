@@ -16,5 +16,5 @@ extern AEGfxTexture* GameplayBG_front;
 extern AEGfxTexture* CustomerTexture[4];
 extern AEGfxTexture* PlateTexture;
 extern AEGfxTexture* LockTexture;
-extern AEGfxTexture* Ingredients;
+extern AEGfxTexture* SodaTexture;
 

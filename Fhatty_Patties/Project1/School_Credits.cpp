@@ -110,7 +110,7 @@ void School_Credits_Draw()
 
         AEGfxPrint(
             fontId,
-            "All content (c) 2025 DigiPen Institute of Technology Singapore. All Rights Reserved.",
+            "All content (c) 2026 DigiPen Institute of Technology Singapore. All Rights Reserved.",
             -0.50f,   // X (normalized)
             -0.9f,    // Y (normalized)
             0.6f,     // Scale

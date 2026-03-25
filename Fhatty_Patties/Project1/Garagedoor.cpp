@@ -138,4 +138,6 @@ void GarageDoor_Unload()
         pDoorTexture = nullptr;
         printf("GarageDoor: texture unloaded\n");
     }
+
 }
+

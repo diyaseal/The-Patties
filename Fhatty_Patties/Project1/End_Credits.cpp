@@ -419,6 +419,7 @@ void End_Credits_Unload()
 
     if (TruckMesh) { AEGfxMeshFree(TruckMesh); TruckMesh = nullptr; }
     if (Truck) { AEGfxTextureUnload(Truck); Truck = nullptr; }
+    if (Grass) { AEGfxTextureUnload(Grass); Grass = nullptr; }
 
     Sound_Unload();
 }

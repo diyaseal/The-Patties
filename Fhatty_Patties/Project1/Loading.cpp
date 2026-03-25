@@ -44,6 +44,9 @@ struct LoadStep {
     void (*loadFunc)();
 };
 
+// ===========================================================================
+// ALL ASSETS
+// ===========================================================================
 static void Step_Ingredients() { Ingredients = AEGfxTextureLoad("Assets/Assets/Ingredients.png"); }
 static void Step_GameBG_Back() { GameplayBG_back = AEGfxTextureLoad("Assets/Assets/Gameplay_back.png"); }
 static void Step_GameBG_Front() { GameplayBG_front = AEGfxTextureLoad("Assets/Assets/Gameplay_front.png"); }
@@ -53,7 +56,7 @@ static void Step_Customer2() { CustomerTexture[2] = AEGfxTextureLoad("Assets/Ass
 static void Step_Customer3() { CustomerTexture[3] = AEGfxTextureLoad("Assets/Assets/diyacust.png"); }
 static void Step_Lock() { LockTexture = AEGfxTextureLoad("Assets/Assets/lock.png"); }
 static void Step_Plate() { PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png"); }
-static void Step_Sound() { Sound_Load(); }
+static void Step_Soda() { SodaTexture = AEGfxTextureLoad("Assets/Assets/Soda.png"); }
 
 static LoadStep steps[] = {
     { "Loading ingredients...",  Step_Ingredients  },
@@ -65,7 +68,7 @@ static LoadStep steps[] = {
     { "Loading characters...",   Step_Customer3    },
     { "Loading UI...",           Step_Lock         },
     { "Loading UI...",           Step_Plate        },
-    { "Loading audio...",        Step_Sound        },
+    { "Loading soda...",         Step_Soda         },
 };
 
 // ---------------------------------------------------------------------------
@@ -79,6 +82,7 @@ void Loading_Load()
     LoadTruckMesh = CreateTruckMesh(0.5f, 0.5f);
     LoadTruck = AEGfxTextureLoad("Assets/Assets/Food_Truck.png");
 
+    Sound_Load();
     Particle_Load();
 }
 
@@ -96,6 +100,7 @@ void Loading_Init()
     truckFrameTimer = 0.0f;
 
     Particle_Init();
+    Sound_PlaySFX_TruckMove();
 }
 
 void Loading_Update()
@@ -141,7 +146,10 @@ void Loading_Update()
 
     // Transition once done and truck has moved far enough
     if (loadingDone && displayProgress >= 0.99f && loadingTimer >= MIN_LOADING_TIME)
+    {
+        Sound_StopSFX_TruckMove();
         next = GS_GAME;
+    }
 }
 
 void Loading_Draw()
@@ -215,9 +223,11 @@ void Loading_Free()
 
 void Loading_Unload()
 {
+    Sound_Unload();
     Particle_Unload();
     if (fontId >= 0) { AEGfxDestroyFont(fontId);          fontId = -1; }
     if (bgMesh) { AEGfxMeshFree(bgMesh);             bgMesh = nullptr; }
     if (LoadTruckMesh) { AEGfxMeshFree(LoadTruckMesh);      LoadTruckMesh = nullptr; }
     if (LoadTruck) { AEGfxTextureUnload(LoadTruck);     LoadTruck = nullptr; }
+    if (background) { AEGfxTextureUnload(background);     background = nullptr; }
 }

@@ -79,7 +79,7 @@ void Team_Credits_Draw() {
 
         AEGfxPrint(
             fontId1,
-            "All content (c) 2025 DigiPen Institute of Technology Singapore. All Rights Reserved.",
+            "All content (c) 2026 DigiPen Institute of Technology Singapore. All Rights Reserved.",
             -0.50f,   // X (normalized)
             -0.9f,    // Y (normalized)
             0.6f,     // Scale
@@ -123,6 +123,18 @@ void Team_Credits_Free() {
     /*printf("Team Credits Free called\n");*/
 }
 void Team_Credits_Unload() {
+    if (pTeamMesh)
+    {
+        AEGfxMeshFree(pTeamMesh);
+        pTeamMesh = nullptr;
+    }
+
+    if (pTeamLogo)
+    {
+        AEGfxTextureUnload(pTeamLogo);
+        pTeamLogo = nullptr;
+    }
+
     if (fontId1 >= 0)
     {
         AEGfxDestroyFont(fontId1);
