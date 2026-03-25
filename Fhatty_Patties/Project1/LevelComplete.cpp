@@ -185,7 +185,7 @@ void LevelComplete_Update()
                 worldMouseY <= yesBtnY + popBtnH / 2.0f) {
                 showConfirmPopup = false;
                 if (confirmIsRestart)
-                    next = GS_GAME;
+                    next = GS_LOADING;
                 else
                     next = GS_LEVELS;
             }
