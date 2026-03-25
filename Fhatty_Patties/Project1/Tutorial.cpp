@@ -37,6 +37,20 @@ static AEGfxTexture* CustomerTexture[4] = { nullptr };
 static AEGfxTexture* PlateTexture = nullptr;
 
 // ---------------------------------------------------------------------------
+// Pause Menu
+// ---------------------------------------------------------------------------
+static bool tutIsPaused = false;
+static AEGfxVertexList* PlateMesh = nullptr; // needed for DrawRoundedRect corners
+
+static float TutPauseMenuBtnX = 0.0f, TutPauseMenuBtnY = -30.0f;
+static float TutPauseMenuBtnW = 300.0f, TutPauseMenuBtnH = 55.0f;
+static float TutPauseSettBtnX = 0.0f, TutPauseSettBtnY = -100.0f;
+static float TutPauseSettBtnW = 300.0f, TutPauseSettBtnH = 55.0f;
+static float TutPauseResumeBtnX = 0.0f, TutPauseResumeBtnY = 55.0f;
+static float TutPauseResumeBtnW = 300.0f, TutPauseResumeBtnH = 55.0f;
+static AEGfxVertexList* CircleMesh = nullptr;
+
+// ---------------------------------------------------------------------------
 // Shared transform matrices
 // ---------------------------------------------------------------------------
 static AEMtx33 BGTransform, BGScale, BGTranslate;
@@ -177,6 +191,7 @@ void Tutorial_Load() {
     BGMesh = CreateSquareMesh(0.5f, 0.5f);
     IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
     SodaMesh = CreateSodaMesh(0.5f, 0.5f);
+    PlateMesh = CreateCircleMesh(2.0f, 32);
 
     PlateTexture = AEGfxTextureLoad("Assets/Assets/plate.png");
     GameplayBG_back = AEGfxTextureLoad("Assets/Assets/Gameplay_back.png");
@@ -193,6 +208,7 @@ void Tutorial_Load() {
     GarageDoor_Load();
     Sound_Load();
     Sound_PlayBGM();
+    Settings_Load();
 }
 
 // ===========================================================================
@@ -246,6 +262,7 @@ void Tutorial_Init() {
         customers[0].maxPatience = 99999.0f;
         customers[0].patience = 99999.0f;
     }
+    CircleMesh = CreateCircleMesh(2.0f, 32);
 }
 
 // ===========================================================================
@@ -253,6 +270,50 @@ void Tutorial_Init() {
 // ===========================================================================
 void Tutorial_Update() {
     f64 dt = AEFrameRateControllerGetFrameTime();
+
+    Settings_Update((float)dt, FontId);
+    if (Settings_IsOpen()) return;
+
+    // ESC toggles pause
+    if (AEInputCheckTriggered(AEVK_ESCAPE)) {
+        tutIsPaused = !tutIsPaused;
+    }
+
+    // Pause menu input
+    if (tutIsPaused) {
+        s32 mx, my;
+        AEInputGetCursorPosition(&mx, &my);
+        float ww = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
+        float wh = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
+        float wmx = (float)mx - ww / 2.0f;
+        float wmy = -(float)my + wh / 2.0f;
+
+        if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+            // Resume
+            if (wmx >= TutPauseResumeBtnX - TutPauseResumeBtnW / 2.0f &&
+                wmx <= TutPauseResumeBtnX + TutPauseResumeBtnW / 2.0f &&
+                wmy >= TutPauseResumeBtnY - TutPauseResumeBtnH / 2.0f &&
+                wmy <= TutPauseResumeBtnY + TutPauseResumeBtnH / 2.0f) {
+                tutIsPaused = false;
+            }
+            // Back to Main Menu
+            if (wmx >= TutPauseMenuBtnX - TutPauseMenuBtnW / 2.0f &&
+                wmx <= TutPauseMenuBtnX + TutPauseMenuBtnW / 2.0f &&
+                wmy >= TutPauseMenuBtnY - TutPauseMenuBtnH / 2.0f &&
+                wmy <= TutPauseMenuBtnY + TutPauseMenuBtnH / 2.0f) {
+                tutIsPaused = false;
+                next = GS_MAINMENU;
+            }
+            // Settings
+            if (wmx >= TutPauseSettBtnX - TutPauseSettBtnW / 2.0f &&
+                wmx <= TutPauseSettBtnX + TutPauseSettBtnW / 2.0f &&
+                wmy >= TutPauseSettBtnY - TutPauseSettBtnH / 2.0f &&
+                wmy <= TutPauseSettBtnY + TutPauseSettBtnH / 2.0f) {
+                Settings_Open();
+            }
+        }
+        return; // block all tutorial input while paused
+    }
 
     // -----------------------------------------------------------------------
     // World-space mouse coords (same conversion as game.cpp)
@@ -785,6 +846,94 @@ void Tutorial_Draw() {
 
     default: break;
     }
+
+    if (tutIsPaused) {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEMtx33 s, t, m;
+
+        // Dark backdrop
+        AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.6f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEMtx33Scale(&s, 1600.0f, 900.0f);
+        AEMtx33Trans(&t, 0.0f, 0.0f);
+        AEMtx33Concat(&m, &t, &s);
+        AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        float panelCX = 0.0f, panelCY = 0.0f;
+        float panelW = 400.0f, panelH = 420.0f, panelR = 30.0f;
+        float titleH = 70.0f;
+        float titleBarTop = panelCY + panelH * 0.5f;
+        float titleBarBottom = titleBarTop - titleH;
+        float titleBarCY = (titleBarTop + titleBarBottom) * 0.5f;
+        float btnW = 300.0f, btnH = 55.0f, btnR = 28.0f;
+
+        // Sync hitboxes
+        TutPauseResumeBtnX = panelCX; TutPauseResumeBtnY = 55.0f;
+        TutPauseMenuBtnX = panelCX; TutPauseMenuBtnY = -30.0f;
+        TutPauseSettBtnX = panelCX; TutPauseSettBtnY = -100.0f;
+
+        // Cream panel
+        DrawRoundedRect(BGMesh, PlateMesh,
+            panelCX, panelCY, panelW, panelH, panelR,
+            0.98f, 0.96f, 0.90f);
+
+        // Orange title bar
+        AEGfxSetColorToMultiply(0.85f, 0.31f, 0.055f, 1.0f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEMtx33Scale(&s, panelW - panelR * 2.0f, titleH);
+        AEMtx33Trans(&t, panelCX, titleBarCY);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        AEMtx33Scale(&s, panelR * 2.0f, titleH - panelR);
+        AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR, titleBarCY - panelR * 0.5f);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR, titleBarCY - panelR * 0.5f);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        AEMtx33Scale(&s, panelR / 2.0f, panelR / 2.0f);
+        AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR, panelCY + panelH * 0.5f - panelR);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
+
+        AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR, panelCY + panelH * 0.5f - panelR);
+        AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
+
+        // Buttons
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, TutPauseResumeBtnY, btnW, btnH, btnR,
+            0.85f, 0.31f, 0.055f);
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, TutPauseMenuBtnY, btnW, btnH, btnR,
+            0.17f, 0.17f, 0.17f);
+        DrawRoundedRect(BGMesh, PlateMesh, panelCX, TutPauseSettBtnY, btnW, btnH, btnR,
+            0.17f, 0.17f, 0.17f);
+
+        // Text
+        if (FontId >= 0) {
+            AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+            AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+            AEGfxPrint(FontId, "PAUSED",
+                -0.10f, (titleBarCY - 14.0f) / 450.0f,
+                1.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(FontId, "Resume",
+                -0.07f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(FontId, "Back to Main Menu",
+                -0.15f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
+                0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxPrint(FontId, "Settings",
+                -0.08f, (TutPauseSettBtnY - 10.0f) / 450.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+    }
+
+    // Settings on top of everything
+    Settings_Draw(FontId, BGMesh, CircleMesh);
 }
 
 // ===========================================================================
@@ -796,6 +945,7 @@ void Tutorial_Free() {
     Points_Free();
     GarageDoor_Free();
     Sound_Free();
+    tutIsPaused = false;
 }
 
 // ===========================================================================
@@ -826,10 +976,13 @@ void Tutorial_Unload() {
     if (BGMesh) { AEGfxMeshFree(BGMesh);            BGMesh = nullptr; }
     if (IngredientsMesh) { AEGfxMeshFree(IngredientsMesh);   IngredientsMesh = nullptr; }
     if (SodaMesh) { AEGfxMeshFree(SodaMesh);          SodaMesh = nullptr; }
+    if (PlateMesh) { AEGfxMeshFree(PlateMesh); PlateMesh = nullptr; }
+    if (CircleMesh) { AEGfxMeshFree(CircleMesh); CircleMesh = nullptr; }
 
     GarageDoor_Unload();
     Points_Unload();
     Sound_Unload();
+    Settings_Unload();
     // Note: Level_Manager_Unload() is NOT called here.
     // We wrote directly to currentLevelData in _Init without touching the CSV,
     // so there is nothing for Level_Manager to clean up.

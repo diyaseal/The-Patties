@@ -287,7 +287,7 @@ void Settings_Draw(s8 fontId, AEGfxVertexList* squareMesh, AEGfxVertexList* circ
         float titleNormX = (PANEL_X - 60.0f) / halfW;
         float titleNormY = (PANEL_Y + PANEL_H * 0.5f - 30.0f) / halfH;
         AEGfxPrint(settingsFontId, "Settings", titleNormX, titleNormY,
-            1.2f, 1.0f, 1.0f, 1.0f, 1.0f);
+            1.2f, 2.5f, 1.0f, 1.0f, 1.0f);
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     }
 

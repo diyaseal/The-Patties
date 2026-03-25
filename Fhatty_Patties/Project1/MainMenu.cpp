@@ -22,6 +22,12 @@ static BurgerButton* burgerButtons[] = { &bottomBun, &lettuce, &patty, &cheese, 
 static const int ButtonCount = sizeof(BUTTON_DATA) / sizeof(BUTTON_DATA[0]);
 static float buttonWidth = 850.0f, buttonHeight = 400.0f;
 static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh 
+
+//Pop up confirmation for quit
+static bool showQuitConfirm = false;
+
+//setting menu
+static bool settingsJustClosed = false;
 // ---------------------------------------------------------------------------
 // Drop animation state (indices match burgerButtons[] order: 0=bottomBun 4=topBun)
 static float dropCurrentY[5];          // live Y used for rendering during drop
@@ -165,9 +171,24 @@ void MainMenu_Update()
 {
     float dt = (float)AEFrameRateControllerGetFrameTime();
 
-    // Settings panel steals all input while open
+    // Track when settings closes to block bleed-through clicks
+    static bool wasSettingsOpen = false;      
+    bool isNowOpen = Settings_IsOpen();        
+
     Settings_Update(dt, FontId);
-    if (Settings_IsOpen()) return;   // block everything else
+
+    // Detect the frame settings just closed
+    if (wasSettingsOpen && !Settings_IsOpen())  
+        settingsJustClosed = true;            
+    wasSettingsOpen = Settings_IsOpen();       
+
+    // If settings just closed this frame, skip input for one frame
+    if (settingsJustClosed) {
+        settingsJustClosed = false;
+        return;
+    }
+
+    if (Settings_IsOpen()) return;
 
     totalElapsedTime += dt;
 
@@ -307,9 +328,8 @@ void MainMenu_Update()
                 Settings_Open();
             }
             else if (btn == &bottomBun) {
-                printf("Bottom Bun clicked - Quit!\n");      
-                pendingNextState = GS_QUIT;
-                wallTriggered = true;
+                printf("Bottom Bun clicked - Quit confirmation!\n");
+                showQuitConfirm = true;
             }
         }
         else btn->isClicked = false;
@@ -323,6 +343,35 @@ void MainMenu_Update()
             next = pendingNextState;
             wallTriggered = false;
         }
+    }
+    // Quit confirmation popup — block everything while open
+    if (showQuitConfirm) {
+        s32 mouseX, mouseY;
+        AEInputGetCursorPosition(&mouseX, &mouseY);
+        float worldMouseX = (float)mouseX - AEGfxGetWindowWidth() / 2.0f;
+        float worldMouseY = -(float)mouseY + AEGfxGetWindowHeight() / 2.0f;
+
+        float yesBtnX = -80.0f, yesBtnY = -30.0f;
+        float noBtnX = 80.0f, noBtnY = -30.0f;
+        float popBtnW = 130.0f, popBtnH = 50.0f;
+
+        if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+            if (worldMouseX >= yesBtnX - popBtnW / 2.0f &&
+                worldMouseX <= yesBtnX + popBtnW / 2.0f &&
+                worldMouseY >= yesBtnY - popBtnH / 2.0f &&
+                worldMouseY <= yesBtnY + popBtnH / 2.0f) {
+                showQuitConfirm = false;
+                pendingNextState = GS_QUIT;
+                wallTriggered = true;
+            }
+            if (worldMouseX >= noBtnX - popBtnW / 2.0f &&
+                worldMouseX <= noBtnX + popBtnW / 2.0f &&
+                worldMouseY >= noBtnY - popBtnH / 2.0f &&
+                worldMouseY <= noBtnY + popBtnH / 2.0f) {
+                showQuitConfirm = false;
+            }
+        }
+        return;
     }
 }
 
@@ -475,6 +524,44 @@ void MainMenu_Draw()
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
+	//Quit confirmation popup
+    if (showQuitConfirm && FontId >= 0)
+    {
+        AEMtx33 s, t, m;
+        float yesBtnX = -80.0f, yesBtnY = -30.0f;
+        float noBtnX = 80.0f, noBtnY = -30.0f;
+        float popBtnW = 130.0f, popBtnH = 50.0f;
+
+        // Dark overlay
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.6f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEMtx33Scale(&s, 1600.0f, 900.0f);
+        AEMtx33Trans(&t, 0.0f, 0.0f);
+        AEMtx33Concat(&m, &t, &s);
+        AEGfxSetTransform(m.m);
+        AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+
+        // Popup panel, buttons
+        DrawRoundedRect(BGMesh, CircleMesh,
+            0.0f, 10.0f, 340.0f, 180.0f, 20.0f,
+            0.98f, 0.96f, 0.90f, 1.0f);
+        DrawRoundedRect(BGMesh, CircleMesh,
+            yesBtnX, yesBtnY, popBtnW, popBtnH, 25.0f,
+            0.85f, 0.31f, 0.055f, 1.0f);  // orange YES
+        DrawRoundedRect(BGMesh, CircleMesh,
+            noBtnX, noBtnY, popBtnW, popBtnH, 25.0f,
+            0.17f, 0.17f, 0.17f, 1.0f);   // dark NO
+
+        // Text
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxPrint(FontId, "Quit the game?", -0.15f, 0.09f, 0.85f, 0.2f, 0.2f, 0.2f, 1.0f);
+        AEGfxPrint(FontId, "YES", -0.13f, -0.09f, 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxPrint(FontId, "NO", 0.08f, -0.09f, 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
     // Draw settings panel on top of everything
     Settings_Draw(FontId, BGMesh, CircleMesh);  // BGMesh is a plain square mesh, perfect for this
 }
@@ -482,6 +569,8 @@ void MainMenu_Draw()
 void MainMenu_Free()
 {
     printf("MainMenu Free called\n");
+    showQuitConfirm = false;
+
     // Free mesh (shared by all buttons)
     if (topBun.mesh) {
         AEGfxMeshFree(topBun.mesh);
