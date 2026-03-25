@@ -281,7 +281,12 @@ float Level_Manager_GetHighestPoints() {
 // Level Manager State Functions
 // ---------------------------------------------------------------------------
 void Level_Manager_Init() {
-    Level_Manager_LoadLevel(currentLevel);
+    if (currentLevel < 5) {
+        Level_Manager_LoadLevel(currentLevel);
+    }
+    else if (currentLevel >= 5) {
+        Level_Manager_LoadLevel(5);
+    }
     printf("Level_Manager_Init called\n");
 }
 
