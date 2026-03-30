@@ -147,6 +147,9 @@ void Levels_Init()
             Level_Manager_LoadLevel(i + 1);
             levelButtons[i].starsEarned = Level_Manager_GetStarsEarned();
         }
+
+        //remove indent if u want all levels to be unlocked
+        //levelButtons[i].Unlocked = (i < 5);
     }
 
     totalElapsedTime = 0.0f;
