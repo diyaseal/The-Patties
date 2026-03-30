@@ -234,6 +234,15 @@ void Game_Init() {
     Points_Init();
     GarageDoor_Init();
     levelEndTriggered = false; // Reset level end trigger in case of replay
+
+    // Full soda reset on level start
+    sodaOnPlate = false;
+    sodaMachineHasCup = false;
+    sodaIsFilled = false;
+    sodaFillTimer = 0.0f;
+    sodaIsBeingDragged = false;
+    sodaDragX = SodaX;
+    sodaDragY = SodaY - 55.0f;
 }
 
 void Game_Load() {
@@ -1144,8 +1153,7 @@ void Burger_Clear() {
     bunTopOnPlate = false;
     bunBottomOnPlate = false;
 
-    // Only clear soda if it was part of the served order (was on plate)
-    // If it's still filling or ready at machine, leave it alone
+    //only clears soda if it was on the plate
     if (sodaOnPlate) {
         sodaOnPlate = false;
         sodaMachineHasCup = false;
@@ -1153,7 +1161,6 @@ void Burger_Clear() {
         sodaFillTimer = 0.0f;
         printf("Soda was served, clearing it.\n");
     }
-
     // Reset drag state
     ResetDragState();
 
