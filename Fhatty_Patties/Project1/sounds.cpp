@@ -134,7 +134,6 @@ void Sound_PlaySFX_Pour() {
     if (AEAudioIsValidAudio(sfxPour) && AEAudioIsValidGroup(sfxGroup))
         AEAudioPlay(sfxPour, sfxGroup, 1.5f, 1.0f, 0);
 }
-
 void Sound_StopSFX_Pour() {
     // Let it finish naturally since we can't stop individual sounds
     // Or if your engine supports: AEAudioStop(sfxPour);
@@ -154,6 +153,7 @@ void Sound_PlaySFX_Lose() {
     if (AEAudioIsValidAudio(sfxLose) && AEAudioIsValidGroup(sfxGroup))
         AEAudioPlay(sfxLose, sfxGroup, 1.0f, 1.0f, 0);
 }
+
 // ---------------------------------------------------------------------------
 // Sound Settings
 // ---------------------------------------------------------------------------
@@ -208,6 +208,13 @@ void Sound_Unload() {
     AEAudioUnloadAudio(sfxdoorClose);
     AEAudioUnloadAudio(sfxTruckMove);
     AEAudioUnloadAudio(sfxTruckBeep);
+
+    AEAudioUnloadAudio(sfxHover);
+    AEAudioUnloadAudio(sfxStack);
+    AEAudioUnloadAudio(sfxPour);
+    AEAudioUnloadAudio(sfxCompleteAll);
+    AEAudioUnloadAudio(sfxLevelComplete);
+    AEAudioUnloadAudio(sfxUnlock);
 
     AEAudioUnloadAudioGroup(bgmGroup);
     AEAudioUnloadAudioGroup(sfxGroup);
