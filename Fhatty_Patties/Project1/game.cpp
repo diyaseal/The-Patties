@@ -99,9 +99,8 @@ static float SodaHeight = 70.0f;
 // Trash bin hitbox for deleting burgers
 static float TrashX = 629.0f;  // Average of your clicks: (574+683+580+706)/4 ≈ 635.75, adjusted to 629
 static float TrashY = -374.0f;  // Average of your clicks: (-307-315-440-435)/4 ≈ -374.25
-static float TrashWidth = 100.0f;  // Width of trash hitbox - adjust as needed
-static float TrashHeight = 100.0f; // Height of trash hitbox - adjust as needed
-
+static float TrashWidth = 250.0f;  // Width of trash hitbox
+static float TrashHeight = 250.0f; // Height of trash hitbox
 // Track what's on the plate: Set 
 // everything to false first :Diya
 
@@ -802,7 +801,7 @@ void Game_Draw() {
     Points_Draw();
 
     // (D) Draw lock icon on top of any ingredient still locked for this level
-    if (!IsIngredientUnlocked(BOTTOM_BUN)) DrawLockOverlay(BunBottomX, BunBottomY, 8.0f, 8.0f);
+    if (!IsIngredientUnlocked(BOTTOM_BUN)) DrawLockOverlay(BunBottomX, BunBottomY,8.0f, 8.0f);
     if (!IsIngredientUnlocked(TOP_BUN)) DrawLockOverlay(BunTopX, BunTopY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(PATTY)) DrawLockOverlay(PattieX, PattieY, 8.0f, 8.0f);
     if (!IsIngredientUnlocked(CHEESE)) DrawLockOverlay(CheeseX, CheeseY, 8.0f, 8.0f);
@@ -978,7 +977,7 @@ void Game_Draw() {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);
         AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight + 15.0f);
+        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight + 3.0f);
         AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
         AEGfxSetTransform(PlateLettuceTransform.m);
         AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
