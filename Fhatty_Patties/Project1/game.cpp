@@ -234,6 +234,15 @@ void Game_Init() {
     Points_Init();
     GarageDoor_Init();
     levelEndTriggered = false; // Reset level end trigger in case of replay
+
+    // Full soda reset on level start
+    sodaOnPlate = false;
+    sodaMachineHasCup = false;
+    sodaIsFilled = false;
+    sodaFillTimer = 0.0f;
+    sodaIsBeingDragged = false;
+    sodaDragX = SodaX;
+    sodaDragY = SodaY - 55.0f;
 }
 
 void Game_Load() {
@@ -450,6 +459,7 @@ void Game_Update() {
 
         // Check if lettuce was clicked
         if (IsIngredientUnlocked(LETTUCE) && // (D) Locked ingredients cannot be clicked
+            !lettuceOnPlate &&
             worldMouseX >= LettuceX - LettuceWidth / 2.0f &&
             worldMouseX <= LettuceX + LettuceWidth / 2.0f &&
             worldMouseY >= LettuceY - LettuceHeight / 2.0f &&
@@ -462,6 +472,7 @@ void Game_Update() {
 
         // Check if cheese was clicked
         if (IsIngredientUnlocked(CHEESE) && // (D) Locked ingredients cannot be clicked
+            !cheeseOnPlate &&
             worldMouseX >= CheeseX - CheeseWidth / 2.0f &&
             worldMouseX <= CheeseX + CheeseWidth / 2.0f &&
             worldMouseY >= CheeseY - CheeseHeight / 2.0f &&
@@ -474,6 +485,7 @@ void Game_Update() {
 
         // Check if pattie was clicked
         if (IsIngredientUnlocked(PATTY) && // (D) Locked ingredients cannot be clicked
+            !pattieOnPlate &&
             worldMouseX >= PattieX - PattieWidth / 2.0f &&
             worldMouseX <= PattieX + PattieWidth / 2.0f &&
             worldMouseY >= PattieY - PattieHeight / 2.0f &&
@@ -486,6 +498,7 @@ void Game_Update() {
 
         // Check if tomato was clicked
         if (IsIngredientUnlocked(TOMATO) && // (D) Locked ingredients cannot be clicked
+			!tomatoOnPlate &&
             worldMouseX >= TomatoX - TomatoWidth / 2.0f &&
             worldMouseX <= TomatoX + TomatoWidth / 2.0f &&
             worldMouseY >= TomatoY - TomatoHeight / 2.0f &&
@@ -498,6 +511,7 @@ void Game_Update() {
 
         // Check if bun top was clicked
         if (IsIngredientUnlocked(TOP_BUN) && // (D) Locked ingredients cannot be clicked
+            !bunTopOnPlate &&
             worldMouseX >= BunTopX - BunTopWidth / 2.0f &&
             worldMouseX <= BunTopX + BunTopWidth / 2.0f &&
             worldMouseY >= BunTopY - BunTopHeight / 2.0f &&
@@ -511,6 +525,7 @@ void Game_Update() {
 
         // Check if bun bottom was clicked
         if (IsIngredientUnlocked(BOTTOM_BUN) && // (D) Locked ingredients cannot be clicked
+            !bunBottomOnPlate &&
             worldMouseX >= BunBottomX - BunBottomWidth / 2.0f &&
             worldMouseX <= BunBottomX + BunBottomWidth / 2.0f &&
             worldMouseY >= BunBottomY - BunBottomHeight / 2.0f &&
@@ -523,6 +538,7 @@ void Game_Update() {
 
         // Check if onion was clicked   UNLOCK INGREDIENTS 
         if (IsIngredientUnlocked(ONION) && // (D) Locked ingredients cannot be clicked
+            !onionOnPlate &&
             worldMouseX >= OnionX - OnionWidth / 2.0f &&
             worldMouseX <= OnionX + OnionWidth / 2.0f &&
             worldMouseY >= OnionY - OnionHeight / 2.0f &&
@@ -535,6 +551,7 @@ void Game_Update() {
 
         // Check if cucumber was clicked UUNLOCK INGREDIENTS 
         if (IsIngredientUnlocked(CUCUMBER) && // (D) Locked ingredients cannot be clicked
+            !cucumberOnPlate &&
             worldMouseX >= CucumberX - CucumberWidth / 2.0f &&
             worldMouseX <= CucumberX + CucumberWidth / 2.0f &&
             worldMouseY >= CucumberY - CucumberHeight / 2.0f &&
@@ -548,6 +565,7 @@ void Game_Update() {
 
         // (D) Start filling soda at the machine if soda is unlocked and no soda already exists
         if (IsIngredientUnlocked(SODA) &&
+			!sodaOnPlate &&
             !sodaMachineHasCup && !sodaOnPlate && !sodaIsBeingDragged &&
             worldMouseX >= SodaX - SodaWidth / 2.0f &&
             worldMouseX <= SodaX + SodaWidth / 2.0f &&
@@ -563,19 +581,20 @@ void Game_Update() {
             printf("Started filling soda...\n");
         }
 
-        // (D) Only a filled soda can be dragged from the machine
+        // (D) Only a filled soda can be snapped from the machine
         if (sodaMachineHasCup && sodaIsFilled &&
             worldMouseX >= sodaDragX - 35.0f &&
             worldMouseX <= sodaDragX + 35.0f &&
             worldMouseY >= sodaDragY - 45.0f &&
             worldMouseY <= sodaDragY + 45.0f) {
 
-            isDragging = true;
-            sodaIsBeingDragged = true;
-            burgerIsBeingDragged = false;
-            sodaDragX = worldMouseX;
-            sodaDragY = worldMouseY;
-            printf("Started dragging filled soda!\n");
+            sodaOnPlate = true;
+            sodaMachineHasCup = false;
+            sodaIsFilled = false;
+            sodaFillTimer = 0.0f;
+            sodaIsBeingDragged = false;
+            currentBurger.push_back(SODA);
+            printf("Soda snapped to plate!\n");
         }
 
         // Check if player clicks on the plate (burger) to start dragging
@@ -626,54 +645,11 @@ void Game_Update() {
         burgerDragY = worldMouseY;
     }
 
-    if (isDragging && sodaIsBeingDragged) {
-        s32 mouseX, mouseY;
-        AEInputGetCursorPosition(&mouseX, &mouseY);
-
-        float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
-        float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
-
-        float worldMouseX = (float)mouseX - windowWidth / 2.0f;
-        float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
-
-        sodaDragX = worldMouseX;
-        sodaDragY = worldMouseY;
-    }
 
     // Check for mouse release
     if (AEInputCheckReleased(AEVK_LBUTTON)) {
-        // (D) Release filled soda onto the plate
-        if (isDragging && sodaIsBeingDragged) {
-            isDragging = false;
-
-            float plateWidth = 300.0f;
-            float plateHeight = 150.0f;
-            float plateCenterX = 275.0f;
-            float plateCenterY = -125.0f;
-
-            bool droppedOnPlate =
-                sodaDragX >= plateCenterX - plateWidth / 2.0f &&
-                sodaDragX <= plateCenterX + plateWidth / 2.0f &&
-                sodaDragY >= plateCenterY - plateHeight / 2.0f &&
-                sodaDragY <= plateCenterY + plateHeight / 2.0f;
-
-            if (droppedOnPlate) {
-                sodaOnPlate = true;
-                sodaMachineHasCup = false;
-                sodaIsFilled = false;
-                sodaFillTimer = 0.0f;
-                sodaIsBeingDragged = false;
-                currentBurger.push_back(SODA);
-                printf("Soda placed on plate!\n");
-            }
-            else {
-                sodaIsBeingDragged = false;
-                sodaDragX = SodaX;
-                sodaDragY = SodaY - 55.0f;
-                printf("Soda returned to machine.\n");
-            }
-        }
-        else if (isDragging && burgerIsBeingDragged) {
+        
+        if (isDragging && burgerIsBeingDragged) {
             // Mouse released while dragging burger
             isDragging = false;
 
@@ -1177,8 +1153,7 @@ void Burger_Clear() {
     bunTopOnPlate = false;
     bunBottomOnPlate = false;
 
-    // Only clear soda if it was part of the served order (was on plate)
-    // If it's still filling or ready at machine, leave it alone
+    //only clears soda if it was on the plate
     if (sodaOnPlate) {
         sodaOnPlate = false;
         sodaMachineHasCup = false;
@@ -1186,7 +1161,6 @@ void Burger_Clear() {
         sodaFillTimer = 0.0f;
         printf("Soda was served, clearing it.\n");
     }
-
     // Reset drag state
     ResetDragState();
 
