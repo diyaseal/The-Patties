@@ -209,13 +209,6 @@ void Sound_Unload() {
     AEAudioUnloadAudio(sfxTruckMove);
     AEAudioUnloadAudio(sfxTruckBeep);
 
-    AEAudioUnloadAudio(sfxHover);
-    AEAudioUnloadAudio(sfxStack);
-    AEAudioUnloadAudio(sfxPour);
-    AEAudioUnloadAudio(sfxCompleteAll);
-    AEAudioUnloadAudio(sfxLevelComplete);
-    AEAudioUnloadAudio(sfxUnlock);
-
     AEAudioUnloadAudioGroup(bgmGroup);
     AEAudioUnloadAudioGroup(sfxGroup);
 

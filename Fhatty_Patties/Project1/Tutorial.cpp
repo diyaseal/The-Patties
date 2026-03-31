@@ -14,9 +14,155 @@ static bool tutEND = false;
 static TutorialPhase tutorialPhase = TUTE_CUSTOMER_WALKING;
 static int showOrderStep = 0;
 
+// ---------------------------------------------------------------------------
+// Typewriter effect state
+// ---------------------------------------------------------------------------
+static char   typewriterBuf[512] = {};   // currently displayed (partial) text
+static char   typewriterFull[512] = {};   // target full text
+static float  typewriterTimer = 0.0f;
+static int    typewriterIndex = 0;
+static float  typewriterSpeed = 0.032f; // seconds per character
+static bool   typewriterDone = false;
+
+// ---------------------------------------------------------------------------
+// Wrong-order flash state
+// ---------------------------------------------------------------------------
+static bool  showWrongOrderMsg = false;
+static float wrongOrderTimer = 0.0f;
+static const float WRONG_ORDER_DURATION = 2.5f;
+
+// Helper: start a new typewriter sequence
+static void TypewriterSet(const char* text) {
+    strncpy_s(typewriterFull, sizeof(typewriterFull), text, _TRUNCATE);
+    memset(typewriterBuf, 0, sizeof(typewriterBuf));
+    typewriterIndex = 0;
+    typewriterTimer = 0.0f;
+    typewriterDone = false;
+}
+
+// Update typewriter each frame; call with dt
+static void TypewriterUpdate(float dt) {
+    if (typewriterDone) return;
+    typewriterTimer += dt;
+    while (!typewriterDone && typewriterTimer >= typewriterSpeed) {
+        typewriterTimer -= typewriterSpeed;
+        int len = (int)strlen(typewriterFull);
+        if (typewriterIndex < len) {
+            typewriterBuf[typewriterIndex] = typewriterFull[typewriterIndex];
+            typewriterIndex++;
+            typewriterBuf[typewriterIndex] = '\0';
+        }
+        if (typewriterIndex >= len) typewriterDone = true;
+    }
+}
+
 // Hardcoded tutorial order: bottom bun, patty, top bun + soda as side item
 static const std::vector<int> TUTORIAL_ORDER = { BOTTOM_BUN, PATTY, TOP_BUN, SODA };
-//static bool nextStep = false;
+
+// ===========================================================================
+// CENTRAL TEXT TABLE
+// All tutorial strings, positions, colours, and display conditions live here.
+// To change any wording, position, or colour - edit this table only.
+// ===========================================================================
+enum TutTextCond {
+    TTC_ALWAYS,         // show whenever phase/step match
+    TTC_TYPEWRITER,     // this is the typewriter line (print typewriterBuf, not text[])
+    TTC_AFTER_TW,       // only show once typewriter has finished
+    TTC_WRONG_ORDER,    // only show while showWrongOrderMsg is true
+    TTC_SODA_NOT_PLACED // only show while soda is not yet on the plate
+};
+
+struct TutorialText {
+    int            phase;       // TutorialPhase cast to int; -1 = all phases
+    int            orderStep;   // showOrderStep required; -1 = any
+    TutTextCond    cond;
+    float          x, y, scale;
+    float          r, g, b;
+    const char* text;
+};
+
+// ---- EDIT TEXT, POSITIONS AND COLOURS HERE --------------------------------
+static const TutorialText TUT_TEXTS[] =
+{
+    // ---- CUSTOMER WALKING ------------------------------------------------
+    { TUTE_CUSTOMER_WALKING, -1, TTC_TYPEWRITER,
+        0.06f, 0.45f, 1.0f,   1.0f, 1.0f, 1.0f,
+        "A customer is on their way..." },
+
+        // ---- SHOW ORDER  (step 0) --------------------------------------------
+        { TUTE_SHOW_ORDER, 0, TTC_TYPEWRITER,
+            -0.12f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
+            "A customer has arrived! Check their order above." },
+
+        { TUTE_SHOW_ORDER, 0, TTC_AFTER_TW,
+            -0.17f, 0.4f, 0.85f,  1.0f, 0.9f, 0.2f,
+            "The burger AND soda must be made together - in EXACT order!" },
+
+            // ---- SHOW ORDER  (step 1) --------------------------------------------
+            { TUTE_SHOW_ORDER, 1, TTC_TYPEWRITER,
+                -0.1f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
+                "The GREEN bar shows the customer's patience." },
+
+            { TUTE_SHOW_ORDER, 1, TTC_AFTER_TW,
+                -0.1f, 0.4f, 0.85f,  1.0f, 0.9f, 0.2f,
+                "Don't take too long or the customer will leave in anger!" },
+
+                // ---- BUILD BURGER ----------------------------------------------------
+                { TUTE_BUILD_BURGER, -1, TTC_TYPEWRITER,
+                    -0.1f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
+                    "Build the order! Click the ingredients below." },
+
+                { TUTE_BUILD_BURGER, -1, TTC_SODA_NOT_PLACED,
+                    -0.14f, 0.4f, 0.8f,   0.4f, 0.9f, 1.0f,
+                    "Remember: you'll also need to fill a SODA alongside the burger!" },
+
+                    // ---- FILL SODA -------------------------------------------------------
+                    { TUTE_FILL_SODA, -1, TTC_TYPEWRITER,
+                        -0.12f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
+                        "Burger done! Now click the soda machine button." },
+
+                    { TUTE_FILL_SODA, -1, TTC_AFTER_TW,
+                        -0.12f,  0.4f, 0.85f,  0.4f, 1.0f, 0.55f,
+                        "Wait for the cup to fill, then CLICK it to snap onto the plate." },
+
+                        // ---- SERVE -----------------------------------------------------------
+                        { TUTE_SERVE, -1, TTC_TYPEWRITER,
+                            -0.18f, 0.45f, 1.0f,  1.0f, 1.0f, 1.0f,
+                            "Order complete! DRAG the plate to the customer to serve!" },
+
+                            // ---- WRONG INGREDIENT flash (shown over any phase) -------------------
+                            { -1, -1, TTC_WRONG_ORDER,
+                               -0.40f, 0.0f, 0.9f,  1.0f, 0.3f, 0.3f,
+                                "WRONG INGREDIENT! Drag to the TRASH BIN to redo." },
+
+                                // ---- COMPLETE --------------------------------------------------------
+                                { TUTE_COMPLETE, -1, TTC_ALWAYS,
+                                    -0.23f, 0.25f, 1.5f,  1.0f, 0.85f, 0.1f,
+                                    "Tutorial Complete!" },
+
+                                { TUTE_COMPLETE, -1, TTC_ALWAYS,
+                                    -0.37f, 0.08f, 1.0f,  1.0f, 1.0f,  1.0f,
+                                    "You served your first customer. You're ready!" },
+
+                                { TUTE_COMPLETE, -1, TTC_ALWAYS,
+                                    -0.28f, -0.68f, 1.0f, 1.0f, 1.0f,  1.0f,
+                                    "Main Menu" },
+
+                                { TUTE_COMPLETE, -1, TTC_ALWAYS,
+                                    0.09f, -0.68f, 1.0f,  1.0f, 1.0f,  1.0f,
+                                    "Play Levels" },
+
+                                    // ---- CLICK TO CONTINUE hint ------------------------------------------
+                                    { TUTE_CUSTOMER_WALKING, -1, TTC_AFTER_TW,
+                                        0.15f, 0.3f, 0.75f,   0.7f, 0.7f, 0.7f,
+                                        "[ Click to continue ]" },
+
+                                    { TUTE_SHOW_ORDER, -1, TTC_AFTER_TW,
+                                        0.15f, 0.3f, 0.75f,   0.7f, 0.7f, 0.7f,
+                                        "[ Click to continue ]" },
+};
+static const int TUT_TEXTS_COUNT = (int)(sizeof(TUT_TEXTS) / sizeof(TUT_TEXTS[0]));
+// --------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Mesh / texture pointers
@@ -25,11 +171,6 @@ static AEGfxVertexList* SquareMesh = nullptr;
 static AEGfxVertexList* BGMesh = nullptr;
 static AEGfxVertexList* IngredientsMesh = nullptr;
 static AEGfxVertexList* SodaMesh = nullptr;
-
-// These are defined as globals in game.cpp and referenced here via extern
-// so that Customer.cpp's DrawThoughtBubble can find them during the tutorial.
-//extern AEGfxTexture* Ingredients;
-//extern AEGfxTexture* SodaTexture;
 
 static AEGfxTexture* GameplayBG_back = nullptr;
 static AEGfxTexture* GameplayBG_front = nullptr;
@@ -40,7 +181,7 @@ static AEGfxTexture* PlateTexture = nullptr;
 // Pause Menu
 // ---------------------------------------------------------------------------
 static bool tutIsPaused = false;
-static AEGfxVertexList* PlateMesh = nullptr; // needed for DrawRoundedRect corners
+static AEGfxVertexList* PlateMesh = nullptr;
 
 static float TutPauseMenuBtnX = 0.0f, TutPauseMenuBtnY = -30.0f;
 static float TutPauseMenuBtnW = 300.0f, TutPauseMenuBtnH = 55.0f;
@@ -60,15 +201,15 @@ static AEMtx33 IngTransform, IngScale, IngTranslate;
 // ---------------------------------------------------------------------------
 // Ingredient hitbox positions (identical to game.cpp)
 // ---------------------------------------------------------------------------
-static const float BunTopX = -523.0f, BunTopY = -81.0f, BunTopW = 100.0f, BunTopH = 100.0f;
-static const float BunBotX = -560.0f, BunBotY = -180.0f, BunBotW = 90.0f, BunBotH = 90.0f;
-static const float PattieX = -275.0f, PattieY = -110.0f, PattieW = 90.0f, PattieH = 90.0f;
-static const float CheeseX = -150.0f, CheeseY = -110.0f, CheeseW = 90.0f, CheeseH = 90.0f;
-static const float LettuceX = -150.0f, LettuceY = -170.0f, LettuceW = 110.0f, LettuceH = 110.0f;
-static const float TomatoX = -300.0f, TomatoY = -175.0f, TomatoW = 90.0f, TomatoH = 90.0f;
-static const float OnionX = 3.0f, OnionY = -175.0f, OnionW = 90.0f, OnionH = 90.0f;
-static const float CucumbX = -18.0f, CucumbY = -108.0f, CucumbW = 90.0f, CucumbH = 90.0f;
-static const float SodaX = 570.0f, SodaY = -88.0f, SodaW = 80.0f, SodaH = 80.0f;
+static const float BunTopX = -523.0f, BunTopY = -81.0f, BunTopW = 120.0f, BunTopH = 100.0f;
+static const float BunBotX = -560.0f, BunBotY = -180.0f, BunBotW = 120.0f, BunBotH = 100.0f;
+static const float PattieX = -275.0f, PattieY = -110.0f, PattieW = 83.0f, PattieH = 83.0f;
+static const float CheeseX = -150.0f, CheeseY = -110.0f, CheeseW = 83.0f, CheeseH = 83.0f;
+static const float LettuceX = -150.0f, LettuceY = -170.0f, LettuceW = 90.0f, LettuceH = 83.0f;
+static const float TomatoX = -300.0f, TomatoY = -175.0f, TomatoW = 83.0f, TomatoH = 83.0f;
+static const float OnionX = 3.0f, OnionY = -175.0f, OnionW = 83.0f, OnionH = 83.0f;
+static const float CucumbX = -18.0f, CucumbY = -108.0f, CucumbW = 83.0f, CucumbH = 83.0f;
+static const float SodaX = 574.0f, SodaY = -88.0f, SodaW = 70.0f, SodaH = 70.0f;
 static const float TrashX = 629.0f, TrashY = -374.0f, TrashW = 100.0f, TrashH = 100.0f;
 
 // ---------------------------------------------------------------------------
@@ -88,9 +229,7 @@ static bool sodaOnPlate = false;
 static bool sodaMachineHasCup = false;
 static bool sodaIsFilled = false;
 static float sodaFillTimer = 0.0f;
-static bool sodaIsBeingDragged = false;
-static float sodaDragX = 0.0f;
-static float sodaDragY = 0.0f;
+// Soda now snaps directly to the plate on click (no dragging)
 
 // Drag state
 static bool  isDragging = false;
@@ -118,7 +257,6 @@ static bool InBounds(float px, float py,
 
 // ---------------------------------------------------------------------------
 // Helper: Does the current burger match TUTORIAL_ORDER?
-// Soda is treated as a side item (presence only), burger body checked in order.
 // ---------------------------------------------------------------------------
 static bool BurgerMatchesOrder() {
     bool playerHasSoda = false;
@@ -157,16 +295,39 @@ static void ClearBurger() {
     sodaFillTimer = 0.0f;
     isDragging = false;
     burgerIsBeingDragged = false;
-    sodaIsBeingDragged = false;
     burgerDragX = 300.0f;
     burgerDragY = -175.0f;
-    sodaDragX = SodaX;
-    sodaDragY = SodaY - 55.0f;
     printf("[Tutorial] Burger cleared.\n");
 }
 
 // ---------------------------------------------------------------------------
-// Helper: Phase transition with logging
+// Helper: Check whether the ingredient just added matches the expected slot.
+// ---------------------------------------------------------------------------
+static void CheckLastIngredient()
+{
+    if (currentBurger.empty()) return;
+
+    std::vector<int> placed;
+    for (int id : currentBurger)
+        if (id != SODA) placed.push_back(id);
+
+    std::vector<int> expected;
+    for (int id : TUTORIAL_ORDER)
+        if (id != SODA) expected.push_back(id);
+
+    size_t slot = placed.size() - 1;
+    if (slot < expected.size() && placed[slot] != expected[slot])
+    {
+        printf("[Tutorial] Wrong ingredient at slot %zu (got %d, want %d)\n",
+            slot, placed[slot], expected[slot]);
+        showWrongOrderMsg = true;
+        wrongOrderTimer = 0.0f;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Phase transition with logging.
+// Always restarts the typewriter for the new phase.
 // ---------------------------------------------------------------------------
 static void SetPhase(TutorialPhase p) {
     tutorialPhase = p;
@@ -176,6 +337,46 @@ static void SetPhase(TutorialPhase p) {
     };
     printf("[Tutorial] Phase -> %s\n", names[(int)p]);
     showOrderStep = 0;
+    showWrongOrderMsg = false;
+
+    // Look up the opening typewriter line from TUT_TEXTS[]
+    const char* twText = nullptr;
+    for (int i = 0; i < TUT_TEXTS_COUNT; ++i) {
+        const TutorialText& e = TUT_TEXTS[i];
+        if (e.cond == TTC_TYPEWRITER &&
+            e.phase == (int)p &&
+            (e.orderStep == -1 || e.orderStep == 0))
+        {
+            twText = e.text;
+            break;
+        }
+    }
+    if (twText)
+        TypewriterSet(twText);
+    else {
+        memset(typewriterBuf, 0, sizeof(typewriterBuf));
+        typewriterDone = true;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Reset burger to BUILD_BURGER WITHOUT restarting the typewriter.
+// The instruction is already fully typed on screen - no need to retype it.
+// Used by trash-drop and R-key reset.
+// ---------------------------------------------------------------------------
+static void ResetBurger()
+{
+    ClearBurger();
+    tutorialPhase = TUTE_BUILD_BURGER;
+    showOrderStep = 0;
+    showWrongOrderMsg = false;
+    // Snap typewriter to done so the static text shows immediately
+    if (!typewriterDone) {
+        strcpy_s(typewriterBuf, sizeof(typewriterBuf), typewriterFull);
+        typewriterIndex = (int)strlen(typewriterFull);
+        typewriterDone = true;
+    }
+    printf("[Tutorial] Burger reset - instruction stays on screen.\n");
 }
 
 // ===========================================================================
@@ -186,7 +387,6 @@ void Tutorial_Load() {
 
     FontId = AEGfxCreateFont("Assets/Font/Fredoka-Bold.ttf", 28);
 
-    //SquareMesh = CreateSquareMesh(8.0f, 2.5f);
     SquareMesh = CreateSquareMesh(0.5f, 0.5f);
     BGMesh = CreateSquareMesh(0.5f, 0.5f);
     IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
@@ -219,19 +419,11 @@ void Tutorial_Init() {
 
     tutEND = false;
 
-    tutorialPhase = TUTE_CUSTOMER_WALKING;
     ClearBurger();
+    showWrongOrderMsg = false;
+    wrongOrderTimer = 0.0f;
+    SetPhase(TUTE_CUSTOMER_WALKING);
 
-    // -----------------------------------------------------------------------
-    // Fake a minimal currentLevelData so Customer_Init() and Points_Init()
-    // don't crash or return zero. We never touch the CSV file.
-    //
-    // Key facts:
-    //   - customerCount = 1  -> Customer_Spawn() is only allowed to fire once
-    //   - starPositions all = 35 -> one correct serve fills the whole bar
-    //   - all ingredient strings present -> RandomOrder() can build an order;
-    //     we immediately overwrite it with TUTORIAL_ORDER after Customer_Init()
-    // -----------------------------------------------------------------------
     currentLevelData.customerCount = 1;
     currentLevelData.durationMultiplier = 1.0f;
     currentLevelData.starPositions[0] = 35.0f;
@@ -246,16 +438,10 @@ void Tutorial_Init() {
         "lettuce", "tomato", "onion", "cucumber", "soda"
     };
 
-    // Init subsystems that read currentLevelData
-    Customer_Init();    // spawns first customer and calls RandomOrder() on it
-    Points_Init();      // reads starPositions[2] for MAX_POINTS
+    Customer_Init();
+    Points_Init();
     GarageDoor_Init();
 
-    // -----------------------------------------------------------------------
-    // Override the customer's order with our fixed tutorial order AFTER
-    // Customer_Init() has finished (it calls RandomOrder() internally).
-    // Pin patience to a huge value so Customer_Update's drain never reaches 0.
-    // -----------------------------------------------------------------------
     if (!customers.empty()) {
         customers[0].order = TUTORIAL_ORDER;
         customers[0].hasOrder = true;
@@ -274,12 +460,10 @@ void Tutorial_Update() {
     Settings_Update((float)dt, FontId);
     if (Settings_IsOpen()) return;
 
-    // ESC toggles pause
     if (AEInputCheckTriggered(AEVK_ESCAPE)) {
         tutIsPaused = !tutIsPaused;
     }
 
-    // Pause menu input
     if (tutIsPaused) {
         s32 mx, my;
         AEInputGetCursorPosition(&mx, &my);
@@ -289,14 +473,12 @@ void Tutorial_Update() {
         float wmy = -(float)my + wh / 2.0f;
 
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-            // Resume
             if (wmx >= TutPauseResumeBtnX - TutPauseResumeBtnW / 2.0f &&
                 wmx <= TutPauseResumeBtnX + TutPauseResumeBtnW / 2.0f &&
                 wmy >= TutPauseResumeBtnY - TutPauseResumeBtnH / 2.0f &&
                 wmy <= TutPauseResumeBtnY + TutPauseResumeBtnH / 2.0f) {
                 tutIsPaused = false;
             }
-            // Back to Main Menu
             if (wmx >= TutPauseMenuBtnX - TutPauseMenuBtnW / 2.0f &&
                 wmx <= TutPauseMenuBtnX + TutPauseMenuBtnW / 2.0f &&
                 wmy >= TutPauseMenuBtnY - TutPauseMenuBtnH / 2.0f &&
@@ -304,7 +486,6 @@ void Tutorial_Update() {
                 tutIsPaused = false;
                 next = GS_MAINMENU;
             }
-            // Settings
             if (wmx >= TutPauseSettBtnX - TutPauseSettBtnW / 2.0f &&
                 wmx <= TutPauseSettBtnX + TutPauseSettBtnW / 2.0f &&
                 wmy >= TutPauseSettBtnY - TutPauseSettBtnH / 2.0f &&
@@ -312,12 +493,9 @@ void Tutorial_Update() {
                 Settings_Open();
             }
         }
-        return; // block all tutorial input while paused
+        return;
     }
 
-    // -----------------------------------------------------------------------
-    // World-space mouse coords (same conversion as game.cpp)
-    // -----------------------------------------------------------------------
     s32 mx, my;
     AEInputGetCursorPosition(&mx, &my);
     float ww = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
@@ -327,59 +505,67 @@ void Tutorial_Update() {
 
     // -----------------------------------------------------------------------
     // PHASE: CUSTOMER_WALKING
-    // Run normal Customer_Update so the walk-in animation plays.
-    // Once isWaitingForFood becomes true, freeze patience and advance.
     // -----------------------------------------------------------------------
     if (tutorialPhase == TUTE_CUSTOMER_WALKING) {
         Customer_Update(static_cast<float>(dt));
         Points_Update();
+        TypewriterUpdate(static_cast<float>(dt));
 
         if (!customers.empty() && customers[0].isWaitingForFood) {
-            // Re-pin patience now that the customer has stopped walking
             customers[0].patience = customers[0].maxPatience;
             SetPhase(TUTE_SHOW_ORDER);
         }
         return;
     }
 
-    // -----------------------------------------------------------------------
-    // For all remaining phases:
-    //   - Do NOT call Customer_Update() - this prevents the spawn timer from
-    //     firing a second customer and bypasses the patience drain code entirely.
-    //   - Still call Points_Update() for the smooth bar lerp.
-    //   - Re-pin patience every frame as a safety net.
-    // -----------------------------------------------------------------------
     Points_Update();
     if (!customers.empty())
         customers[0].patience = customers[0].maxPatience;
 
-    /*if (tutorialPhase == TUTE_SHOW_ORDER && AEInputCheckTriggered(AEVK_LBUTTON))
-    {
-        nextStep = true;
-    }*/
+    TypewriterUpdate(static_cast<float>(dt));
+    if (showWrongOrderMsg) {
+        wrongOrderTimer += static_cast<float>(dt);
+        if (wrongOrderTimer >= WRONG_ORDER_DURATION)
+            showWrongOrderMsg = false;
+    }
+
     // -----------------------------------------------------------------------
     // PHASE: SHOW_ORDER
-    // Display the "check order" prompt. Any click advances to BUILD_BURGER.
     // -----------------------------------------------------------------------
     if (tutorialPhase == TUTE_SHOW_ORDER) {
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-            if (showOrderStep < 1)
-                showOrderStep++;            // advance to next tip
-            else
-                SetPhase(TUTE_BUILD_BURGER); // third click: move on
+            if (!typewriterDone) {
+                strcpy_s(typewriterBuf, sizeof(typewriterBuf), typewriterFull);
+                typewriterIndex = (int)strlen(typewriterFull);
+                typewriterDone = true;
+            }
+            else if (showOrderStep < 1) {
+                showOrderStep++;
+                for (int i = 0; i < TUT_TEXTS_COUNT; ++i) {
+                    const TutorialText& e = TUT_TEXTS[i];
+                    if (e.cond == TTC_TYPEWRITER &&
+                        e.phase == (int)TUTE_SHOW_ORDER &&
+                        e.orderStep == showOrderStep)
+                    {
+                        TypewriterSet(e.text);
+                        break;
+                    }
+                }
+            }
+            else {
+                SetPhase(TUTE_BUILD_BURGER);
+            }
         }
         return;
     }
 
     // -----------------------------------------------------------------------
-    // PHASES: BUILD_BURGER  /  FILL_SODA  /  SERVE
-    // All interactive building and dragging is handled in this block.
+    // PHASES: BUILD_BURGER / FILL_SODA / SERVE
     // -----------------------------------------------------------------------
     if (tutorialPhase == TUTE_BUILD_BURGER ||
         tutorialPhase == TUTE_FILL_SODA ||
         tutorialPhase == TUTE_SERVE)
     {
-        // -- Soda fill timer --
         if (sodaMachineHasCup && !sodaIsFilled) {
             sodaFillTimer += static_cast<float>(dt);
             if (sodaFillTimer >= 3.0f) {
@@ -394,84 +580,86 @@ void Tutorial_Update() {
         // ==============================================================
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 
-            // ---- Ingredient clicks (all unlocked in the tutorial) ----
-
             if (InBounds(wmx, wmy, BunBotX, BunBotY, BunBotW / 2, BunBotH / 2)) {
                 bunBottomOnPlate = true;
                 currentBurger.push_back(BOTTOM_BUN);
+                CheckLastIngredient();
                 printf("[Tutorial] Bottom bun added.\n");
             }
             if (InBounds(wmx, wmy, PattieX, PattieY, PattieW / 2, PattieH / 2)) {
                 pattieOnPlate = true;
                 currentBurger.push_back(PATTY);
+                CheckLastIngredient();
                 printf("[Tutorial] Patty added.\n");
             }
             if (InBounds(wmx, wmy, CheeseX, CheeseY, CheeseW / 2, CheeseH / 2)) {
                 cheeseOnPlate = true;
                 currentBurger.push_back(CHEESE);
+                CheckLastIngredient();
                 printf("[Tutorial] Cheese added.\n");
             }
             if (InBounds(wmx, wmy, LettuceX, LettuceY, LettuceW / 2, LettuceH / 2)) {
                 lettuceOnPlate = true;
                 currentBurger.push_back(LETTUCE);
+                CheckLastIngredient();
                 printf("[Tutorial] Lettuce added.\n");
             }
             if (InBounds(wmx, wmy, TomatoX, TomatoY, TomatoW / 2, TomatoH / 2)) {
                 tomatoOnPlate = true;
                 currentBurger.push_back(TOMATO);
+                CheckLastIngredient();
                 printf("[Tutorial] Tomato added.\n");
             }
             if (InBounds(wmx, wmy, OnionX, OnionY, OnionW / 2, OnionH / 2)) {
                 onionOnPlate = true;
                 currentBurger.push_back(ONION);
+                CheckLastIngredient();
                 printf("[Tutorial] Onion added.\n");
             }
             if (InBounds(wmx, wmy, CucumbX, CucumbY, CucumbW / 2, CucumbH / 2)) {
                 cucumberOnPlate = true;
                 currentBurger.push_back(CUCUMBER);
+                CheckLastIngredient();
                 printf("[Tutorial] Cucumber added.\n");
             }
             if (InBounds(wmx, wmy, BunTopX, BunTopY, BunTopW / 2, BunTopH / 2)) {
                 bunTopOnPlate = true;
                 burgerComplete = true;
                 currentBurger.push_back(TOP_BUN);
+                CheckLastIngredient();
                 printf("[Tutorial] Top bun added - burger body complete!\n");
-                // Advance from BUILD_BURGER -> FILL_SODA once top bun is placed
-                if (tutorialPhase == TUTE_BUILD_BURGER)
+                if (tutorialPhase == TUTE_BUILD_BURGER && !showWrongOrderMsg)
                     SetPhase(TUTE_FILL_SODA);
             }
 
-            // ---- Soda machine: start filling (only meaningful in FILL_SODA) ----
+            // ---- Soda machine: click to start filling ----
             if (tutorialPhase == TUTE_FILL_SODA &&
-                !sodaMachineHasCup && !sodaOnPlate && !sodaIsBeingDragged &&
+                !sodaMachineHasCup && !sodaOnPlate &&
                 InBounds(wmx, wmy, SodaX, SodaY, SodaW / 2, SodaH / 2)) {
-
                 sodaMachineHasCup = true;
                 sodaIsFilled = false;
                 sodaFillTimer = 0.0f;
-                sodaDragX = SodaX;
-                sodaDragY = SodaY - 55.0f;
                 printf("[Tutorial] Started filling soda...\n");
             }
 
-            // ---- Begin dragging filled soda cup ----
+            // ---- Click filled soda cup to snap it straight onto the plate ----
             if (sodaMachineHasCup && sodaIsFilled &&
-                InBounds(wmx, wmy, sodaDragX, sodaDragY, 35.0f, 45.0f)) {
-
-                isDragging = true;
-                sodaIsBeingDragged = true;
-                burgerIsBeingDragged = false;
-                sodaDragX = wmx;
-                sodaDragY = wmy;
-                printf("[Tutorial] Started dragging soda!\n");
+                InBounds(wmx, wmy, SodaX, SodaY - 55.0f, 35.0f, 45.0f)) {
+                sodaOnPlate = true;
+                sodaMachineHasCup = false;
+                sodaIsFilled = false;
+                sodaFillTimer = 0.0f;
+                currentBurger.push_back(SODA);
+                printf("[Tutorial] Soda snapped to plate!\n");
+                if (burgerComplete)
+                    SetPhase(TUTE_SERVE);
             }
 
             // ---- Begin dragging burger from plate ----
-            float plateCX = 300.0f, plateCY = -175.0f;
-            float platePW = 200.0f, platePH = 100.0f;
+            float plateCX = 290.0f, plateCY = -210.0f;
+            float platePW = 300.0f, platePH = 300.0f;
             if (!currentBurger.empty() &&
                 InBounds(wmx, wmy, plateCX, plateCY, platePW / 2, platePH / 2)) {
-
                 isDragging = true;
                 burgerIsBeingDragged = true;
                 dragOffsetX = wmx - plateCX;
@@ -480,7 +668,7 @@ void Tutorial_Update() {
                 burgerDragY = wmy;
                 printf("[Tutorial] Started dragging burger!\n");
             }
-        } // end AEVK_LBUTTON triggered
+        }
 
         // ==============================================================
         // CONTINUOUS DRAG UPDATE
@@ -489,56 +677,21 @@ void Tutorial_Update() {
             burgerDragX = wmx;
             burgerDragY = wmy;
         }
-        if (isDragging && sodaIsBeingDragged) {
-            sodaDragX = wmx;
-            sodaDragY = wmy;
-        }
 
         // ==============================================================
         // MOUSE RELEASED
         // ==============================================================
         if (AEInputCheckReleased(AEVK_LBUTTON)) {
 
-            float plateCX = 300.0f, plateCY = -175.0f;
-            float platePW = 200.0f, platePH = 100.0f;
-
-            // ---- Drop soda ----
-            if (isDragging && sodaIsBeingDragged) {
-                isDragging = false;
-
-                bool onPlate = InBounds(sodaDragX, sodaDragY,
-                    plateCX, plateCY, platePW / 2, platePH / 2);
-                if (onPlate) {
-                    sodaOnPlate = true;
-                    sodaMachineHasCup = false;
-                    sodaIsFilled = false;
-                    sodaFillTimer = 0.0f;
-                    sodaIsBeingDragged = false;
-                    currentBurger.push_back(SODA);
-                    printf("[Tutorial] Soda placed on plate!\n");
-
-                    // Burger body + soda both done -> advance to SERVE
-                    if (burgerComplete)
-                        SetPhase(TUTE_SERVE);
-                }
-                else {
-                    // Cup returns to machine
-                    sodaIsBeingDragged = false;
-                    sodaDragX = SodaX;
-                    sodaDragY = SodaY - 55.0f;
-                    printf("[Tutorial] Soda returned to machine.\n");
-                }
-            }
             // ---- Drop burger ----
-            else if (isDragging && burgerIsBeingDragged) {
+            if (isDragging && burgerIsBeingDragged) {
                 isDragging = false;
 
-                // -- Trash drop: clear burger and return to build phase --
+                // -- Trash drop: reset burger WITHOUT retyping the instruction --
                 if (InBounds(burgerDragX, burgerDragY,
                     TrashX, TrashY, TrashW / 2, TrashH / 2)) {
                     printf("[Tutorial] Burger trashed - rebuild!\n");
-                    ClearBurger();
-                    SetPhase(TUTE_BUILD_BURGER);
+                    ResetBurger();
                 }
                 // -- Serve to customer (only valid in TUTE_SERVE) --
                 else if (tutorialPhase == TUTE_SERVE && !customers.empty()) {
@@ -557,13 +710,11 @@ void Tutorial_Update() {
                             SetPhase(TUTE_COMPLETE);
                         }
                         else {
-                            // Wrong order - player can drag to trash and rebuild
-                            printf("[Tutorial] Wrong order - drag to TRASH to reset!\n");
+                            printf("[Tutorial] Wrong order served - drag to TRASH to reset!\n");
                             burgerIsBeingDragged = false;
                         }
                     }
                     else {
-                        // Missed the customer - burger stays on plate
                         printf("[Tutorial] Missed customer - burger returned to plate.\n");
                         burgerIsBeingDragged = false;
                     }
@@ -572,20 +723,18 @@ void Tutorial_Update() {
                     burgerIsBeingDragged = false;
                 }
             }
-        } // end AEVK_LBUTTON released
+        }
 
-        // R key resets the burger at any build phase (same shortcut as game.cpp)
+        // R key resets burger without retyping the instruction
         if (AEInputCheckTriggered(AEVK_R)) {
-            ClearBurger();
-            SetPhase(TUTE_BUILD_BURGER);
+            ResetBurger();
         }
 
         return;
-    } // end build / soda / serve block
+    }
 
     // -----------------------------------------------------------------------
     // PHASE: COMPLETE
-    // Show the end screen and listen for button clicks.
     // -----------------------------------------------------------------------
     if (tutorialPhase == TUTE_COMPLETE) {
         if (IsButtonClicked(btnMainMenu)) {
@@ -596,6 +745,80 @@ void Tutorial_Update() {
             next = GS_LEVELS;
             printf("[Tutorial] -> Level Select\n");
         }
+    }
+}
+
+// ===========================================================================
+// Tutorial_DrawText  - single function that renders ALL tutorial text.
+// Every string, position, scale and colour comes from TUT_TEXTS above.
+// ===========================================================================
+static void Tutorial_DrawText()
+{
+    // tutEND suppresses the in-game prompt bar, but COMPLETE still needs text.
+    if (tutEND && tutorialPhase != TUTE_COMPLETE) return;
+
+    // -----------------------------------------------------------------------
+    // FIX: Banner background drawn FIRST so text is rendered on top of it.
+    // -----------------------------------------------------------------------
+    if (showWrongOrderMsg)
+    {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.65f);
+        {
+            AEMtx33 s, t, m;
+            AEMtx33Scale(&s, 700.0f, 80.0f);
+            AEMtx33Trans(&t, 0.0f, 0.0f);
+            AEMtx33Concat(&m, &t, &s);
+            AEGfxSetTransform(m.m);
+            AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
+        }
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    // -----------------------------------------------------------------------
+    // All text printed here, on top of any geometry drawn above.
+    // -----------------------------------------------------------------------
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+
+    for (int i = 0; i < TUT_TEXTS_COUNT; ++i)
+    {
+        const TutorialText& e = TUT_TEXTS[i];
+
+        // Phase filter
+        if (e.phase != -1 && e.phase != (int)tutorialPhase) continue;
+
+        // Order-step filter
+        if (e.orderStep != -1 && e.orderStep != showOrderStep) continue;
+
+        // Condition filter
+        switch (e.cond)
+        {
+        case TTC_TYPEWRITER:
+            AEGfxPrint(FontId, typewriterBuf,
+                e.x, e.y, e.scale, e.r, e.g, e.b, 1.0f);
+            continue;
+
+        case TTC_AFTER_TW:
+            if (!typewriterDone) continue;
+            break;
+
+        case TTC_WRONG_ORDER:
+            if (!showWrongOrderMsg) continue;
+            break;
+
+        case TTC_SODA_NOT_PLACED:
+            if (!typewriterDone) continue;
+            if (sodaOnPlate)     continue;
+            break;
+
+        case TTC_ALWAYS:
+        default:
+            break;
+        }
+
+        AEGfxPrint(FontId, e.text,
+            e.x, e.y, e.scale, e.r, e.g, e.b, 1.0f);
     }
 }
 
@@ -641,9 +864,7 @@ void Tutorial_Draw() {
 
         AEMtx33 sc, tr, tf;
         AEMtx33Scale(&sc, 70.0f, 110.0f);
-        AEMtx33Trans(&tr,
-            sodaIsBeingDragged ? sodaDragX : SodaX,
-            sodaIsBeingDragged ? sodaDragY : SodaY - 55.0f);
+        AEMtx33Trans(&tr, SodaX, SodaY - 55.0f);
         AEMtx33Concat(&tf, &tr, &sc);
         AEGfxSetTransform(tf.m);
         AEGfxMeshDraw(SodaMesh, AE_GFX_MDM_TRIANGLES);
@@ -666,8 +887,8 @@ void Tutorial_Draw() {
     }
 
     // ---- Stacked burger ingredients ----
-    float h = 0.0f;      // running stack height
-    const float S = 150.0f;    // ingredient draw size
+    float h = 0.0f;
+    const float S = 150.0f;
 
     auto DrawIng = [&](float u, float v, float yBase, float stackAdd) {
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -690,7 +911,7 @@ void Tutorial_Draw() {
     if (onionOnPlate)     DrawIng(1.f / 4.f, 1.f / 2.f, 0.0f, 8.0f);
 
     if (bunTopOnPlate) {
-        h -= 5.0f;  // top bun slightly compresses the stack
+        h -= 5.0f;
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
         AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);
@@ -717,78 +938,29 @@ void Tutorial_Draw() {
     GarageDoor_Draw();
 
     // ================================================================
-    // TUTORIAL OVERLAY (drawn last so it sits on top of everything)
+    // TUTORIAL OVERLAY
+    // All text is rendered by Tutorial_DrawText() which reads TUT_TEXTS[].
     // ================================================================
 
     if (!tutEND)
     {
-        // Semi-transparent prompt bar at the bottom of the screen
+        // Semi-transparent prompt bar background
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
         AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.65f);
         {
             AEMtx33 s, t, m;
             AEMtx33Scale(&s, 800.0f, 150.0f);
-            //AEMtx33Trans(&t, 200.0f, 125.0f);
             AEMtx33Trans(&t, 225.0f, 200.0f);
             AEMtx33Concat(&m, &t, &s);
             AEGfxSetTransform(m.m);
             AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
         }
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-
-        // "click to continue" hint shown on all steps
-        AEGfxPrint(FontId, "[ Click to continue ]",
-            0.15f, 0.3f, 0.75f, 0.7f, 0.7f, 0.7f, 1.0f);
     }
 
-    // AEGfxPrint(fontId, text, normX, normY, scale, r, g, b)
-    // normX / normY are in [-1, 1] normalised screen space.
-    switch (tutorialPhase) {
-
-    case TUTE_CUSTOMER_WALKING:
-        AEGfxPrint(FontId, "A customer is on their way...",
-            0.06f, 0.45f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        break;
-
-    case TUTE_SHOW_ORDER:
-        if (showOrderStep == 0)
-        {
-            AEGfxPrint(FontId, "A customer has arrived! Check their order above.",
-                -0.12f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-            AEGfxPrint(FontId, "The burger must be made in EXACT order to satisfy the customer!",
-                -0.17f, 0.4f, 0.85f, 1.0f, 0.9f, 0.2f, 1.0f);
-        }
-        else if (showOrderStep == 1)
-        {
-            AEGfxPrint(FontId, "The Green bar shows the customers patience level",
-                -0.12f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-            AEGfxPrint(FontId, "Don't take too long or else the customers will leave in anger!",
-                -0.13f, 0.4f, 0.85f, 1.0f, 0.9f, 0.2f, 1.0f);
-        }
-        break;
-
-    case TUTE_BUILD_BURGER:
-        AEGfxPrint(FontId, "Build the order! Click the ingredients on the left.",
-            -0.12f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxPrint(FontId, "Wrong ingredient? Drag the burger to the TRASH BIN to reset.",
-            -0.15f, 0.4f, 0.85f, 1.0f, 0.45f, 0.45f, 1.0f);
-        break;
-
-    case TUTE_FILL_SODA:
-        AEGfxPrint(FontId, "Burger done! Click the button on the SODA MACHINE",
-            -0.15f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxPrint(FontId, "Wait for the cup to fill, then DRAG it onto the plate.",
-            -0.1f, 0.4f, 0.85f, 0.4f, 1.0f, 0.55f, 1.0f);
-        break;
-
-    case TUTE_SERVE:
-        AEGfxPrint(FontId, "Order complete! DRAG the plate to the customer to serve!",
-            -0.18f, 0.45f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        break;
-
-    case TUTE_COMPLETE:
+    // COMPLETE screen - button geometry only (text comes from Tutorial_DrawText)
+    if (tutorialPhase == TUTE_COMPLETE)
     {
-        // Full-screen dark overlay
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
         AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.7f);
         {
@@ -799,14 +971,6 @@ void Tutorial_Draw() {
             AEGfxSetTransform(m.m);
             AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
         }
-        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-
-        AEGfxPrint(FontId, "Tutorial Complete!",
-            -0.23f, 0.25f, 1.5f, 1.0f, 0.85f, 0.1f, 1.0f);
-        AEGfxPrint(FontId, "You served your first customer. You're ready!",
-            -0.37f, 0.08f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-
-        // Main Menu button — brighter when hovered
         btnMainMenu.isHovered = IsButtonHovered(btnMainMenu);
         AEGfxSetColorToMultiply(
             btnMainMenu.isHovered ? 0.3f : 0.15f,
@@ -821,8 +985,6 @@ void Tutorial_Draw() {
             AEGfxSetTransform(m.m);
             AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
         }
-
-        // Levels button — brighter when hovered
         btnLevels.isHovered = IsButtonHovered(btnLevels);
         AEGfxSetColorToMultiply(
             btnLevels.isHovered ? 0.2f : 0.1f,
@@ -838,21 +1000,16 @@ void Tutorial_Draw() {
             AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
         }
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-
-        AEGfxPrint(FontId, "Main Menu", -0.28f, -0.68f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxPrint(FontId, "Play Levels", 0.09f, -0.68f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        break;
     }
 
-    default: break;
-    }
+    // ---- Single call that prints ALL tutorial text ----
+    Tutorial_DrawText();
 
     if (tutIsPaused) {
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
         AEMtx33 s, t, m;
 
-        // Dark backdrop
         AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.6f);
         AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
         AEMtx33Scale(&s, 1600.0f, 900.0f);
@@ -869,17 +1026,14 @@ void Tutorial_Draw() {
         float titleBarCY = (titleBarTop + titleBarBottom) * 0.5f;
         float btnW = 300.0f, btnH = 55.0f, btnR = 28.0f;
 
-        // Sync hitboxes
         TutPauseResumeBtnX = panelCX; TutPauseResumeBtnY = 55.0f;
         TutPauseMenuBtnX = panelCX; TutPauseMenuBtnY = -30.0f;
         TutPauseSettBtnX = panelCX; TutPauseSettBtnY = -100.0f;
 
-        // Cream panel
         DrawRoundedRect(BGMesh, PlateMesh,
             panelCX, panelCY, panelW, panelH, panelR,
             0.98f, 0.96f, 0.90f);
 
-        // Orange title bar
         AEGfxSetColorToMultiply(0.85f, 0.31f, 0.055f, 1.0f);
         AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
         AEMtx33Scale(&s, panelW - panelR * 2.0f, titleH);
@@ -905,7 +1059,6 @@ void Tutorial_Draw() {
         AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
         AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
 
-        // Buttons
         DrawRoundedRect(BGMesh, PlateMesh, panelCX, TutPauseResumeBtnY, btnW, btnH, btnR,
             0.85f, 0.31f, 0.055f);
         DrawRoundedRect(BGMesh, PlateMesh, panelCX, TutPauseMenuBtnY, btnW, btnH, btnR,
@@ -913,7 +1066,6 @@ void Tutorial_Draw() {
         DrawRoundedRect(BGMesh, PlateMesh, panelCX, TutPauseSettBtnY, btnW, btnH, btnR,
             0.17f, 0.17f, 0.17f);
 
-        // Text
         if (FontId >= 0) {
             AEGfxSetRenderMode(AE_GFX_RM_COLOR);
             AEGfxSetBlendMode(AE_GFX_BM_BLEND);
@@ -921,18 +1073,17 @@ void Tutorial_Draw() {
                 -0.10f, (titleBarCY - 14.0f) / 450.0f,
                 1.8f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Resume",
-                -0.07f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
+                -0.06f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Back to Main Menu",
-                -0.15f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
+                -0.12f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
                 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Settings",
-                -0.08f, (TutPauseSettBtnY - 10.0f) / 450.0f,
+                -0.065f, (TutPauseSettBtnY - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
 
-    // Settings on top of everything
     Settings_Draw(FontId, BGMesh, CircleMesh);
 }
 
@@ -983,7 +1134,4 @@ void Tutorial_Unload() {
     Points_Unload();
     Sound_Unload();
     Settings_Unload();
-    // Note: Level_Manager_Unload() is NOT called here.
-    // We wrote directly to currentLevelData in _Init without touching the CSV,
-    // so there is nothing for Level_Manager to clean up.
 }
