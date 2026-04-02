@@ -1,10 +1,10 @@
 ﻿// ---------------------------------------------------------------------------
-// Loading.cpp
+// Includes
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
 
 // ---------------------------------------------------------------------------
-// Loading State Variables
+// Globals
 // ---------------------------------------------------------------------------
 static s8 fontId = -1;
 static AEGfxVertexList* bgMesh = nullptr;
@@ -72,7 +72,7 @@ static LoadStep steps[] = {
 };
 
 // ---------------------------------------------------------------------------
-// Game State Functions
+// Loading State Functions
 // ---------------------------------------------------------------------------
 void Loading_Load()
 {
@@ -105,7 +105,7 @@ void Loading_Init()
 
 void Loading_Update()
 {
-    float dt = (float)AEFrameRateControllerGetFrameTime();
+    float dt = static_cast<float>(AEFrameRateControllerGetFrameTime());
 
     loadingTimer += dt;
 
@@ -202,9 +202,6 @@ void Loading_Draw()
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 
         AEGfxPrint(fontId, "LOADING", -0.12f, 0.8f, 2.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-
-        //const char* label = (loadStep < totalSteps) ? steps[loadStep].label : "Ready!";
-        //AEGfxPrint(fontId, label, -0.18f, -0.55f, 0.6f, 0.8f, 0.8f, 0.8f, 1.0f);
 
         char pctStr[16];
         int pct = (int)(displayProgress * 100.0f);

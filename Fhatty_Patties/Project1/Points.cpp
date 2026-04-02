@@ -1,32 +1,58 @@
-﻿ // ---------------------------------------------------------------------------
-// includes
+﻿// ---------------------------------------------------------------------------
+// Includes
+// ---------------------------------------------------------------------------
 #include "pch.hpp"
 
 // ---------------------------------------------------------------------------
-// Global variables for Point State
-static AEGfxVertexList* BarMesh = nullptr;  // Square mesh
-static AEGfxVertexList* starMesh = nullptr;  // Star mesh
-const f32 pointsEarnedH = 35.0f;
-static f32 displayPoints = 0.0f;
+// Globals
+// ---------------------------------------------------------------------------
+const f32 pointsEarnedH = 35.0f;        // Height of bars
+static f32 displayPoints = 0.0f;        // Current points displayed
+extern float currentPoints = 0.0f;      // Current points earned
+extern int currentStars = 0;            // Current stars
 
-// Removed duplicate declarations
-static AEMtx33 BarTransform, BarScale, BarTranslate;  // Bar transformation matrices
-static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslate;  // Star transformation matrices
+static f32 MAX_POINTS = 0.0f;           // Max points to fill the bar (3 stars * 35)
+static f32 BAR_WIDTH = 500.0f;          // Same width as gray bar
+static const f32 BAR_HEIGHT = 40.0f;    // Same height as gray bar
+static const f32 BAR_POS_X = 0.0f;      // Same X as gray bar
+static const f32 BAR_POS_Y = 400.0f;    // Same Y as gray bar
 
 // ---------------------------------------------------------------------------
-// Points System System
+// Meshes
 // ---------------------------------------------------------------------------
-static f32 MAX_POINTS = 0.0f;       // Max points to fill the bar (3 stars * 35)
-extern float currentPoints = 0.0f;            // Current points earned
-extern int currentStars = 0;
-static f32 BAR_WIDTH = 500.0f;        // Same width as gray bar
-static const f32 BAR_HEIGHT = 40.0f;        // Same height as gray bar
-static const f32 BAR_POS_X = 0.0f;          // Same X as gray bar
-static const f32 BAR_POS_Y = 400.0f;        // Same Y as gray bar
+static AEGfxVertexList* BarMesh = nullptr; 
+static AEGfxVertexList* starMesh = nullptr;
+
+static AEMtx33 BarTransform, BarScale, BarTranslate; 
+static AEMtx33 TempTransform, StarTransform, StarScale, StarRotate, StarTranslate; 
+
+// ---------------------------------------------------------------------------
+// Points System
+// ---------------------------------------------------------------------------
+/*
+@param - takes in a bool to represent customer state
+1. true: customer provides 35 pts 
+2. false: customer provides no pts
+*/
+void Points_AddPoints(bool cust) {
+    if (cust) {
+        currentPoints += pointsEarnedH;
+    }
+
+    if (currentPoints > MAX_POINTS) {
+        currentPoints = MAX_POINTS;
+    }
+
+    // Update points + save CSV
+    Level_Manager_UpdateHighestPoints(currentPoints);
+
+    printf("\nPoints added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
+}
+
 
 // ---------------------------------------------------------------------------
 // Points State Functions
-
+// ---------------------------------------------------------------------------
 void Points_Init() {
     printf("Points_Init called\n");
 
@@ -42,11 +68,6 @@ void Points_Init() {
 }
 
 void Points_Load() {
-    //printf("Loaded stars: %.0f %.0f %.0f\n",
-    //    currentLevelData.starPositions[0],
-    //    currentLevelData.starPositions[1],
-    //    currentLevelData.starPositions[2]);
-
     BarMesh = CreateSquareMesh(0.5f, 0.5f);
     starMesh = CreateStarMesh(0.5f, 0.2f); 
 
@@ -60,30 +81,6 @@ void Points_Update() {
     displayPoints += (currentPoints - displayPoints) * dt * 5.0f;
 }
 
-// ---------------------------------------------------------------------------
-//@param retrives customer state
-// ---------------------------------------------------------------------------
-void Points_AddPoints(bool cust) {
-    //happy(true) customer provides 35 pts angry(false) customer provides no pts
-    if (cust) {
-        currentPoints += pointsEarnedH;
-    }
-
-    if (currentPoints > MAX_POINTS) {
-        currentPoints = MAX_POINTS;
-    }
-
-    // Update points + save CSV
-    Level_Manager_UpdateHighestPoints(currentPoints);
-
-    // Display Stars Position in Console
-    //printf("Stars: ");
-    //for (int i = 0; i < 3; ++i) {
-    //    printf("Stars: %.1f", Level_Manager_GetStarPosition(i));
-    //}
-    printf("\n");
-    printf("Points added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
-}
 void Points_Draw() {
 
     if (MAX_POINTS <= 0.0f) return; // Guard against division by zero
@@ -166,7 +163,6 @@ void Points_Draw() {
 
 void Points_Free() {
     printf("Points_Free called\n");
-
     Particle_Free();
 }
 
@@ -184,5 +180,4 @@ void Points_Unload() {
     }
 
     Particle_Unload();
-
 }

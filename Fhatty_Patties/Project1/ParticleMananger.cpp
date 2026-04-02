@@ -1,9 +1,7 @@
 ﻿// ---------------------------------------------------------------------------
-// includes
-#include "pch.hpp"
-
+// Includes
 // ---------------------------------------------------------------------------
-// Global variables for Particles Credits
+#include "pch.hpp"
 
 // ---------------------------------------------------------------------------
 // Smoke Particle System
@@ -60,9 +58,6 @@ static float starBurstTimer = 0.0f;   // how long the burst lasts
 static const float STAR_BURST_DURATION = 0.8f; // total burst duration
 
 // ---------------------------------------------------------------------------
-// Helper Functions
-
-// ---------------------------------------------------------------------------
 // Spawn Smoke
 // ---------------------------------------------------------------------------
 static void SpawnSmoke(float truckX, float truckY)
@@ -87,6 +82,9 @@ static void SpawnSmoke(float truckX, float truckY)
     }
 }
 
+// ---------------------------------------------------------------------------
+// Set Smoke
+// ---------------------------------------------------------------------------
 void Particle_SetSmoke(float truckX, float truckY, bool truckLanded, float spawnInterval, float sz)
 {
     sourceSmokeX = truckX + SMOKE_OFFSET_X;
@@ -171,12 +169,7 @@ void Particle_DrawStarBurst()
 
 // ---------------------------------------------------------------------------
 // Game State Functions
-
-void Particle_Load()
-{
-    smokeMesh = CreateCircleMesh(0.5f, 16); 
-}
-
+// ---------------------------------------------------------------------------
 void Particle_Init()
 {
     spawnSmokeTimer = 0.0f;
@@ -196,6 +189,12 @@ void Particle_Init()
     starBurstTimer = 0.0f;
     spawnStarTimer = 0.0f;
 }
+
+void Particle_Load()
+{
+    smokeMesh = CreateCircleMesh(0.5f, 16);
+}
+
 
 void Particle_Update(float dt)
 {
@@ -231,10 +230,9 @@ void Particle_Update(float dt)
     }
 
     // ---------------------------------------------------------------------------
-        // Star Burst Update
-        // ---------------------------------------------------------------------------
-
-        // Spawn one particle at a time on timer — same as smoke
+    // Star Burst Update
+    // ---------------------------------------------------------------------------
+    // Spawn one particle at a time on timer — same as smoke
     if (emittingStar)
     {
         starBurstTimer += dt;

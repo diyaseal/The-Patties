@@ -3,6 +3,10 @@
 #define PCH_H
 
 // Add headers that you want to pre-compile here
+
+// ------------------------------------------------------------
+// LIBRARY
+// ------------------------------------------------------------
 #include <crtdbg.h> // To check for memory leaks
 #include <cstdio> 
 #include <vector>
@@ -10,24 +14,27 @@
 #include <sstream>
 #include <string>
 #include "AEEngine.h"
+
+// ------------------------------------------------------------
+// HEADERS
+// ------------------------------------------------------------
 #include "GameStateList.hpp"  // Game state enumeration header
 #include "GameStateManager.hpp"
-#include "Level_Manager.hpp"
+#include "LevelManager.hpp"
 #include "Customer.hpp"
 #include "Loading.hpp"
-#include "game.hpp"
-#include "utils.hpp"
-#include "School_Credits.hpp"
-#include "Team_Credits.hpp"
-#include "End_Credits.hpp"
+#include "Game.hpp"
+#include "Utils.hpp"
+#include "StartCredits.hpp"
+#include "EndCredits.hpp"
 #include "MainMenu.hpp"
 #include "Levels.hpp"
 #include "Points.hpp"
 #include "GraphicManager.hpp"
-#include "Particle_Manager.hpp"
+#include "ParticleManager.hpp"
 #include "LevelComplete.hpp"
-#include "Garagedoor.hpp"
-#include "sounds.hpp"
+#include "GarageDoor.hpp"
+#include "Sounds.hpp"
 #include "Settings.hpp"
 #include "Tutorial.hpp"
 

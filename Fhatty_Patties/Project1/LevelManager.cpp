@@ -1,17 +1,17 @@
 // ---------------------------------------------------------------------------
-// includes
+// Includes
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
 
 // ---------------------------------------------------------------------------
-// Global Variables
+// Globals
 // ---------------------------------------------------------------------------
 int currentLevel;
 LevelData currentLevelData;
 const char* LEVEL_DATA_PATH = "Assets/Data/Data.csv";
 
 // ---------------------------------------------------------------------------
-// Helper: Split string by delimiter
+// Helper Function: Split string by delimiter
 // ---------------------------------------------------------------------------
 static std::vector<std::string> SplitString(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
@@ -295,12 +295,11 @@ void Level_Manager_Load() {
 }
 
 void Level_Manager_Update() {
-    // Any per-frame level management logic goes here
+
 }
 
 void Level_Manager_Draw() {
-    // Level manager doesn't draw anything
-    // Points.cpp and Game.cpp handle rendering
+
 }
 
 void Level_Manager_Free() {

@@ -97,46 +97,44 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Customer.cpp" />
-    <ClCompile Include="game.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameStateManager.cpp" />
-    <ClCompile Include="Garagedoor.cpp" />
+    <ClCompile Include="GarageDoor.cpp" />
     <ClCompile Include="GraphicManager.cpp" />
     <ClCompile Include="Levels.cpp" />
     <ClCompile Include="LevelComplete.cpp" />
-    <ClCompile Include="Level_Manager.cpp" />
+    <ClCompile Include="LevelManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
-    <ClCompile Include="Particle_Mananger.cpp" />
+    <ClCompile Include="ParticleMananger.cpp" />
     <ClCompile Include="Points.cpp" />
-    <ClCompile Include="School_Credits.cpp" />
+    <ClCompile Include="StartCredits.cpp" />
     <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="sounds.cpp" />
-    <ClCompile Include="End_Credits.cpp" />
+    <ClCompile Include="Sounds.cpp" />
+    <ClCompile Include="EndCredits.cpp" />
     <ClCompile Include="Loading.cpp" />
-    <ClCompile Include="Team_Credits.cpp" />
     <ClCompile Include="Tutorial.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Customer.hpp" />
-    <ClInclude Include="game.hpp" />
+    <ClInclude Include="Game.hpp" />
     <ClInclude Include="GameStateList.hpp" />
     <ClInclude Include="GameStateManager.hpp" />
-    <ClInclude Include="Garagedoor.hpp" />
+    <ClInclude Include="GarageDoor.hpp" />
     <ClInclude Include="GraphicManager.hpp" />
-    <ClInclude Include="End_Credits.hpp" />
+    <ClInclude Include="EndCredits.hpp" />
     <ClInclude Include="Levels.hpp" />
-    <ClInclude Include="Level_Manager.hpp" />
+    <ClInclude Include="LevelManager.hpp" />
     <ClInclude Include="LevelComplete.hpp" />
     <ClInclude Include="Loading.hpp" />
     <ClInclude Include="MainMenu.hpp" />
-    <ClInclude Include="Particle_Manager.hpp" />
+    <ClInclude Include="ParticleManager.hpp" />
     <ClInclude Include="pch.hpp" />
     <ClInclude Include="Points.hpp" />
-    <ClInclude Include="School_Credits.hpp" />
+    <ClInclude Include="StartCredits.hpp" />
     <ClInclude Include="Settings.hpp" />
-    <ClInclude Include="sounds.hpp" />
-    <ClInclude Include="Team_Credits.hpp" />
+    <ClInclude Include="Sounds.hpp" />
     <ClInclude Include="Tutorial.hpp" />
     <ClInclude Include="Utils.hpp" />
   </ItemGroup>

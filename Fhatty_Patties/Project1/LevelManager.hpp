@@ -1,8 +1,6 @@
 #ifndef LEVEL_MANAGER_HPP
 #define LEVEL_MANAGER_HPP
 
-#include "pch.hpp"
-
 // Structure holding level info
 struct LevelData {
 

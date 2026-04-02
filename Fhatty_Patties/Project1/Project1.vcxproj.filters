@@ -4,10 +4,7 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Team_Credits.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="School_Credits.cpp">
+    <ClCompile Include="StartCredits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Points.cpp">
@@ -25,7 +22,7 @@
     <ClCompile Include="LevelComplete.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Level_Manager.cpp">
+    <ClCompile Include="LevelManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GraphicManager.cpp">
@@ -34,22 +31,22 @@
     <ClCompile Include="GameStateManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game.cpp">
+    <ClCompile Include="Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Customer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Garagedoor.cpp">
+    <ClCompile Include="GarageDoor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sounds.cpp">
+    <ClCompile Include="Sounds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="End_Credits.cpp">
+    <ClCompile Include="EndCredits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Particle_Mananger.cpp">
+    <ClCompile Include="ParticleMananger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Loading.cpp">
@@ -66,10 +63,7 @@
     <ClInclude Include="Utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Team_Credits.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="School_Credits.hpp">
+    <ClInclude Include="StartCredits.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Points.hpp">
@@ -87,7 +81,7 @@
     <ClInclude Include="LevelComplete.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Level_Manager.hpp">
+    <ClInclude Include="LevelManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphicManager.hpp">
@@ -99,22 +93,22 @@
     <ClInclude Include="GameStateList.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game.hpp">
+    <ClInclude Include="Game.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Customer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Garagedoor.hpp">
+    <ClInclude Include="GarageDoor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="End_Credits.hpp">
+    <ClInclude Include="EndCredits.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Particle_Manager.hpp">
+    <ClInclude Include="ParticleManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sounds.hpp">
+    <ClInclude Include="Sounds.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Loading.hpp">

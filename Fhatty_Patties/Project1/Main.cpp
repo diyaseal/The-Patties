@@ -30,7 +30,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     AEAudioInit();
 
     // GSM initialize - Initialize Game State Manager with starting state (Level 1)
-    GSM_Init(GS_SCH_CRED);
+    GSM_Init(GS_ST_CRED);
     AEFrameRateControllerReset();
     GSM_Update();
 
@@ -98,8 +98,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (fpUnload)
         fpUnload();
-    //MainMenu_Free();
-    //MainMenu_Unload();
+
     // Free the system
     AEAudioExit();
     AESysExit();

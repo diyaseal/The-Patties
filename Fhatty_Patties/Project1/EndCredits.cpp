@@ -1,31 +1,16 @@
 ﻿// ---------------------------------------------------------------------------
-// includes
+// Includes
+// ---------------------------------------------------------------------------
 #include "pch.hpp"
 
 // ---------------------------------------------------------------------------
-// Global variables for End Credits
-static float totalElapsedTime = 0.0f;            // Timer for screen duration
+// Globals
+// ---------------------------------------------------------------------------
+// TIMER
+static float totalElapsedTime = 0.0f;       // Timer for screen duration
 static float fade = 1.0f;                   // Start fully visible
 
-// Assets
-// ---------------------------------------------------------------------------
-// FONT
-// ---------------------------------------------------------------------------
-static s8 fontId = -1;                           // Font ID
-
-// ---------------------------------------------------------------------------
-// LAND
-// ---------------------------------------------------------------------------
-static AEGfxVertexList* landMesh = nullptr;
-static AEGfxTexture* Grass = nullptr;
-static float landRotation = 0.0f;
-static const float LAND_ROTATE_SPEED = 5.0f; // degrees per second
-
-// ---------------------------------------------------------------------------
-// STARS
-// ---------------------------------------------------------------------------
-static AEGfxVertexList* starMesh = nullptr;
-
+// STAR 
 struct BackgroundStar {
     float x, y;           // position
     float baseSize;       // original size
@@ -37,12 +22,7 @@ struct BackgroundStar {
 static const int NUM_STARS = 15;
 static BackgroundStar bgStars[NUM_STARS];
 
-// ---------------------------------------------------------------------------
 // TRUCK
-// ---------------------------------------------------------------------------
-static AEGfxTexture* Truck = nullptr;
-static AEMtx33 TruckTransform, TruckTranslate, TruckScale;
-static AEGfxVertexList* TruckMesh = nullptr;
 // Wheel animation 2 frames side by side in spritesheet, each frame = 0.5 UV width
 static int   truckFrame = 0;        // current frame (0 or 1)
 static float truckFrameTimer = 0.0f;     // counts up to TRUCK_FRAME_DURATION
@@ -63,9 +43,31 @@ static float truckBobTimer = 0.0f;    // drives the sine wave
 static const float TRUCK_BOB_SPEED = 8.0f;   // how fast it bobs
 static const float TRUCK_BOB_AMOUNT = 5.0f;   // how many pixels up/down
 
+// LAND
+static float landRotation = 0.0f;
+static const float LAND_ROTATE_SPEED = 5.0f; // degrees per second
+
+// ---------------------------------------------------------------------------
+// Mesh
+// ---------------------------------------------------------------------------
+static AEGfxVertexList* starMesh = nullptr; 
+
+static AEMtx33 TruckTransform, TruckTranslate, TruckScale;
+static AEGfxVertexList* TruckMesh = nullptr;
+
+static AEGfxVertexList* landMesh = nullptr;
+
+// ---------------------------------------------------------------------------
+// Assets
+// ---------------------------------------------------------------------------
+static s8 fontId = -1; 
+static AEGfxTexture* Truck = nullptr;
+static AEGfxTexture* Grass = nullptr;
+
+             
 // ---------------------------------------------------------------------------
 // Helper Functions
-
+// ---------------------------------------------------------------------------
 void End_Credits_Update()
 {
     // Quit
@@ -159,7 +161,7 @@ static float GetSetFade(float startTime)
 
 // ---------------------------------------------------------------------------
 // Game State Functions
-
+// ---------------------------------------------------------------------------
 void End_Credits_Load()
 {
     printf("School_Credits Load\n");

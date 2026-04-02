@@ -310,8 +310,8 @@ void MainMenu_Update()
             // Handle button actions based on which burger part was clicked
             if (btn == &topBun) {
                 printf("Top Bun clicked - Levels Menu!\n");
-                pendingNextState = GS_LEVELS;  //save where the page would go (Level page)
                 wallTriggered = true;
+                pendingNextState = GS_LEVELS;  //save where the page would go (Level page)
             }
             else if (btn == &cheese) {
                 printf("Cheese clicked - Tutorial!\n");
@@ -341,7 +341,7 @@ void MainMenu_Update()
         {
             WallPosY = 0;
             next = pendingNextState;
-            wallTriggered = false;
+            /*wallTriggered = false;*/
         }
     }
     // Quit confirmation popup — block everything while open

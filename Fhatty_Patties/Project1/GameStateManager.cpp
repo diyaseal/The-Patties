@@ -41,24 +41,16 @@ void GSM_Update()
     // Set function pointers based on the current game state
     switch (current)
     {
-    case GS_SCH_CRED:
-        fpLoad = School_Credits_Load;              // Add this line
-        fpInit = School_Credits_Init;
-        fpUpdate = School_Credits_Update;
-        fpDraw = School_Credits_Draw;
-        fpFree = School_Credits_Free;
-        fpUnload = School_Credits_Unload;
-        break;
-    case GS_TEAM_CRED:
-        fpLoad = Team_Credits_Load;              // Add this line
-        fpInit = Team_Credits_Init;
-        fpUpdate = Team_Credits_Update;
-        fpDraw = Team_Credits_Draw;
-        fpFree = Team_Credits_Free;
-        fpUnload = Team_Credits_Unload;
+    case GS_ST_CRED:
+        fpLoad = Start_Credits_Load;              
+        fpInit = Start_Credits_Init;
+        fpUpdate = Start_Credits_Update;
+        fpDraw = Start_Credits_Draw;
+        fpFree = Start_Credits_Free;
+        fpUnload = Start_Credits_Unload;
         break;
     case GS_MAINMENU:
-        fpLoad = MainMenu_Load;              // Add this line
+        fpLoad = MainMenu_Load;              
         fpInit = MainMenu_Init;
         fpUpdate = MainMenu_Update;
         fpDraw = MainMenu_Draw;
@@ -66,7 +58,7 @@ void GSM_Update()
         fpUnload = MainMenu_Unload;
 		break;
     case GS_LEVELS:
-        fpLoad = Levels_Load;              // Add this line
+        fpLoad = Levels_Load;             
         fpInit = Levels_Init;
         fpUpdate = Levels_Update;
         fpDraw = Levels_Draw;
@@ -82,8 +74,7 @@ void GSM_Update()
         fpUnload = Loading_Unload;
         break;
     case GS_GAME:
-        // Level 1 function pointers
-        fpLoad = Game_Load;              // Add this line
+        fpLoad = Game_Load;              
         fpInit = Game_Init;
         fpUpdate = Game_Update;
         fpDraw = Game_Draw;
