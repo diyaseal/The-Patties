@@ -580,49 +580,57 @@ void Tutorial_Update() {
         // ==============================================================
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 
-            if (InBounds(wmx, wmy, BunBotX, BunBotY, BunBotW / 2, BunBotH / 2)) {
+            if (!bunBottomOnPlate &&
+                InBounds(wmx, wmy, BunBotX, BunBotY, BunBotW / 2, BunBotH / 2)) {
                 bunBottomOnPlate = true;
                 currentBurger.push_back(BOTTOM_BUN);
                 CheckLastIngredient();
                 printf("[Tutorial] Bottom bun added.\n");
             }
-            if (InBounds(wmx, wmy, PattieX, PattieY, PattieW / 2, PattieH / 2)) {
+            if (!pattieOnPlate &&
+                InBounds(wmx, wmy, PattieX, PattieY, PattieW / 2, PattieH / 2)) {
                 pattieOnPlate = true;
                 currentBurger.push_back(PATTY);
                 CheckLastIngredient();
                 printf("[Tutorial] Patty added.\n");
             }
-            if (InBounds(wmx, wmy, CheeseX, CheeseY, CheeseW / 2, CheeseH / 2)) {
+            if (!cheeseOnPlate &&
+                InBounds(wmx, wmy, CheeseX, CheeseY, CheeseW / 2, CheeseH / 2)) {
                 cheeseOnPlate = true;
                 currentBurger.push_back(CHEESE);
                 CheckLastIngredient();
                 printf("[Tutorial] Cheese added.\n");
             }
-            if (InBounds(wmx, wmy, LettuceX, LettuceY, LettuceW / 2, LettuceH / 2)) {
+            if (!lettuceOnPlate &&
+                InBounds(wmx, wmy, LettuceX, LettuceY, LettuceW / 2, LettuceH / 2)) {
                 lettuceOnPlate = true;
                 currentBurger.push_back(LETTUCE);
                 CheckLastIngredient();
                 printf("[Tutorial] Lettuce added.\n");
             }
-            if (InBounds(wmx, wmy, TomatoX, TomatoY, TomatoW / 2, TomatoH / 2)) {
+            if (!tomatoOnPlate &&
+                InBounds(wmx, wmy, TomatoX, TomatoY, TomatoW / 2, TomatoH / 2)) {
                 tomatoOnPlate = true;
                 currentBurger.push_back(TOMATO);
                 CheckLastIngredient();
                 printf("[Tutorial] Tomato added.\n");
             }
-            if (InBounds(wmx, wmy, OnionX, OnionY, OnionW / 2, OnionH / 2)) {
+            if (!onionOnPlate &&
+                InBounds(wmx, wmy, OnionX, OnionY, OnionW / 2, OnionH / 2)) {
                 onionOnPlate = true;
                 currentBurger.push_back(ONION);
                 CheckLastIngredient();
                 printf("[Tutorial] Onion added.\n");
             }
-            if (InBounds(wmx, wmy, CucumbX, CucumbY, CucumbW / 2, CucumbH / 2)) {
+            if (!cucumberOnPlate &&
+                InBounds(wmx, wmy, CucumbX, CucumbY, CucumbW / 2, CucumbH / 2)) {
                 cucumberOnPlate = true;
                 currentBurger.push_back(CUCUMBER);
                 CheckLastIngredient();
                 printf("[Tutorial] Cucumber added.\n");
             }
-            if (InBounds(wmx, wmy, BunTopX, BunTopY, BunTopW / 2, BunTopH / 2)) {
+            if (!bunTopOnPlate &&
+                InBounds(wmx, wmy, BunTopX, BunTopY, BunTopW / 2, BunTopH / 2)) {
                 bunTopOnPlate = true;
                 burgerComplete = true;
                 currentBurger.push_back(TOP_BUN);
@@ -639,6 +647,7 @@ void Tutorial_Update() {
                 sodaMachineHasCup = true;
                 sodaIsFilled = false;
                 sodaFillTimer = 0.0f;
+                Sound_PlaySFX_Pour();
                 printf("[Tutorial] Started filling soda...\n");
             }
 
