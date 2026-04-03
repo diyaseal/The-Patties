@@ -1,129 +1,130 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StartCredits.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Points.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MainMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Levels.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LevelComplete.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LevelManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Main</Filter>
     </ClCompile>
     <ClCompile Include="GameStateManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Main</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Customer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GarageDoor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Sounds.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="StartCredits.cpp">
+      <Filter>Source Files\Main</Filter>
     </ClCompile>
     <ClCompile Include="EndCredits.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Main</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleMananger.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Customer.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="Loading.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Points.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files\Helpers/Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelManager.cpp">
+      <Filter>Source Files\Helpers/Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicManager.cpp">
+      <Filter>Source Files\Helpers/Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleMananger.cpp">
+      <Filter>Source Files\Helpers/Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelComplete.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GarageDoor.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="Tutorial.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Others</Filter>
+    </ClCompile>
+    <ClCompile Include="Levels.cpp">
+      <Filter>Source Files\Others</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenu.cpp">
+      <Filter>Source Files\Others</Filter>
     </ClCompile>
     <ClCompile Include="Settings.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Others</Filter>
+    </ClCompile>
+    <ClCompile Include="Sounds.cpp">
+      <Filter>Source Files\Helpers/Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utils.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StartCredits.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Points.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MainMenu.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Levels.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LevelComplete.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LevelManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameStateManager.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="EndCredits.hpp">
+      <Filter>Header Files\Main</Filter>
     </ClInclude>
     <ClInclude Include="GameStateList.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Main</Filter>
     </ClInclude>
-    <ClInclude Include="Game.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="GameStateManager.hpp">
+      <Filter>Header Files\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.hpp">
+      <Filter>Header Files\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="StartCredits.hpp">
+      <Filter>Header Files\Main</Filter>
     </ClInclude>
     <ClInclude Include="Customer.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.hpp">
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="GarageDoor.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="EndCredits.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="LevelComplete.hpp">
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sounds.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Points.hpp">
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="Loading.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="Tutorial.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="GraphicManager.hpp">
+      <Filter>Header Files\Helpers/Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelManager.hpp">
+      <Filter>Header Files\Helpers/Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleManager.hpp">
+      <Filter>Header Files\Helpers/Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Sounds.hpp">
+      <Filter>Header Files\Helpers/Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.hpp">
+      <Filter>Header Files\Helpers/Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Levels.hpp">
+      <Filter>Header Files\Others</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenu.hpp">
+      <Filter>Header Files\Others</Filter>
     </ClInclude>
     <ClInclude Include="Settings.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Others</Filter>
+    </ClInclude>
+    <ClInclude Include="Tutorial.hpp">
+      <Filter>Header Files\Others</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Assets\Data\Data.csv" />
-    <None Include="Data.json" />
+    <None Include="..\Assets\Data\Data.csv">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -134,6 +135,30 @@
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{c747b024-fd90-4e91-bf56-f920d08ca989}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Main">
+      <UniqueIdentifier>{80eb3ac9-7f60-4d42-b602-de9da648cd3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game">
+      <UniqueIdentifier>{f3d7843d-8484-46f5-84fe-097a7b3683ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Others">
+      <UniqueIdentifier>{6978de42-f8c9-41cb-aaa1-af1340050cd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Helpers/Resources">
+      <UniqueIdentifier>{ef5de0a4-a9cb-4752-8e44-e0c59a985fb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Main">
+      <UniqueIdentifier>{5b1c1fc6-8779-461e-82bd-ffffbd7bed9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game">
+      <UniqueIdentifier>{77152f50-1891-401a-80e3-9a4b6be13c0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Helpers/Resources">
+      <UniqueIdentifier>{75fa6fa4-af0d-41bf-8a50-883771464669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Others">
+      <UniqueIdentifier>{2c4a2b7a-4334-4062-bdec-40ee12b76380}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

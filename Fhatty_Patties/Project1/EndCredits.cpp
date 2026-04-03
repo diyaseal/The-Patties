@@ -324,9 +324,12 @@ void End_Credits_Draw()
     float f4 = GetSetFade(15.0f);
     float f5 = GetSetFade(20.0f);
     float f6 = GetSetFade(25.0f);
+    float f7 = GetSetFade(30.0f);
 
     // School credits line stays throughout using max fade of all sets
     float globalFade = 1.0f;
+    AEGfxPrint(fontId, "Press 'Q' to Quit",
+        -0.90f, 0.9f, 0.4f, 1, 1, 1, globalFade);
     AEGfxPrint(fontId, "WWW.DIGIPEN.EDU",
         -0.10f, 0.9f, 0.4f, 1, 1, 1, globalFade);
     AEGfxPrint(fontId, "All content (c) 2025 DigiPen Institute of Technology Singapore. All Rights Reserved.",
@@ -342,14 +345,15 @@ void End_Credits_Draw()
         AEGfxPrint(fontId, "Syakil", -0.20f, 0.50f, 0.5f, 1, 1, 1, f1);
         AEGfxPrint(fontId, "UI/UX Programmer", 0.02f, 0.50f, 0.5f, 1, 1, 1, f1);
 
-        AEGfxPrint(fontId, "Yue Jun", -0.20f, 0.45f, 0.5f, 1, 1, 1, f1);
-        AEGfxPrint(fontId, "Animation Programmer", 0.02f, 0.45f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Yue Jun", -0.20f, 0.40f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Animation Programmer", 0.02f, 0.40f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Sound Programmer", 0.02f, 0.35f, 0.5f, 1, 1, 1, f1);
 
-        AEGfxPrint(fontId, "Diya", -0.20f, 0.40f, 0.5f, 1, 1, 1, f1);
-        AEGfxPrint(fontId, "Gameplay Programmer", 0.02f, 0.40f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Diya", -0.20f, 0.25f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Gameplay Programmer", 0.02f, 0.25f, 0.5f, 1, 1, 1, f1);
 
-        AEGfxPrint(fontId, "Elizabeth", -0.20f, 0.35f, 0.5f, 1, 1, 1, f1);
-        AEGfxPrint(fontId, "Level Programmer", 0.02f, 0.35f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Elizabeth", -0.20f, 0.15f, 0.5f, 1, 1, 1, f1);
+        AEGfxPrint(fontId, "Level Programmer", 0.02f, 0.15f, 0.5f, 1, 1, 1, f1);
     }
 
     // -----------------------------------------------------------------------
@@ -372,33 +376,47 @@ void End_Credits_Draw()
     if (f3 > 0.0f)
     {
         AEGfxPrint(fontId, "President", -0.115f, 0.60f, 1.0f, 1, 1, 1, f3);
-        AEGfxPrint(fontId, "Claude Comair", -0.085f, 0.50f, 0.5f, 1, 1, 1, f3);
+        AEGfxPrint(fontId, "Claude Comair", -0.09f, 0.50f, 0.5f, 1, 1, 1, f3);
 
-        AEGfxPrint(fontId, "Executives", -0.115f, 0.35f, 0.8f, 1, 1, 1, f3);
+        AEGfxPrint(fontId, "Executives", -0.11f, 0.35f, 0.8f, 1, 1, 1, f3);
         AEGfxPrint(fontId, "Jason Chu    Samir Abou Samra    Michele Comair", -0.25f, 0.25f, 0.5f, 1, 1, 1, f3);
         AEGfxPrint(fontId, "Angela Kugler    Erik Mohrmann          Benjamin Ellinger", -0.294f, 0.20f, 0.5f, 1, 1, 1, f3);
         AEGfxPrint(fontId, "Melvin Gonsalves", -0.115f, 0.15f, 0.5f, 1, 1, 1, f3);
     }
 
     // -----------------------------------------------------------------------
-    // SET 4 — Special Thanks
+    // SET 4 — Copyright References
     // -----------------------------------------------------------------------
-    if (f4 > 0.0f)
-    {
-        AEGfxPrint(fontId, "Special Thanks", -0.17f, 0.60f, 1.0f, 1, 1, 1, f4);
-        AEGfxPrint(fontId, "All Our Play Testers", -0.12f, 0.50f, 0.5f, 1, 1, 1, f4);
+    if (f4 > 0.0f) {
+        AEGfxPrint(fontId, "References", -0.115f, 0.60f, 1.0f, 1, 1, 1, f4);
+
+        AEGfxPrint(fontId, "https://fity.club/lists/suggestions/cartoon-grass-texture/", -0.294f, 0.50f, 0.5f, 1, 1, 1, f4);
+        AEGfxPrint(fontId, "https://www.bensound.com/", -0.14f, 0.45f, 0.5f, 1, 1, 1, f4);
+        AEGfxPrint(fontId, "https://pixabay.com/sound-effects/", -0.19f, 0.40f, 0.5f, 1, 1, 1, f4);
     }
 
     // -----------------------------------------------------------------------
-    // SET 5 — Copyright
+    // SET 5 — Special Thanks
     // -----------------------------------------------------------------------
     if (f5 > 0.0f)
     {
-        AEGfxPrint(fontId, "Thank You For Playing", -0.25f, 0.5f, 1.0f, 1, 1, 1, f5);
+        AEGfxPrint(fontId, "Special Thanks", -0.17f, 0.60f, 1.0f, 1, 1, 1, f5);
+        AEGfxPrint(fontId, "All Our Play Testers", -0.12f, 0.50f, 0.5f, 1, 1, 1, f5);
+    }
+
+    // -----------------------------------------------------------------------
+    // SET 6 — More Thanks
+    // -----------------------------------------------------------------------
+    if (f6 > 0.0f)
+    {
+        AEGfxPrint(fontId, "Thank You For Playing", -0.25f, 0.5f, 1.0f, 1, 1, 1, f6);
     
     }
 
-    if (f6 > 0.0f) {
+    // -----------------------------------------------------------------------
+    // SET 7 — Switch States
+    // -----------------------------------------------------------------------
+    if (f7 > 0.0f) {
         next = GS_MAINMENU;
     }
 
