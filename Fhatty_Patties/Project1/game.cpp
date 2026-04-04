@@ -624,21 +624,10 @@ void Game_Update() {
     }
     // Continuous drag update (if burger is being dragged)
     if (isDragging && burgerIsBeingDragged) {
-        // Update burger position to follow mouse
-        s32 mouseX, mouseY;
         AEInputGetCursorPosition(&mouseX, &mouseY);
-
-        // Convert to world coordinates
-        float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
-        float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
-
-        float worldMouseX = (float)mouseX - windowWidth / 2.0f;
-        float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
-
-        burgerDragX = worldMouseX;
-        burgerDragY = worldMouseY;
+        burgerDragX = (float)mouseX - windowWidth / 2.0f;
+        burgerDragY = -(float)mouseY + windowHeight / 2.0f;
     }
-
 
     // Check for mouse release
     if (AEInputCheckReleased(AEVK_LBUTTON)) {
@@ -1012,7 +1001,6 @@ void Game_Draw() {
         float panelCX = 0.0f, panelCY = 0.0f;
         float panelW = 400.0f, panelH = 560.0f, panelR = 30.0f;
         float titleH = 70.0f;
-        float titleCY = panelCY + panelH * 0.5f - titleH * 0.5f;
         float btnW = 300.0f, btnH = 55.0f, btnR = 28.0f;
         float btn3Y = panelCY + 110.0f;  // Resume       (top)
         float btn4Y = panelCY + 30.0f;   // Restart
