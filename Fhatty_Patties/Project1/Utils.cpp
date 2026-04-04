@@ -39,12 +39,6 @@ bool IsButtonHovered(const Button& button)
 }
 
 // Check if button is clicked
-//bool IsButtonClicked(const BurgerButton& button)
-//{
-//    return AEInputCheckTriggered(AEVK_LBUTTON);
-//}
-
-// Check if button is clicked
 bool IsButtonClicked(const Button& button)
 {
     return IsButtonHovered(button) && AEInputCheckTriggered(AEVK_LBUTTON);
