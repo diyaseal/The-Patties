@@ -1,0 +1,17 @@
+key,value
+plate_center_x,290
+plate_center_y,-210
+plate_hit_w,300
+plate_hit_h,300
+soda_x,574
+soda_y,-88
+soda_w,70
+soda_h,70
+soda_fill_time,3
+trash_x,629
+trash_y,-374
+trash_w,250
+trash_h,250
+stack_base_x,300
+stack_base_y,-175
+ingredient_size,150
