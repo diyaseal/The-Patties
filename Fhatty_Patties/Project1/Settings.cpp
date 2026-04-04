@@ -84,7 +84,7 @@ void Settings_Load() {
         settingsFontId = AEGfxCreateFont("Assets/Font/HollyBerryPop-LVxvE.ttf", 28);
 }
 // ---------------------------------------------------------------------------
-void Settings_Update(float dt, s8 /*fontId – unused in Update*/) {
+void Settings_Update(float /*dt*/, s8 /*fontId – unused in Update*/) {
     if (!settingsOpen) return;
 
     // Mouse in world space
@@ -149,7 +149,7 @@ void Settings_Update(float dt, s8 /*fontId – unused in Update*/) {
 }
 
 // ---------------------------------------------------------------------------
-void Settings_Draw(s8 fontId, AEGfxVertexList* squareMesh, AEGfxVertexList* circleMesh) {
+void Settings_Draw(s8 /*fontId*/, AEGfxVertexList* squareMesh, AEGfxVertexList* circleMesh) {
     if (!settingsOpen || !squareMesh) return;
 
     float halfW = AEGfxGetWindowWidth() * 0.5f;
@@ -183,7 +183,6 @@ void Settings_Draw(s8 fontId, AEGfxVertexList* squareMesh, AEGfxVertexList* circ
     // -------------------------------------------------------------------
     float titleH = 52.0f;
     float titleCY = PANEL_Y + PANEL_H * 0.5f - titleH * 0.5f;
-    float titleBarBottom = PANEL_Y + PANEL_H * 0.5f - titleH;
 
     // Centre strip
     AEGfxSetColorToMultiply(0.85f, 0.30f, 0.10f, 1.0f);
