@@ -10,7 +10,7 @@
 extern std::vector<Customer> customers;
 
 // ---------------------------------------------------------------------------
-// Ingredient hitbox — loaded from Assets/Data/ingredients.csv
+// Ingredient hitbox — loaded from Assets/Data/Ingredient.csv
 // CSV format (header row):  name,x,y,width,height
 // Falls back to kDefaultHitboxes if the file cannot be opened.
 // ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ static IngredientType IngredientNameToType(const std::string& name) {
 static void LoadIngredientHitboxes() {
     ingredientHitboxes.clear();
 
-    std::ifstream file("Assets/Data/ingredients.csv");
+    std::ifstream file("Assets/Data/Ingredients.csv");
     if (!file.is_open()) {
 #ifdef _DEBUG
         printf("[game] ingredients.csv not found — using defaults\n");
@@ -84,7 +84,7 @@ static void LoadIngredientHitboxes() {
 }
 
 // ---------------------------------------------------------------------------
-// Game config — loaded from Assets/Data/game_config.csv
+// Game config — loaded from Assets/Data/GameConfig.csv
 // CSV format (header row):  key,value
 // ---------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ struct GameConfig {
 static GameConfig gCfg;
 
 static void LoadGameConfig() {
-    std::ifstream file("Assets/Data/game_config.csv");
+    std::ifstream file("Assets/Data/GameConfig.csv");
     if (!file.is_open()) {
 #ifdef _DEBUG
         printf("[game] game_config.csv not found — using defaults\n");
