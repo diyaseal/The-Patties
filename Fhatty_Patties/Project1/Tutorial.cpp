@@ -168,11 +168,6 @@ static AEGfxVertexList* BGMesh = nullptr;
 static AEGfxVertexList* IngredientsMesh = nullptr;
 static AEGfxVertexList* SodaMesh = nullptr;
 
-static AEGfxTexture* GameplayBG_back = nullptr;
-static AEGfxTexture* GameplayBG_front = nullptr;
-static AEGfxTexture* CustomerTexture[4] = { nullptr };
-static AEGfxTexture* PlateTexture = nullptr;
-
 // ---------------------------------------------------------------------------
 // Pause Menu
 // ---------------------------------------------------------------------------

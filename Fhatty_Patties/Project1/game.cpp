@@ -118,11 +118,6 @@ static float sodaDragY = 0.0f; // (D) soda drag position
 // ---------------------------------------------------------------------------
 // Helper Functions Syakil 
 
-// Helper function to check if burger is complete (has both buns)
-static bool IsBurgerComplete() {
-    return bunBottomOnPlate && bunTopOnPlate;
-}
-
 // Helper to reset drag state Syakil
 static void ResetDragState() {
     isDragging = false;

@@ -23,7 +23,6 @@ const float BACK_BTN_HEIGHT = 60.0f;
 const float BACK_BTN_X = 0.0f;
 const float BACK_BTN_Y = -250.0f;
 
-static AEGfxTexture* Ingredients = nullptr;
 static AEGfxVertexList* IngredientsMesh = nullptr;
 static LevelButton  levelButtons[5];
 static AEGfxTexture* Lock = nullptr;
