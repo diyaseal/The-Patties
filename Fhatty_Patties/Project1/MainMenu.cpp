@@ -172,8 +172,7 @@ void MainMenu_Update()
     float dt = (float)AEFrameRateControllerGetFrameTime();
 
     // Track when settings closes to block bleed-through clicks
-    static bool wasSettingsOpen = false;      
-    bool isNowOpen = Settings_IsOpen();        
+    static bool wasSettingsOpen = false;           
 
     Settings_Update(dt, FontId);
 
@@ -346,10 +345,7 @@ void MainMenu_Update()
     }
     // Quit confirmation popup — block everything while open
     if (showQuitConfirm) {
-        s32 mouseX, mouseY;
         AEInputGetCursorPosition(&mouseX, &mouseY);
-        float worldMouseX = (float)mouseX - AEGfxGetWindowWidth() / 2.0f;
-        float worldMouseY = -(float)mouseY + AEGfxGetWindowHeight() / 2.0f;
 
         float yesBtnX = -80.0f, yesBtnY = -30.0f;
         float noBtnX = 80.0f, noBtnY = -30.0f;
