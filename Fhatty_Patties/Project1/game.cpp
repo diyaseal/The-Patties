@@ -1,6 +1,5 @@
 ﻿// ---------------------------------------------------------------------------
 // game.cpp
-// Authors: Diya Seal (D), Syakil, Tan Yue Jun / Teb, Elizabeth Neo
 // Description: Core gameplay state — burger assembly, customer serving,
 //              drag-and-drop, soda machine, pause menu.
 // ---------------------------------------------------------------------------
