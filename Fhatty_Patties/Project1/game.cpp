@@ -170,7 +170,7 @@ static const IngredientRenderInfo kRenderOrder[] = {
     { PATTY,      0.f,       0.f,        25.0f },
     { TOMATO,     1.f / 4.f, 0.f,        18.0f },
     { CUCUMBER,   2.f / 4.f, 1.f / 2.f,  8.0f },
-    { ONION,      1.f / 4.f, 1.f / 2.f,  10.0f },
+    { ONION,      1.f / 4.f, 1.f / 2.f,  8.0f },
     { TOP_BUN,    3.f / 4.f, 0.f,         0.0f }, // compression applied below
 };
 
@@ -334,12 +334,19 @@ bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
 void Burger_Clear() {
     currentBurger.clear();
     burgerComplete = false;
+
+    // (D) Remember whether soda was actually on the tray before clearing
+    bool sodaWasOnTray = ingredientOnPlate[SODA];
+
+    // Clear only tray / plate ingredients
     std::fill(std::begin(ingredientOnPlate), std::end(ingredientOnPlate), false);
 
-    // Always reset soda machine when plate is cleared
-    sodaMachineHasCup = false;
-    sodaIsFilled = false;
-    sodaFillTimer = 0.0f;
+    // (D) Only clear machine soda if soda had already been placed on the tray
+    if (sodaWasOnTray) {
+        sodaMachineHasCup = false;
+        sodaIsFilled = false;
+        sodaFillTimer = 0.0f;
+    }
 
     ResetDragState();
 
