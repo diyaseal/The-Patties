@@ -1,258 +1,386 @@
 ﻿// ---------------------------------------------------------------------------
-// includes
+// game.cpp
+// Authors: Diya Seal (D), Syakil, Tan Yue Jun / Teb, Elizabeth Neo
+// Description: Core gameplay state — burger assembly, customer serving,
+//              drag-and-drop, soda machine, pause menu.
+// ---------------------------------------------------------------------------
+
 #include "pch.hpp"
+
+// customers is defined in Customer.cpp
 extern std::vector<Customer> customers;
-extern const float EXIT_X = 800.0f;
 
 // ---------------------------------------------------------------------------
-// Global variables for Game State:Diya
-static AEGfxVertexList* SquareMesh = nullptr;  // Square mesh
-static AEGfxVertexList* PlateMesh = nullptr;  // circle mesh
-static AEGfxVertexList* BGMesh = nullptr;  // BG mesh
-static AEGfxVertexList* IngredientsMesh = nullptr;  // Ingredient mesh (T)
-static AEGfxVertexList* SodaMesh = nullptr; // (D)
+// Ingredient hitbox — loaded from Assets/Data/ingredients.csv
+// CSV format (header row):  name,x,y,width,height
+// Falls back to kDefaultHitboxes if the file cannot be opened.
+// ---------------------------------------------------------------------------
 
-AEGfxTexture* Ingredients = nullptr; 
-AEGfxTexture* GameplayBG_back = nullptr; // game BG
-AEGfxTexture* GameplayBG_front = nullptr; // game BG
-AEGfxTexture* CustomerTexture[4] = { nullptr }; // Customer sprite sheet texture (T)
-AEGfxTexture* PlateTexture = nullptr; //plate 
-AEGfxTexture* SodaTexture = nullptr; // (D) soda sprite sheet so Customer.cpp can show it in bubble
-AEGfxTexture* LockTexture = nullptr; // (D) lock icon texture
-static bool levelEndTriggered = false; // To ensure we only trigger level end sequence once (T)
+struct IngredientHitbox {
+    IngredientType type;
+    float x, y, width, height;
+};
 
+static std::vector<IngredientHitbox> ingredientHitboxes;
 
-static AEMtx33 TableTransform, TableScale, TableTranslate, PlateTransform, PlateTranslate, PlateScale,
-PattieTransform, PattieScale, PattieTranslate,
-CheeseTransform, CheeseScale, CheeseTranslate,
-TomatoTransform, TomatoScale, TomatoTranslate,
-LettuceTransform, LettuceScale, LettuceTranslate,
-TBurgerTransform, TBurgerScale, TBurgerTranslate,
-BBurgerTransform, BBurgerScale, BBurgerTranslate,  // Transformation matrices
-BGTransform, BGScale, BGTranslate,
-PlateImageTransform, PlateImageScale, PlateImageTranslate;
+static const IngredientHitbox kDefaultHitboxes[] = {
+    { TOP_BUN,    -523.0f,  -81.0f, 120.0f, 100.0f },
+    { BOTTOM_BUN, -560.0f, -180.0f, 120.0f, 100.0f },
+    { PATTY,      -275.0f, -110.0f,  83.0f,  83.0f },
+    { CHEESE,     -150.0f, -110.0f,  83.0f,  83.0f },
+    { LETTUCE,    -150.0f, -170.0f,  90.0f,  83.0f },
+    { TOMATO,     -300.0f, -175.0f,  83.0f,  83.0f },
+    { ONION,         3.0f, -175.0f,  83.0f,  83.0f },
+    { CUCUMBER,    -18.0f, -108.0f,  83.0f,  83.0f },
+};
 
-// Ingredient positions on the plate
-static AEMtx33 PlateLettuceTransform, PlateLettuceScale, PlateLettuceTranslate;
-static std::vector<int> currentBurger;  // What player has built
-static bool burgerComplete = false;     // Is burger ready to serve?
+static IngredientType IngredientNameToType(const std::string& name) {
+    if (name == "top_bun")    return TOP_BUN;
+    if (name == "bottom_bun") return BOTTOM_BUN;
+    if (name == "patty")      return PATTY;
+    if (name == "cheese")     return CHEESE;
+    if (name == "lettuce")    return LETTUCE;
+    if (name == "tomato")     return TOMATO;
+    if (name == "onion")      return ONION;
+    if (name == "cucumber")   return CUCUMBER;
+    return PATTY;
+}
 
-// Add near other static variables in game.cpp:
-// Drag-and-drop system : Syakil 
-static bool isDragging = false;
+static void LoadIngredientHitboxes() {
+    ingredientHitboxes.clear();
+
+    std::ifstream file("Assets/Data/ingredients.csv");
+    if (!file.is_open()) {
+#ifdef _DEBUG
+        printf("[game] ingredients.csv not found — using defaults\n");
+#endif
+        for (const auto& hb : kDefaultHitboxes)
+            ingredientHitboxes.push_back(hb);
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // skip header
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        std::istringstream ss(line);
+        std::string name, sx, sy, sw, sh;
+        if (!std::getline(ss, name, ',')) continue;
+        if (!std::getline(ss, sx, ',')) continue;
+        if (!std::getline(ss, sy, ',')) continue;
+        if (!std::getline(ss, sw, ',')) continue;
+        if (!std::getline(ss, sh, ',')) continue;
+
+        IngredientHitbox hb;
+        hb.type = IngredientNameToType(name);
+        hb.x = std::stof(sx);
+        hb.y = std::stof(sy);
+        hb.width = std::stof(sw);
+        hb.height = std::stof(sh);
+        ingredientHitboxes.push_back(hb);
+    }
+#ifdef _DEBUG
+    printf("[game] Loaded %zu ingredient hitboxes\n", ingredientHitboxes.size());
+#endif
+}
+
+// ---------------------------------------------------------------------------
+// Game config — loaded from Assets/Data/game_config.csv
+// CSV format (header row):  key,value
+// ---------------------------------------------------------------------------
+
+struct GameConfig {
+    float plateCenterX = 290.0f;
+    float plateCenterY = -210.0f;
+    float plateHitW = 300.0f;
+    float plateHitH = 300.0f;
+    float sodaX = 574.0f;
+    float sodaY = -88.0f;
+    float sodaW = 70.0f;
+    float sodaH = 70.0f;
+    float sodaFillTime = 3.0f;
+    float trashX = 629.0f;
+    float trashY = -374.0f;
+    float trashW = 250.0f;
+    float trashH = 250.0f;
+    float stackBaseX = 300.0f;
+    float stackBaseY = -175.0f;
+    float ingredientSize = 150.0f;
+};
+
+static GameConfig gCfg;
+
+static void LoadGameConfig() {
+    std::ifstream file("Assets/Data/game_config.csv");
+    if (!file.is_open()) {
+#ifdef _DEBUG
+        printf("[game] game_config.csv not found — using defaults\n");
+#endif
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // skip header
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        std::istringstream ss(line);
+        std::string key, val;
+        if (!std::getline(ss, key, ',')) continue;
+        if (!std::getline(ss, val, ',')) continue;
+        float v = std::stof(val);
+
+        if (key == "plate_center_x")  gCfg.plateCenterX = v;
+        else if (key == "plate_center_y")  gCfg.plateCenterY = v;
+        else if (key == "plate_hit_w")     gCfg.plateHitW = v;
+        else if (key == "plate_hit_h")     gCfg.plateHitH = v;
+        else if (key == "soda_x")          gCfg.sodaX = v;
+        else if (key == "soda_y")          gCfg.sodaY = v;
+        else if (key == "soda_w")          gCfg.sodaW = v;
+        else if (key == "soda_h")          gCfg.sodaH = v;
+        else if (key == "soda_fill_time")  gCfg.sodaFillTime = v;
+        else if (key == "trash_x")         gCfg.trashX = v;
+        else if (key == "trash_y")         gCfg.trashY = v;
+        else if (key == "trash_w")         gCfg.trashW = v;
+        else if (key == "trash_h")         gCfg.trashH = v;
+        else if (key == "stack_base_x")    gCfg.stackBaseX = v;
+        else if (key == "stack_base_y")    gCfg.stackBaseY = v;
+        else if (key == "ingredient_size") gCfg.ingredientSize = v;
+    }
+#ifdef _DEBUG
+    printf("[game] game_config.csv loaded\n");
+#endif
+}
+
+// ---------------------------------------------------------------------------
+// Ingredient render table — drives draw order and sprite sheet UVs.
+// Matches the 4x2 sprite sheet layout used by the Ingredients texture.
+// To add a new ingredient: add one row here + one row in ingredients.csv.
+// ---------------------------------------------------------------------------
+
+struct IngredientRenderInfo {
+    IngredientType type;
+    float texU;        // normalised U offset into sprite sheet
+    float texV;        // normalised V offset into sprite sheet
+    float stackHeight; // pixels this ingredient adds to the stack
+};
+
+static const IngredientRenderInfo kRenderOrder[] = {
+    { BOTTOM_BUN, 3.f / 4.f, 1.f / 2.f, 15.0f },
+    { LETTUCE,    2.f / 4.f, 0.f,         8.0f },
+    { CHEESE,     0.f,       1.f / 2.f,  10.0f },
+    { PATTY,      0.f,       0.f,        25.0f },
+    { TOMATO,     1.f / 4.f, 0.f,        18.0f },
+    { CUCUMBER,   2.f / 4.f, 1.f / 2.f,  8.0f },
+    { ONION,      1.f / 4.f, 1.f / 2.f,  8.0f },
+    { TOP_BUN,    3.f / 4.f, 0.f,         0.0f }, // compression applied below
+};
+
+// ---------------------------------------------------------------------------
+// Meshes & textures
+// ---------------------------------------------------------------------------
+
+static AEGfxVertexList* SquareMesh = nullptr;
+static AEGfxVertexList* PlateMesh = nullptr;
+static AEGfxVertexList* BGMesh = nullptr;
+static AEGfxVertexList* IngredientsMesh = nullptr;
+static AEGfxVertexList* SodaMesh = nullptr;
+
+AEGfxTexture* Ingredients = nullptr;
+AEGfxTexture* GameplayBG_back = nullptr;
+AEGfxTexture* GameplayBG_front = nullptr;
+AEGfxTexture* CustomerTexture[4] = { nullptr };
+AEGfxTexture* PlateTexture = nullptr;
+AEGfxTexture* SodaTexture = nullptr;
+AEGfxTexture* LockTexture = nullptr;
+
+// Reused transform matrices — declared once to avoid per-frame stack allocation
+static AEMtx33 BGTransform, BGScale, BGTranslate;
+static AEMtx33 IngTransform, IngScale, IngTranslate;
+
+// ---------------------------------------------------------------------------
+// Burger / plate state
+// ---------------------------------------------------------------------------
+
+static std::vector<int> currentBurger;
+static bool             burgerComplete = false;
+
+// Indexed by IngredientType (0–8) — replaces 8 separate bool variables
+static bool ingredientOnPlate[9] = {};
+
+// ---------------------------------------------------------------------------
+// Drag-and-drop state  (Syakil)
+// ---------------------------------------------------------------------------
+
+static bool  isDragging = false;
 static float dragOffsetX = 0.0f;
 static float dragOffsetY = 0.0f;
 static float burgerDragX = 0.0f;
 static float burgerDragY = 0.0f;
-static bool burgerIsBeingDragged = false;
-
-// This is the hitbox coordinates: using world map i found the 
-// clickable area and averaged it to find the centre coordinates X,Y 
-// then i put the hitbox area set to 100 : Diya 
-static float BunTopX = -523.0f;
-static float BunTopY = -81.0f;
-static float BunTopWidth = 120.0f;
-static float BunTopHeight = 100.0f;
-
-static float BunBottomX = -560.0f;
-static float BunBottomY = -180.0f;
-static float BunBottomWidth = 120.0f;
-static float BunBottomHeight = 100.0f;
-
-static float PattieX = -275.0f; //updated hitbox
-static float PattieY = -110.0f;
-static float PattieWidth = 83.0f;
-static float PattieHeight = 83.0f;
-
-static float CheeseX = -150.0f; //updated hitbox
-static float CheeseY = -110.0f;
-static float CheeseWidth = 83.0f;
-static float CheeseHeight = 83.0f;
-
-static float LettuceX = -150.0f; //updated hitbox
-static float LettuceY = -170.0f;
-static float LettuceWidth = 90.0f;
-static float LettuceHeight = 83.0f;
-
-static float TomatoX = -300.0f;   //updated hitbox  
-static float TomatoY = -175.0f;
-static float TomatoWidth = 83.0f;
-static float TomatoHeight = 83.0f;
-
-// Add these with your other ingredient position variables
-static float OnionX = 3.0f;          // From click (3.00, -175.00)
-static float OnionY = -175.0f;
-static float OnionWidth = 83.0f;
-static float OnionHeight = 83.0f;
-
-static float CucumberX = -18.0f;      // From click (-18.00, -108.00)
-static float CucumberY = -108.0f;
-static float CucumberWidth = 83.0f;
-static float CucumberHeight = 83.0f;
-
-// (D) Soda machine button hitbox
-static float SodaX = 574.0f;
-static float SodaY = -88.0f;
-static float SodaWidth = 70.0f;
-static float SodaHeight = 70.0f;
-
-// Trash bin hitbox for deleting burgers
-static float TrashX = 629.0f;  // Average of your clicks: (574+683+580+706)/4 ≈ 635.75, adjusted to 629
-static float TrashY = -374.0f;  // Average of your clicks: (-307-315-440-435)/4 ≈ -374.25
-static float TrashWidth = 250.0f;  // Width of trash hitbox
-static float TrashHeight = 250.0f; // Height of trash hitbox
-// Track what's on the plate: Set 
-// everything to false first :Diya
-
-
-static bool lettuceOnPlate, cheeseOnPlate, pattieOnPlate, tomatoOnPlate, onionOnPlate
-, cucumberOnPlate, bunTopOnPlate, bunBottomOnPlate, sodaOnPlate, sodaMachineHasCup, sodaIsFilled
-, sodaIsBeingDragged = false;
-
-static float sodaFillTimer = 0.0f; // (D) timer for soda fill
-static float sodaDragX = 0.0f; // (D) soda drag position
-static float sodaDragY = 0.0f; // (D) soda drag position
-
-
+static bool  burgerIsBeingDragged = false;
 
 // ---------------------------------------------------------------------------
-// Helper Functions Syakil 
+// Soda machine state  (Diya)
+// ---------------------------------------------------------------------------
 
-// Helper to reset drag state Syakil
-static void ResetDragState() {
-    isDragging = false;
-    burgerIsBeingDragged = false;
-    burgerDragX = 400.0f;  // Plate position
-    burgerDragY = -225.0f; // Plate position
-    sodaIsBeingDragged = false; // (D)
-    sodaDragX = SodaX; // (D)
-    sodaDragY = SodaY - 55.0f; // (D)
-}
+static bool  sodaMachineHasCup = false;
+static bool  sodaIsFilled = false;
+static bool  sodaIsBeingDragged = false;
+static float sodaFillTimer = 0.0f;
+static float sodaDragX = 0.0f;
+static float sodaDragY = 0.0f;
 
+// ---------------------------------------------------------------------------
+// Level end flag
+// ---------------------------------------------------------------------------
 
-// (D) Helper to check if an ingredient is unlocked for the current level
-static bool IsIngredientUnlocked(IngredientType ingredient) {
-    for (const std::string& ing : currentLevelData.ingredients) {
-        switch (ingredient) {
-        case BOTTOM_BUN:
-            if ( ing == "bottom_bun") return true;
-            break;
-        case TOP_BUN:
-            if ( ing == "top_bun") return true;
-            break;
-        case PATTY:
-            if ( ing == "patty") return true;
-            break;
-        case CHEESE:
-            if ( ing == "cheese") return true;
-            break;
-        case LETTUCE:
-            if (ing == "lettuce") return true;
-            break;
-        case TOMATO:
-            if (ing == "tomato") return true;
-            break;
-        case ONION:
-            if (ing == "onion") return true;
-            break;
-        case CUCUMBER:
-            if ( ing == "cucumber") return true;
-            break;
-        case SODA:
-            if ( ing == "soda") return true;
-            break;
-        }
-    }
-    return false;
-}
+static bool levelEndTriggered = false;
 
-// (D) Helper to draw the lock icon over locked ingredients or soda machine button
-static void DrawLockOverlay(float x, float y, float width, float height) {
-    if (!LockTexture || !SquareMesh) return;
+// ---------------------------------------------------------------------------
+// Pause menu  (Teb)
+// ---------------------------------------------------------------------------
 
-    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-    AEGfxTextureSet(LockTexture, 0.f, 0.f);
-
-    AEMtx33 lockScale, lockTranslate, lockTransform;
-    AEMtx33Scale(&lockScale, width, height);
-    AEMtx33Trans(&lockTranslate, x, y);
-    AEMtx33Concat(&lockTransform, &lockTranslate, &lockScale);
-
-    AEGfxSetTransform(lockTransform.m);
-    AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
-}
-
-// (D) Treat soda as a side item: burger order must match in sequence, soda only needs matching presence
-static bool OrderContainsSoda(const std::vector<int>& order) {
-    for (int ingredient : order) {
-        if (ingredient == SODA) return true;
-    }
-    return false;
-}
-
-//------------------------- Pause menu (tebs) ------------------------------
 static s8   GameFontId = -1;
 static s8   GameFontIdSmall = -1;
 static bool isPaused = false;
 
-static float PauseMenuBtnX = 0.0f;
-static float PauseMenuBtnY = -30.0f;
-static float PauseMenuBtnWidth = 260.0f;
-static float PauseMenuBtnHeight = 55.0f;
+// Button rects — set once in Draw, read in Update (single source of truth)
+struct BtnRect { float cx, cy, w, h; };
+static BtnRect btnResume, btnRestart, btnMenu, btnSettings;
 
-static float PauseSettingsBtnX = 0.0f;
-static float PauseSettingsBtnY = -100.0f;
-static float PauseSettingsBtnWidth = 260.0f;
-static float PauseSettingsBtnHeight = 55.0f;
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
-static float PauseResumeBtnX = 0.0f;
-static float PauseResumeBtnY = 60.0f;
-static float PauseResumeBtnWidth = 300.0f;
-static float PauseResumeBtnHeight = 55.0f;
+// AABB point-in-rect
+static bool PointInRect(float px, float py,
+    float cx, float cy, float w, float h) {
+    return px >= cx - w * 0.5f && px <= cx + w * 0.5f
+        && py >= cy - h * 0.5f && py <= cy + h * 0.5f;
+}
 
-static float PauseRestartBtnX = 0.0f;
-static float PauseRestartBtnY = 20.0f;   
-static float PauseRestartBtnWidth = 260.0f;
-static float PauseRestartBtnHeight = 55.0f;
-//---------------------------------------------------------------------------
+// Draw a single textured quad
+static void DrawQuad(AEGfxVertexList* mesh, AEGfxTexture* tex,
+    float cx, float cy, float w, float h,
+    float u = 0.f, float v = 0.f) {
+    AEMtx33 s, t, m;
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.f, 1.f, 1.f, 1.f);
+    AEGfxTextureSet(tex, u, v);
+    AEMtx33Scale(&s, w, h);
+    AEMtx33Trans(&t, cx, cy);
+    AEMtx33Concat(&m, &t, &s);
+    AEGfxSetTransform(m.m);
+    AEGfxMeshDraw(mesh, AE_GFX_MDM_TRIANGLES);
+}
 
+// Draw lock icon over a locked ingredient slot  (Diya)
+static void DrawLockOverlay(float x, float y, float w, float h) {
+    if (!LockTexture || !SquareMesh) return;
+    DrawQuad(SquareMesh, LockTexture, x, y, w, h);
+}
+
+// Is this ingredient unlocked for the current level?
+// Reads currentLevelData.ingredients set by LevelManager — no changes needed there.
+static bool IsIngredientUnlocked(IngredientType type) {
+    // Indexed to match the IngredientType enum order in pch.hpp
+    static const char* kNames[] = {
+        "bottom_bun", "top_bun", "patty", "cheese",
+        "lettuce",    "tomato",  "onion", "cucumber", "soda"
+    };
+    const char* target = kNames[type];
+    for (const auto& ing : currentLevelData.ingredients)
+        if (ing == target) return true;
+    return false;
+}
+
+// Does an order contain soda?  (Diya)
+static bool OrderContainsSoda(const std::vector<int>& order) {
+    for (int item : order)
+        if (item == SODA) return true;
+    return false;
+}
+
+// Reset drag/drop state back to resting positions  (Syakil)
+static void ResetDragState() {
+    isDragging = false;
+    burgerIsBeingDragged = false;
+    burgerDragX = gCfg.plateCenterX;
+    burgerDragY = gCfg.plateCenterY;
+    sodaIsBeingDragged = false;
+    sodaDragX = gCfg.sodaX;
+    sodaDragY = gCfg.sodaY - 55.0f;
+}
+
+// ---------------------------------------------------------------------------
+// Burger logic
+// ---------------------------------------------------------------------------
+
+bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
+    const std::vector<int>& customerOrder) {
+    bool playerHasSoda = OrderContainsSoda(playerBurger);
+    bool customerWantsSoda = OrderContainsSoda(customerOrder);
+    if (playerHasSoda != customerWantsSoda) return false;
+
+    std::vector<int> filteredPlayer, filteredCustomer;
+    for (int i : playerBurger)  if (i != SODA) filteredPlayer.push_back(i);
+    for (int i : customerOrder) if (i != SODA) filteredCustomer.push_back(i);
+
+    if (filteredPlayer.size() != filteredCustomer.size()) return false;
+    for (size_t i = 0; i < filteredCustomer.size(); ++i)
+        if (filteredPlayer[i] != filteredCustomer[i]) return false;
+
+    return true;
+}
+
+void Burger_Clear() {
+    currentBurger.clear();
+    burgerComplete = false;
+    std::fill(std::begin(ingredientOnPlate), std::end(ingredientOnPlate), false);
+
+    // Always reset soda machine when plate is cleared
+    sodaMachineHasCup = false;
+    sodaIsFilled = false;
+    sodaFillTimer = 0.0f;
+
+    ResetDragState();
+
+#ifdef _DEBUG
+    printf("[game] Burger cleared\n");
+#endif
+}
 
 // ---------------------------------------------------------------------------
 // Game State Functions
+// ---------------------------------------------------------------------------
 
 void Game_Init() {
-    printf("Game_Init called\n");
     Level_Manager_Init();
     Customer_Init();
     Points_Init();
     GarageDoor_Init();
-    levelEndTriggered = false; // Reset level end trigger in case of replay
+    levelEndTriggered = false;
 
     // Full soda reset on level start
-    sodaOnPlate = false;
     sodaMachineHasCup = false;
     sodaIsFilled = false;
     sodaFillTimer = 0.0f;
     sodaIsBeingDragged = false;
-    sodaDragX = SodaX;
-    sodaDragY = SodaY - 55.0f;
+    sodaDragX = gCfg.sodaX;
+    sodaDragY = gCfg.sodaY - 55.0f;
 }
 
 void Game_Load() {
-    printf("Game_Load called\n");
+    // Load CSV configs first so gCfg is ready before anything uses it
+    LoadGameConfig();
+    LoadIngredientHitboxes();
 
-    // Load meshes ONCE
     SquareMesh = CreateSquareMesh(8.0f, 2.5f);
-    SodaMesh = CreateSodaMesh(0.5f, 0.5f); // (D)
+    SodaMesh = CreateSodaMesh(0.5f, 0.5f);
     PlateMesh = CreateCircleMesh(2.0f, 32);
     IngredientsMesh = CreateIngredientMesh(0.5f, 0.5f);
-    BGMesh = CreateSquareMesh(0.5, 0.5);
-    
-    printf("Rectangle mesh created\n");
-    // Elizabeth: Check if points are loaded
+    BGMesh = CreateSquareMesh(0.5f, 0.5f);
+
     Points_Load();
-    // Teb : Check if garage door is loaded
     GarageDoor_Load();
     Sound_Load();
     Sound_PlayBGM();
@@ -262,983 +390,423 @@ void Game_Load() {
     GameFontIdSmall = AEGfxCreateFont("Assets/Font/Nunito-Bold.ttf", 24);
 }
 
-bool Burger_MatchesOrder(const std::vector<int>& playerBurger,
-    const std::vector<int>& customerOrder) {
-
-    // (D) Soda is treated as a side item, so compare soda presence separately
-    bool playerHasSoda = OrderContainsSoda(playerBurger);
-    bool customerWantsSoda = OrderContainsSoda(customerOrder);
-
-    if (playerHasSoda != customerWantsSoda) {
-        printf("FAIL: Soda requirement mismatch");
-            return false;
-    }
-
-    std::vector<int> filteredPlayer;
-    std::vector<int> filteredCustomer;
-
-    for (int ingredient : playerBurger) {
-        if (ingredient != SODA) filteredPlayer.push_back(ingredient);
-    }
-    for (int ingredient : customerOrder) {
-        if (ingredient != SODA) filteredCustomer.push_back(ingredient);
-    }
-
-    if (filteredPlayer.size() != filteredCustomer.size()) {
-        printf("FAIL: Different number of burger ingredients (%zu vs %zu)",
-            filteredPlayer.size(), filteredCustomer.size());
-        return false;
-    }
-
-    for (size_t i = 0; i < filteredCustomer.size(); i++) {
-        if (filteredPlayer[i] != filteredCustomer[i]) {
-            printf("FAIL: Wrong ingredient at position %zu", i);
-                printf("Player: %d, Customer wanted: %d", filteredPlayer[i], filteredCustomer[i]);
-                    return false;
-        }
-    }
-
-    printf("SUCCESS: Order matches perfectly!");
-        return true;
-}
-
-void Burger_ServeToCustomer() {
-    // Check if burger is complete (has top bun)
-    if (!burgerComplete) {
-        printf("Burger is not complete! Need top bun.\n");
-        return;
-    }
-
-    // Check if there's a customer
-    if (customers.empty()) {
-        printf("No customers to serve!\n");
-        return;
-    }
-
-    // Get the first customer
-    Customer& customer = customers[0];
-
-    // Check if customer is waiting for food
-    if (!customer.isWaitingForFood) {
-        printf("Customer is not at counter yet!\n");
-        return;
-    }
-
-    // Compare burger with customer's order
-    bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
-
-    if (isCorrect) {
-        // SUCCESS!
-        printf("Customer is happy! Order correct!\n");
-
-        // Make customer leave (walk off-screen)
-        customer.isWalking = true;
-        customer.isWaitingForFood = false;
-        customer.targetX = EXIT_X;
-        customer.targetY = customer.y;
-        customer.flipHorizontal = true;
-
-        // Clear burger for next order
-        Burger_Clear();
-
-    }
-    else {
-        // FAILURE
-        printf("Customer is unhappy! Wrong order.\n");
-
-        // Decrease patience
-        customer.patience -= 30.0f;
-        if (customer.patience < 0) customer.patience = 0;
-
-        printf("Customer patience: %.0f/%.0f\n", customer.patience, customer.maxPatience);
-
-        // Let player remake the burger
-        Burger_Clear();
-    }
-}
+// ---------------------------------------------------------------------------
+// Game_Update
+// ---------------------------------------------------------------------------
 
 void Game_Update() {
-    // Your update logic goes here
-    // Example: Move the square, check collisions, etc. :Diya 
-    f64 dt = AEFrameRateControllerGetFrameTime();
-    // Settings popup steals all input while open
-    Settings_Update((float)dt, GameFontId);
+    const float dt = static_cast<float>(AEFrameRateControllerGetFrameTime());
+
+    Settings_Update(dt, GameFontId);
     if (Settings_IsOpen()) return;
 
-    // ESC toggles pause
-    if (AEInputCheckTriggered(AEVK_ESCAPE)) {
+    if (AEInputCheckTriggered(AEVK_ESCAPE))
         isPaused = !isPaused;
-        printf(isPaused ? "Game PAUSED\n" : "Game RESUMED\n");
-    }
 
-    // Pause menu input — block all gameplay while paused
+    // -----------------------------------------------------------------------
+    // Pause menu input — blocks all gameplay while paused  (Teb)
+    // -----------------------------------------------------------------------
     if (isPaused) {
-        s32 mouseX, mouseY;
-        AEInputGetCursorPosition(&mouseX, &mouseY);
-        float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
-        float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
-        float worldMouseX = (float)mouseX - windowWidth / 2.0f;
-        float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
+        s32 mx, my;
+        AEInputGetCursorPosition(&mx, &my);
+        const float hw = (AEGfxGetWinMaxX() - AEGfxGetWinMinX()) * 0.5f;
+        const float hh = (AEGfxGetWinMaxY() - AEGfxGetWinMinY()) * 0.5f;
+        const float wx = (float)mx - hw;
+        const float wy = -(float)my + hh;
 
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-            // Back to Main Menu
-            if (worldMouseX >= PauseMenuBtnX - PauseMenuBtnWidth / 2.0f &&
-                worldMouseX <= PauseMenuBtnX + PauseMenuBtnWidth / 2.0f &&
-                worldMouseY >= PauseMenuBtnY - PauseMenuBtnHeight / 2.0f &&
-                worldMouseY <= PauseMenuBtnY + PauseMenuBtnHeight / 2.0f) {
+            if (PointInRect(wx, wy, btnResume.cx, btnResume.cy, btnResume.w, btnResume.h))
                 isPaused = false;
-                next = GS_MAINMENU;
+            if (PointInRect(wx, wy, btnRestart.cx, btnRestart.cy, btnRestart.w, btnRestart.h))
+            {
+                isPaused = false; Burger_Clear(); next = GS_LOADING;
             }
-            // Settings button
-            if (worldMouseX >= PauseSettingsBtnX - PauseSettingsBtnWidth / 2.0f &&
-                worldMouseX <= PauseSettingsBtnX + PauseSettingsBtnWidth / 2.0f &&
-                worldMouseY >= PauseSettingsBtnY - PauseSettingsBtnHeight / 2.0f &&
-                worldMouseY <= PauseSettingsBtnY + PauseSettingsBtnHeight / 2.0f) {
+            if (PointInRect(wx, wy, btnMenu.cx, btnMenu.cy, btnMenu.w, btnMenu.h))
+            {
+                isPaused = false; next = GS_MAINMENU;
+            }
+            if (PointInRect(wx, wy, btnSettings.cx, btnSettings.cy, btnSettings.w, btnSettings.h))
                 Settings_Open();
-            }
-            // Resume button
-            if (worldMouseX >= PauseResumeBtnX - PauseResumeBtnWidth / 2.0f &&
-                worldMouseX <= PauseResumeBtnX + PauseResumeBtnWidth / 2.0f &&
-                worldMouseY >= PauseResumeBtnY - PauseResumeBtnHeight / 2.0f &&
-                worldMouseY <= PauseResumeBtnY + PauseResumeBtnHeight / 2.0f) {
-                isPaused = false;
-            }
-
-            // Restart button
-            if (worldMouseX >= PauseRestartBtnX - PauseRestartBtnWidth / 2.0f &&
-                worldMouseX <= PauseRestartBtnX + PauseRestartBtnWidth / 2.0f &&
-                worldMouseY >= PauseRestartBtnY - PauseRestartBtnHeight / 2.0f &&
-                worldMouseY <= PauseRestartBtnY + PauseRestartBtnHeight / 2.0f) {
-                isPaused = false;
-                Burger_Clear();
-                printf("Restarting level %d\n", currentLevel);
-                next = GS_LOADING; // or however your engine restarts the current level
-            }
         }
-        return; // block all gameplay
+        return;
     }
 
-    Customer_Update(static_cast<float>(dt));
+    // -----------------------------------------------------------------------
+    // Normal gameplay
+    // -----------------------------------------------------------------------
+
+    Customer_Update(dt);
     Points_Update();
 
-    // (D) Fill soda over time once the machine starts pouring
+    // Soda fill timer  (Diya)
     if (sodaMachineHasCup && !sodaIsFilled) {
-        sodaFillTimer += static_cast<float>(dt);
-        if (sodaFillTimer >= 3.0f) {
-            sodaFillTimer = 3.0f;
+        sodaFillTimer += dt;
+        if (sodaFillTimer >= gCfg.sodaFillTime) {
+            sodaFillTimer = gCfg.sodaFillTime;
             sodaIsFilled = true;
             Sound_StopSFX_Pour();
-            printf("Soda finished filling!\n");
         }
     }
 
-    // Get mouse position
-    s32 mouseX, mouseY;
-    AEInputGetCursorPosition(&mouseX, &mouseY);
+    // Mouse -> world space
+    s32 mx, my;
+    AEInputGetCursorPosition(&mx, &my);
+    const float winW = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
+    const float winH = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
+    const float worldX = (float)mx - winW * 0.5f;
+    const float worldY = -(float)my + winH * 0.5f;
 
-    // Convert to world coordinates
-    float windowWidth = AEGfxGetWinMaxX() - AEGfxGetWinMinX();
-    float windowHeight = AEGfxGetWinMaxY() - AEGfxGetWinMinY();
-
-    float worldMouseX = (float)mouseX - windowWidth / 2.0f;
-    float worldMouseY = -(float)mouseY + windowHeight / 2.0f;
-
-    // ---------------------------------------------------------------------------
-    // DIYA was here , and syakil
-    // ---------------------------------------------------------------------------
-
-    // Check for mouse click on the ingredients to see what player is adding to the burger
+    // -----------------------------------------------------------------------
+    // Mouse click
+    // -----------------------------------------------------------------------
     if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-        printf("Mouse clicked at world: (%.2f, %.2f)\n", worldMouseX, worldMouseY);
+#ifdef _DEBUG
+        printf("[game] Click at world (%.2f, %.2f)\n", worldX, worldY);
+#endif
+        // Ingredient hitboxes — one loop replaces 8 separate if-blocks
+        for (const auto& hb : ingredientHitboxes) {
+            if (hb.type == SODA)                                          continue;
+            if (!IsIngredientUnlocked(hb.type))                           continue;
+            if (ingredientOnPlate[hb.type])                               continue;
+            if (!PointInRect(worldX, worldY, hb.x, hb.y, hb.width, hb.height)) continue;
 
-        // Check if lettuce was clicked
-        if (IsIngredientUnlocked(LETTUCE) && // (D) Locked ingredients cannot be clicked
-            !lettuceOnPlate &&
-            worldMouseX >= LettuceX - LettuceWidth / 2.0f &&
-            worldMouseX <= LettuceX + LettuceWidth / 2.0f &&
-            worldMouseY >= LettuceY - LettuceHeight / 2.0f &&
-            worldMouseY <= LettuceY + LettuceHeight / 2.0f) {
+            ingredientOnPlate[hb.type] = true;
+            currentBurger.push_back(hb.type);
+            if (hb.type == TOP_BUN) burgerComplete = true;
 
-            lettuceOnPlate = true;
-            currentBurger.push_back(LETTUCE); // Track ingredient
-            printf("Lettuce added to burger. Total ingredients: %zu\n", currentBurger.size());
+#ifdef _DEBUG
+            printf("[game] Added ingredient %d — stack size %zu\n",
+                hb.type, currentBurger.size());
+#endif
+            break; // only one ingredient per click
         }
 
-        // Check if cheese was clicked
-        if (IsIngredientUnlocked(CHEESE) && // (D) Locked ingredients cannot be clicked
-            !cheeseOnPlate &&
-            worldMouseX >= CheeseX - CheeseWidth / 2.0f &&
-            worldMouseX <= CheeseX + CheeseWidth / 2.0f &&
-            worldMouseY >= CheeseY - CheeseHeight / 2.0f &&
-            worldMouseY <= CheeseY + CheeseHeight / 2.0f) {
-
-            cheeseOnPlate = true;
-            currentBurger.push_back(CHEESE);  // Track ingredient
-            printf("Cheese added to burger. Total ingredients: %zu\n", currentBurger.size());
-        }
-
-        // Check if pattie was clicked
-        if (IsIngredientUnlocked(PATTY) && // (D) Locked ingredients cannot be clicked
-            !pattieOnPlate &&
-            worldMouseX >= PattieX - PattieWidth / 2.0f &&
-            worldMouseX <= PattieX + PattieWidth / 2.0f &&
-            worldMouseY >= PattieY - PattieHeight / 2.0f &&
-            worldMouseY <= PattieY + PattieHeight / 2.0f) {
-
-            pattieOnPlate = true;
-            currentBurger.push_back(PATTY);  // Track ingredient
-            printf("Patty added to burger. Total ingredients: %zu\n", currentBurger.size());
-        }
-
-        // Check if tomato was clicked
-        if (IsIngredientUnlocked(TOMATO) && // (D) Locked ingredients cannot be clicked
-			!tomatoOnPlate &&
-            worldMouseX >= TomatoX - TomatoWidth / 2.0f &&
-            worldMouseX <= TomatoX + TomatoWidth / 2.0f &&
-            worldMouseY >= TomatoY - TomatoHeight / 2.0f &&
-            worldMouseY <= TomatoY + TomatoHeight / 2.0f) {
-
-            tomatoOnPlate = true;
-            currentBurger.push_back(TOMATO);  // NEW: Track ingredient
-            printf("Tomato added to burger. Total ingredients: %zu\n", currentBurger.size());
-        }
-
-        // Check if bun top was clicked
-        if (IsIngredientUnlocked(TOP_BUN) && // (D) Locked ingredients cannot be clicked
-            !bunTopOnPlate &&
-            worldMouseX >= BunTopX - BunTopWidth / 2.0f &&
-            worldMouseX <= BunTopX + BunTopWidth / 2.0f &&
-            worldMouseY >= BunTopY - BunTopHeight / 2.0f &&
-            worldMouseY <= BunTopY + BunTopHeight / 2.0f) {
-
-            bunTopOnPlate = true;
-            currentBurger.push_back(TOP_BUN);  // Track ingredient
-            burgerComplete = true;  // Burger is complete!
-            printf("Top bun added. Burger is complete and ready to serve!\n");
-        }
-
-        // Check if bun bottom was clicked
-        if (IsIngredientUnlocked(BOTTOM_BUN) && // (D) Locked ingredients cannot be clicked
-            !bunBottomOnPlate &&
-            worldMouseX >= BunBottomX - BunBottomWidth / 2.0f &&
-            worldMouseX <= BunBottomX + BunBottomWidth / 2.0f &&
-            worldMouseY >= BunBottomY - BunBottomHeight / 2.0f &&
-            worldMouseY <= BunBottomY + BunBottomHeight / 2.0f) {
-
-            bunBottomOnPlate = true;
-            currentBurger.push_back(BOTTOM_BUN);  // Track ingredient
-            printf("Bottom bun added to burger. Total ingredients: %zu\n", currentBurger.size());
-        }
-
-        // Check if onion was clicked   UNLOCK INGREDIENTS 
-        if (IsIngredientUnlocked(ONION) && // (D) Locked ingredients cannot be clicked
-            !onionOnPlate &&
-            worldMouseX >= OnionX - OnionWidth / 2.0f &&
-            worldMouseX <= OnionX + OnionWidth / 2.0f &&
-            worldMouseY >= OnionY - OnionHeight / 2.0f &&
-            worldMouseY <= OnionY + OnionHeight / 2.0f) {
-
-            onionOnPlate = true;
-            currentBurger.push_back(ONION);  // Track ingredient
-            printf("Onion added to burger. Total ingredients: %zu\n", currentBurger.size());
-        }
-
-        // Check if cucumber was clicked UUNLOCK INGREDIENTS 
-        if (IsIngredientUnlocked(CUCUMBER) && // (D) Locked ingredients cannot be clicked
-            !cucumberOnPlate &&
-            worldMouseX >= CucumberX - CucumberWidth / 2.0f &&
-            worldMouseX <= CucumberX + CucumberWidth / 2.0f &&
-            worldMouseY >= CucumberY - CucumberHeight / 2.0f &&
-            worldMouseY <= CucumberY + CucumberHeight / 2.0f) {
-
-            cucumberOnPlate = true;
-            currentBurger.push_back(CUCUMBER);  // Track ingredient
-            printf("Cucumber added to burger. Total ingredients: %zu\n", currentBurger.size());
-        }
-
-
-        // (D) Start filling soda at the machine if soda is unlocked and no soda already exists
-        if (IsIngredientUnlocked(SODA) &&
-			!sodaOnPlate &&
-            !sodaMachineHasCup && !sodaOnPlate && !sodaIsBeingDragged &&
-            worldMouseX >= SodaX - SodaWidth / 2.0f &&
-            worldMouseX <= SodaX + SodaWidth / 2.0f &&
-            worldMouseY >= SodaY - SodaHeight / 2.0f &&
-            worldMouseY <= SodaY + SodaHeight / 2.0f) {
+        // Soda machine button  (Diya)
+        if (IsIngredientUnlocked(SODA)
+            && !ingredientOnPlate[SODA]
+            && !sodaMachineHasCup
+            && !sodaIsBeingDragged
+            && PointInRect(worldX, worldY, gCfg.sodaX, gCfg.sodaY, gCfg.sodaW, gCfg.sodaH)) {
 
             sodaMachineHasCup = true;
             sodaIsFilled = false;
             sodaFillTimer = 0.0f;
-            sodaDragX = SodaX;
-            sodaDragY = SodaY - 55.0f;
+            sodaDragX = gCfg.sodaX;
+            sodaDragY = gCfg.sodaY - 55.0f;
             Sound_PlaySFX_Pour();
-            printf("Started filling soda...\n");
         }
 
-        // (D) Only a filled soda can be snapped from the machine
-        if (sodaMachineHasCup && sodaIsFilled &&
-            worldMouseX >= sodaDragX - 35.0f &&
-            worldMouseX <= sodaDragX + 35.0f &&
-            worldMouseY >= sodaDragY - 45.0f &&
-            worldMouseY <= sodaDragY + 45.0f) {
+        // Snap filled soda onto the plate  (Diya)
+        if (sodaMachineHasCup && sodaIsFilled
+            && PointInRect(worldX, worldY, sodaDragX, sodaDragY, 70.0f, 90.0f)) {
 
-            sodaOnPlate = true;
+            ingredientOnPlate[SODA] = true;
             sodaMachineHasCup = false;
             sodaIsFilled = false;
             sodaFillTimer = 0.0f;
             sodaIsBeingDragged = false;
             currentBurger.push_back(SODA);
-            printf("Soda snapped to plate!\n");
         }
 
-        // Check if player clicks on the plate (burger) to start dragging
-        float plateWidth = 300.0f;    // ADJUST THIS to match your plate.png size
-        float plateHeight = 300.0f;   // ADJUST THIS to match your plate.png size
-        float plateCenterX = 290.0f;  // Where you draw the plate
-        float plateCenterY = -210.0f; // Where you draw the plate
-
-        // Calculate plate boundaries
-        float plateLeft = plateCenterX - plateWidth / 2;
-        float plateRight = plateCenterX + plateWidth / 2;
-        float plateBottom = plateCenterY - plateHeight / 2;
-        float plateTop = plateCenterY + plateHeight / 2;
-
-        // Check if burger exists and mouse is over the SQUARE plate
-        if (!currentBurger.empty() &&
-            worldMouseX >= plateLeft && worldMouseX <= plateRight &&
-            worldMouseY >= plateBottom && worldMouseY <= plateTop) {
+        // Start dragging the plate/burger  (Syakil)
+        if (!currentBurger.empty()
+            && PointInRect(worldX, worldY,
+                gCfg.plateCenterX, gCfg.plateCenterY,
+                gCfg.plateHitW, gCfg.plateHitH)) {
 
             isDragging = true;
             burgerIsBeingDragged = true;
-
-            // Calculate offset from burger center to mouse position
-            dragOffsetX = worldMouseX - plateCenterX;
-            dragOffsetY = worldMouseY - plateCenterY;
-
-            // Start position for dragging
-            burgerDragX = worldMouseX;
-            burgerDragY = worldMouseY;
-
-            printf("Started dragging burger! (Square collision)\n");
+            dragOffsetX = worldX - gCfg.plateCenterX;
+            dragOffsetY = worldY - gCfg.plateCenterY;
+            burgerDragX = worldX;
+            burgerDragY = worldY;
         }
     }
-    // Continuous drag update (if burger is being dragged)
+
+    // Continuous drag update
     if (isDragging && burgerIsBeingDragged) {
-        AEInputGetCursorPosition(&mouseX, &mouseY);
-        burgerDragX = (float)mouseX - windowWidth / 2.0f;
-        burgerDragY = -(float)mouseY + windowHeight / 2.0f;
+        AEInputGetCursorPosition(&mx, &my);
+        burgerDragX = (float)mx - winW * 0.5f;
+        burgerDragY = -(float)my + winH * 0.5f;
     }
 
-    // Check for mouse release
-    if (AEInputCheckReleased(AEVK_LBUTTON)) {
-        
-        if (isDragging && burgerIsBeingDragged) {
-            // Mouse released while dragging burger
-            isDragging = false;
+    // Mouse release  (Syakil)
+    if (AEInputCheckReleased(AEVK_LBUTTON) && isDragging && burgerIsBeingDragged) {
+        isDragging = false;
 
-            // Check if burger was dropped on the trash bin
-            bool droppedInTrash = false;
+        if (PointInRect(burgerDragX, burgerDragY,
+            gCfg.trashX, gCfg.trashY, gCfg.trashW, gCfg.trashH)) {
+            // Dropped in trash
+            Burger_Clear();
+        }
+        else {
+            // Check if dropped on a customer
+            bool served = false;
+            for (int ci = 0; ci < (int)customers.size(); ++ci) {
+                Customer& c = customers[ci];
+                if (!c.isWaitingForFood) continue;
 
-            // Check if burger position is within trash bin bounds
-            if (burgerDragX >= TrashX - TrashWidth / 2.0f &&
-                burgerDragX <= TrashX + TrashWidth / 2.0f &&
-                burgerDragY >= TrashY - TrashHeight / 2.0f &&
-                burgerDragY <= TrashY + TrashHeight / 2.0f) {
+                float dx = burgerDragX - c.x;
+                float dy = burgerDragY - c.y;
+                if (dx * dx + dy * dy > 150.0f * 150.0f) continue;
 
-                printf("Burger dropped in trash! Deleting burger...\n");
-                droppedInTrash = true;
-                Burger_Clear(); // This clears the entire burger
-            }
-
-            // If not dropped in trash, check if dropped on customer
-            if (!droppedInTrash) {
-                bool servedToCustomer = false;
-
-                for (int ci = 0; ci < (int)customers.size(); ci++) {
-                    Customer& customer = customers[ci];
-                    if (customer.isWaitingForFood) {
-                        // Calculate distance from burger to customer
-                        float dx = burgerDragX - customer.x;
-                        float dy = burgerDragY - customer.y;
-                        float distanceSquared = dx * dx + dy * dy;
-
-                        // If burger is close enough to customer (within 150 pixels)
-                        if (distanceSquared <= 150.0f * 150.0f) {
-                            printf("Burger dropped on customer!\n");
-                            servedToCustomer = true;
-
-                            // Check if burger matches order
-                            bool isCorrect = Burger_MatchesOrder(currentBurger, customer.order);
-
-                            if (isCorrect) {
-                                // SUCCESS!
-                                printf("Customer is happy! Order correct!\n");
-
-                                // Make customer leave with burger
-                                Customer_Satisfy(ci);
-
-                                // Clear burger for next order
-                                Burger_Clear();
-
-                                // Add points
-                                Points_AddPoints(isCorrect);
-                            }
-                            else {
-                                // FAILURE - Wrong order
-                                printf("Customer is unhappy! Wrong order.\n");
-
-                                // Decrease patience
-                                customer.patience -= 30.0f;
-                                if (customer.patience < 0) customer.patience = 0;
-
-                                printf("Customer patience: %.0f/%.0f\n",
-                                    customer.patience, customer.maxPatience);
-
-                                // Burger returns to plate (we'll just clear and let player remake)
-                                Burger_Clear();
-                            }
-                            break; // Exit loop since we found a customer
-                        }
-                    }
-                }
-
-                // If burger wasn't served to any customer, it returns to plate
-                if (!servedToCustomer) {
-                    printf("Burger returned to plate.\n");
-                    burgerIsBeingDragged = false;
-                    // Burger stays on plate (no need to clear)
+                if (Burger_MatchesOrder(currentBurger, c.order)) {
+                    Customer_Satisfy(ci);
+                    Points_AddPoints(true);
                 }
                 else {
-                    burgerIsBeingDragged = false;
+                    c.patience -= 30.0f;
+                    if (c.patience < 0.0f) c.patience = 0.0f;
                 }
+                Burger_Clear();
+                served = true;
+                break;
             }
-            else {
-                // Burger was dropped in trash, so it's already cleared
-                burgerIsBeingDragged = false;
-            }
+
+#ifdef _DEBUG
+            if (!served) printf("[game] Burger returned to plate\n");
+#endif
         }
+
+        burgerIsBeingDragged = false;
     }
 
-    if (AEInputCheckTriggered(AEVK_R)) {
+    // R key — clear burger
+    if (AEInputCheckTriggered(AEVK_R))
         Burger_Clear();
-    }
 
-    //REMEMBER TO REMOVE THIS IS JUST CHECKING PURPOSESSSSS
-    if (AEInputCheckTriggered(AEVK_E)) {
-        next = GS_LVLCMP;
-    }
-
+    // Level completion check
     if (!levelEndTriggered && Customer_IsLevelComplete()) {
         levelEndTriggered = true;
         GarageDoor_Trigger();
     }
-    GarageDoor_Update(static_cast<float>(dt));
+    GarageDoor_Update(dt);
 
-    // TEMP DEBUG - press G to test garage door instantly
+#ifdef _DEBUG
     if (AEInputCheckTriggered(AEVK_G)) {
         levelEndTriggered = true;
         GarageDoor_Trigger();
-        printf("DEBUG: Garage door manually triggered!\n");
+        printf("[game] DEBUG: garage door triggered\n");
     }
+#endif
 }
 
+// ---------------------------------------------------------------------------
+// Game_Draw
+// ---------------------------------------------------------------------------
+
 void Game_Draw() {
-    // -------------------------------------------------------------------
-    // RENDERING SETUP
-    // -------------------------------------------------------------------
-    AEGfxSetBackgroundColor(0.5f, 0.5f, 0.5f); // Gray background
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetBackgroundColor(0.5f, 0.5f, 0.5f);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
-    // -------------------------------------------------------------------
-    // DRAW BACK BG
-    // -------------------------------------------------------------------
-    AEMtx33Scale(&BGScale, 1600.0f, 900.0f);
-    AEMtx33Trans(&BGTranslate, 0.0f, 0.0f);
-    AEMtx33Concat(&BGTransform, &BGTranslate, &BGScale);
-    // Apply transformation and draw
-    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxSetTransform(BGTransform.m);
-    AEGfxTextureSet(GameplayBG_back, 0.f, 0.f);
-    AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+    // Back BG layer
+    DrawQuad(BGMesh, GameplayBG_back, 0.f, 0.f, 1600.f, 900.f);
 
-    // -------------------------------------------------------------------
-    // DRAW CUSTOMERS (draw first so they appear behind counter)
-    // -------------------------------------------------------------------
+    // Customers drawn before front BG so they appear behind the counter
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     Customer_Draw(CustomerTexture);
 
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
+    // Front BG layer
+    DrawQuad(BGMesh, GameplayBG_front, 0.f, 0.f, 1600.f, 900.f);
 
-    // -------------------------------------------------------------------
-    // DRAW FRONT BG
-    // -------------------------------------------------------------------
-    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxSetTransform(BGTransform.m);
-    AEGfxTextureSet(GameplayBG_front, 0.f, 0.f);
-    AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
-
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR); //Reset to color mode for table and plate
-    // -------------------------------------------------------------------
-    // DRAW POINTS BAR
-    // -------------------------------------------------------------------
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     Points_Draw();
 
-    // (D) Draw lock icon on top of any ingredient still locked for this level
-    if (!IsIngredientUnlocked(BOTTOM_BUN)) DrawLockOverlay(BunBottomX, BunBottomY,8.0f, 8.0f);
-    if (!IsIngredientUnlocked(TOP_BUN)) DrawLockOverlay(BunTopX, BunTopY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(PATTY)) DrawLockOverlay(PattieX, PattieY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(CHEESE)) DrawLockOverlay(CheeseX, CheeseY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(LETTUCE)) DrawLockOverlay(LettuceX, LettuceY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(TOMATO)) DrawLockOverlay(TomatoX, TomatoY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(ONION)) DrawLockOverlay(OnionX, OnionY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(CUCUMBER)) DrawLockOverlay(CucumberX, CucumberY, 8.0f, 8.0f);
-    if (!IsIngredientUnlocked(SODA)) DrawLockOverlay(SodaX - 13.0f, SodaY + 28.0f, 8.0f, 8.0f);
+    // Lock overlays  (Diya)
+    for (const auto& hb : ingredientHitboxes)
+        if (!IsIngredientUnlocked(hb.type))
+            DrawLockOverlay(hb.x, hb.y, 8.f, 8.f);
+    if (!IsIngredientUnlocked(SODA))
+        DrawLockOverlay(gCfg.sodaX - 13.f, gCfg.sodaY + 28.f, 8.f, 8.f);
 
-    // (D) Draw soda cup at the machine while it is filling or ready
+    // Soda cup at the machine while filling or ready  (Diya)
     if (sodaMachineHasCup && SodaTexture) {
+        float drawSodaX = sodaIsBeingDragged ? sodaDragX : gCfg.sodaX;
+        float drawSodaY = sodaIsBeingDragged ? sodaDragY : gCfg.sodaY - 55.f;
+        DrawQuad(SodaMesh, SodaTexture,
+            drawSodaX, drawSodaY, 70.f, 110.f,
+            sodaIsFilled ? 0.5f : 0.f, 0.f);
+    }
+
+    // Burger draw origin
+    const float drawX = burgerIsBeingDragged ? burgerDragX : gCfg.stackBaseX;
+    const float drawY = burgerIsBeingDragged ? burgerDragY : gCfg.stackBaseY;
+
+    // Plate image underneath the burger
+    if (PlateTexture)
+        DrawQuad(SquareMesh, PlateTexture, drawX, drawY - 20.f, 20.f, 20.f);
+
+    // Ingredient stack — single loop driven by kRenderOrder table
+    float stackH = 0.f;
+    for (const auto& ri : kRenderOrder) {
+        if (!ingredientOnPlate[ri.type]) continue;
+
+        if (ri.type == TOP_BUN) stackH -= 5.f; // slight burger compression
+
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-        AEGfxTextureSet(SodaTexture, sodaIsFilled ? 0.5f : 0.0f, 0.0f);
+        AEGfxSetColorToMultiply(1.f, 1.f, 1.f, 1.f);
+        AEGfxTextureSet(Ingredients, ri.texU, ri.texV);
 
-        AEMtx33 sodaScale, sodaTrans, sodaTransform;
-        AEMtx33Scale(&sodaScale, 70.0f, 110.0f);
-        AEMtx33Trans(&sodaTrans,
-            sodaIsBeingDragged ? sodaDragX : SodaX,
-            sodaIsBeingDragged ? sodaDragY : SodaY - 55.0f);
-        AEMtx33Concat(&sodaTransform, &sodaTrans, &sodaScale);
-
-        AEGfxSetTransform(sodaTransform.m);
-        AEGfxMeshDraw(SodaMesh, AE_GFX_MDM_TRIANGLES); // (D)
-    }
-
-
-    // -------------------------------------------------------------------
-   // DRAW INGREDIENTS ON PLATE (STACKED)
-   // -------------------------------------------------------------------
-
-    float plateX = 300.0f;
-    float plateY = -175.0f;
-    float ingredientSize = 150.0f;
-
-    // Determine where to draw burger (plate or dragged position)
-    float drawX, drawY;
-    if (burgerIsBeingDragged) {
-        drawX = burgerDragX;
-        drawY = burgerDragY;
-    }
-    else {
-        drawX = plateX;    // Plate X
-        drawY = plateY;    // Plate Y
-    }
-
-    // -------------------------------------------------------------------
-    // DRAW PLATE IMAGE (underneath the burger)
-    // -------------------------------------------------------------------
-    if (PlateTexture) {
-        // Set texture rendering mode
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-
-        // Set the plate texture
-        AEGfxTextureSet(PlateTexture, 0.f, 0.f);
-
-        // Scale the plate - adjust size as needed
-        float plateWidth = 20.0f;   // Adjust based on your image
-        float plateHeight = 20.0f;  // Adjust based on your image
-
-        // Create scale matrix
-        AEMtx33Scale(&PlateImageScale, plateWidth, plateHeight);
-
-        // Create translation matrix - position at same X,Y as burger
-        AEMtx33Trans(&PlateImageTranslate, drawX, drawY - 20.0f); // Slightly lower than burger
-
-        // Combine scale and translation
-        AEMtx33Concat(&PlateImageTransform, &PlateImageTranslate, &PlateImageScale);
-
-        // Apply transform
-        AEGfxSetTransform(PlateImageTransform.m);
-
-        // Draw the plate (using a square mesh)
-        AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES); // Reuse SquareMesh
-    }
-
-    /*
-    What it does: Creates a variable that keeps track of the burger's current height
-    Starts at 0: Bottom bun is at the baseGrows:
-    Each ingredient adds to this height*/
-
-    float currentHeight = 0.0f;  // Track how tall our stack is
-
-    // Bottom Bun (always at the bottom)
-    if (bunBottomOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 3.f / 4.f, 1.f / 2.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY - 10.0f + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
+        const float yOffset = (ri.type == BOTTOM_BUN) ? -10.f : 0.f;
+        AEMtx33Scale(&IngScale, gCfg.ingredientSize, gCfg.ingredientSize);
+        AEMtx33Trans(&IngTranslate, drawX, drawY + yOffset + stackH);
+        AEMtx33Concat(&IngTransform, &IngTranslate, &IngScale);
+        AEGfxSetTransform(IngTransform.m);
         AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 15.0f;  // Bottom bun adds 15px height
+
+        stackH += ri.stackHeight;
     }
 
-    // Lettuce (thin, compresses easily)
-    if (lettuceOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 2.f / 4.f, 0.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 8.0f;   // Lettuce adds only 8px (thin and compresses)
+    // Soda beside the burger once placed on plate  (Diya)
+    if (ingredientOnPlate[SODA] && SodaTexture)
+        DrawQuad(SodaMesh, SodaTexture,
+            drawX + 90.f, drawY + 25.f, 70.f, 110.f, 0.5f, 0.f);
+
+    GarageDoor_Draw();
+
+    // -----------------------------------------------------------------------
+    // Pause menu overlay  (Teb)
+    // -----------------------------------------------------------------------
+    if (!isPaused) {
+        Settings_Draw(GameFontId, BGMesh, PlateMesh);
+        return;
     }
 
-    // Cheese (melts, compresses)
-    if (cheeseOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 0.f, 1.f / 2.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 10.0f;  // Cheese adds 10px (melts a bit)
-    }
-
-    // Patty (thick, doesn't compress much)
-    if (pattieOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 0.f, 0.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 25.0f;  // Patty adds 25px (thick meat)
-    }
-
-    // Tomato (slices, medium thickness)
-    if (tomatoOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 1.f / 4.f, 0.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 18.0f;  // Tomato adds 18px
-    }
-
-    // Cucumber (thin slices)
-    if (cucumberOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 2.f / 4.f, 1.f / 2.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 8.0f;   // Cucumber adds 8px (thin)
-    }
-
-    // Onion (thin rings)
-    if (onionOnPlate) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 1.f / 4.f, 1.f / 2.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-        currentHeight += 8.0f;   // Onion adds 8px (thin)
-    }
-
-    // Top Bun (sits on top, compresses everything slightly)
-    if (bunTopOnPlate) {
-        // Top bun compresses the burger slightly
-        currentHeight -= 5.0f;   // Compression!
-
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(Ingredients, 3.f / 4.f, 0.f);
-        AEMtx33Scale(&PlateLettuceScale, ingredientSize, ingredientSize);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX, drawY + currentHeight + 3.0f);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(IngredientsMesh, AE_GFX_MDM_TRIANGLES);
-    }
-
-    // (D) Draw soda beside the burger on the same plate once placed
-    if (sodaOnPlate && SodaTexture) {
-        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-        AEGfxTextureSet(SodaTexture, 1.f / 2.f, 0.f);
-        AEMtx33Scale(&PlateLettuceScale, 70.0f, 110.0f);
-        AEMtx33Trans(&PlateLettuceTranslate, drawX + 90.0f, drawY + 25.0f);
-        AEMtx33Concat(&PlateLettuceTransform, &PlateLettuceTranslate, &PlateLettuceScale);
-        AEGfxSetTransform(PlateLettuceTransform.m);
-        AEGfxMeshDraw(SodaMesh, AE_GFX_MDM_TRIANGLES); // (D)
-    }
-
-    GarageDoor_Draw(); // Teb: Draw garage door on top of everything else
-
-    // -------------------------------------------------------------------
-    // PAUSE MENU OVERLAY
-    // -------------------------------------------------------------------
-    if (isPaused) {
+    // Dim backdrop
+    {
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetColorToMultiply(0.f, 0.f, 0.f, 0.6f);
+        AEGfxSetColorToAdd(0.f, 0.f, 0.f, 0.f);
         AEMtx33 s, t, m;
-
-        // Dark backdrop
-        AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.6f);
-        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
-        AEMtx33Scale(&s, 1600.0f, 900.0f);
-        AEMtx33Trans(&t, 0.0f, 0.0f);
+        AEMtx33Scale(&s, 1600.f, 900.f);
+        AEMtx33Trans(&t, 0.f, 0.f);
         AEMtx33Concat(&m, &t, &s);
         AEGfxSetTransform(m.m);
         AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
+    }
 
-        // Layout
-        float panelCX = 0.0f, panelCY = 0.0f;
-        float panelW = 400.0f, panelH = 560.0f, panelR = 30.0f;
-        float titleH = 70.0f;
-        float btnW = 300.0f, btnH = 55.0f, btnR = 28.0f;
-        float btn3Y = panelCY + 110.0f;  // Resume       (top)
-        float btn4Y = panelCY + 30.0f;   // Restart
-        float btn1Y = panelCY - 55.0f;   // Back to Main Menu
-        float btn2Y = panelCY - 140.0f;  // Settings     (bottom)
+    // Panel constants
+    const float panelCX = 0.f, panelCY = 0.f;
+    const float panelW = 400.f, panelH = 560.f, panelR = 30.f;
+    const float titleH = 70.f;
+    const float btnW = 300.f, btnH = 55.f, btnR = 28.f;
 
-        // Sync hitboxes
-        PauseMenuBtnX = panelCX; PauseMenuBtnY = btn1Y;
-        PauseMenuBtnWidth = btnW;    PauseMenuBtnHeight = btnH;
-        PauseSettingsBtnX = panelCX; PauseSettingsBtnY = btn2Y;
-        PauseSettingsBtnWidth = btnW;    PauseSettingsBtnHeight = btnH;
-        PauseResumeBtnX = panelCX; PauseResumeBtnY = btn3Y;
-        PauseResumeBtnWidth = btnW;    PauseResumeBtnHeight = btnH;
-        PauseRestartBtnX = panelCX; PauseRestartBtnY = btn4Y;
-        PauseRestartBtnWidth = btnW; PauseRestartBtnHeight = btnH;
+    // Sync button rects for Update hit-testing
+    btnResume = { panelCX, panelCY + 110.f, btnW, btnH };
+    btnRestart = { panelCX, panelCY + 30.f, btnW, btnH };
+    btnMenu = { panelCX, panelCY - 55.f, btnW, btnH };
+    btnSettings = { panelCX, panelCY - 140.f, btnW, btnH };
 
-        // ---------------------------------------------------------------
-        // LAYER 1: Full rounded cream panel (bottom layer)
-        // ---------------------------------------------------------------
-        DrawRoundedRect(BGMesh, PlateMesh,
-            panelCX, panelCY, panelW, panelH, panelR,
-            0.98f, 0.96f, 0.90f);
+    // Cream panel
+    DrawRoundedRect(BGMesh, PlateMesh,
+        panelCX, panelCY, panelW, panelH, panelR,
+        0.98f, 0.96f, 0.90f);
 
-        // ---------------------------------------------------------------
-        // LAYER 2: Orange title bar — drawn as a PLAIN rectangle
-        // positioned to sit flush with the top of the panel interior
-        // We draw it INSIDE the rounded area so no corners poke out
-        // ---------------------------------------------------------------
-        float titleBarTop = panelCY + panelH * 0.5f;        // top of panel
-        float titleBarBottom = titleBarTop - titleH;            // bottom of title bar
-        float titleBarCY = (titleBarTop + titleBarBottom) * 0.5f;
+    // Orange title bar
+    {
+        const float titleBarTop = panelCY + panelH * 0.5f;
+        const float titleBarCY = titleBarTop - titleH * 0.5f;
+        AEMtx33 s, t, m;
+        AEGfxSetColorToMultiply(0.85f, 0.31f, 0.055f, 1.f);
+        AEGfxSetColorToAdd(0.f, 0.f, 0.f, 0.f);
 
-        // Horizontal fill (full width, sits inside the rounded panel)
-        AEGfxSetColorToMultiply(0.85f, 0.31f, 0.055f, 1.0f);
-        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
-        AEMtx33Scale(&s, panelW - panelR * 2.0f, titleH);
+        AEMtx33Scale(&s, panelW - panelR * 2.f, titleH);
         AEMtx33Trans(&t, panelCX, titleBarCY);
         AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
         AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
 
-        // Side fills (narrow strips on left/right to reach panel edge)
-        // but stop short of the very top rounded corners
-        AEMtx33Scale(&s, panelR * 2.0f, titleH - panelR);
+        AEMtx33Scale(&s, panelR * 2.f, titleH - panelR);
         AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR, titleBarCY - panelR * 0.5f);
         AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
         AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
-
         AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR, titleBarCY - panelR * 0.5f);
         AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
         AEGfxMeshDraw(BGMesh, AE_GFX_MDM_TRIANGLES);
 
-        // Top-left and top-right orange corner circles
-        // (these sit inside the panel's own rounded corners — same radius)
-        AEMtx33Scale(&s, panelR / 2.0f, panelR / 2.0f);
-        AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR,
-            panelCY + panelH * 0.5f - panelR);
+        AEMtx33Scale(&s, panelR * 0.5f, panelR * 0.5f);
+        AEMtx33Trans(&t, panelCX - panelW * 0.5f + panelR, panelCY + panelH * 0.5f - panelR);
         AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
         AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
-
-        AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR,
-            panelCY + panelH * 0.5f - panelR);
+        AEMtx33Trans(&t, panelCX + panelW * 0.5f - panelR, panelCY + panelH * 0.5f - panelR);
         AEMtx33Concat(&m, &t, &s); AEGfxSetTransform(m.m);
         AEGfxMeshDraw(PlateMesh, AE_GFX_MDM_TRIANGLES);
+    }
 
-        // ---------------------------------------------------------------
-        // LAYER 3: Pill buttons
-        // ---------------------------------------------------------------
-        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn3Y, btnW, btnH, btnR,
-            0.85f, 0.31f, 0.055f);  // orange Resume
-        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn1Y, btnW, btnH, btnR,
-            0.17f, 0.17f, 0.17f);   // dark Back to Main Menu
-        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn2Y, btnW, btnH, btnR,
-            0.17f, 0.17f, 0.17f);   // dark Settings
-        DrawRoundedRect(BGMesh, PlateMesh, panelCX, btn4Y, btnW, btnH, btnR,
-            0.17f, 0.17f, 0.17f);   // dark Restart
+    // Buttons
+    DrawRoundedRect(BGMesh, PlateMesh,
+        btnResume.cx, btnResume.cy, btnResume.w, btnResume.h,
+        btnR, 0.85f, 0.31f, 0.055f);
+    DrawRoundedRect(BGMesh, PlateMesh,
+        btnRestart.cx, btnRestart.cy, btnRestart.w, btnRestart.h,
+        btnR, 0.17f, 0.17f, 0.17f);
+    DrawRoundedRect(BGMesh, PlateMesh,
+        btnMenu.cx, btnMenu.cy, btnMenu.w, btnMenu.h,
+        btnR, 0.17f, 0.17f, 0.17f);
+    DrawRoundedRect(BGMesh, PlateMesh,
+        btnSettings.cx, btnSettings.cy, btnSettings.w, btnSettings.h,
+        btnR, 0.17f, 0.17f, 0.17f);
 
-        // ---------------------------------------------------------------
-        // LAYER 4: Text
-        // ---------------------------------------------------------------
-        if (GameFontId >= 0) {
-            AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-            AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    // Text
+    if (GameFontId >= 0) {
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        const float titleBarCY = panelCY + panelH * 0.5f - titleH * 0.5f;
+        s8 smallFont = (GameFontIdSmall >= 0) ? GameFontIdSmall : GameFontId;
 
-            char pauseTitle[] = "PAUSED";
-            char hintText[] = "Press ESC to Resume";
-            char menuLabel[] = "Back to Main Menu";
-            char settingsLabel[] = "Settings";
-            char resumeLabel[] = "Resume";
-            char restartLabel[] = "Restart";
-
-            AEGfxPrint(GameFontId, pauseTitle,
-                -0.13f, (titleBarCY - 14.0f) / 450.0f,
-                1.8f, 1.0f, 1.0f, 1.0f, 1.0f);
-
-            s8 hintFont = (GameFontIdSmall >= 0) ? GameFontIdSmall : GameFontId;
-            AEGfxPrint(hintFont, hintText,
-                -0.10f, (titleBarBottom - 30.0f) / 450.0f,
-                0.75f, 0.5f, 0.5f, 0.5f, 1.0f);
-
-            AEGfxPrint(GameFontId, resumeLabel,
-                -0.07f, (btn3Y - 10.0f) / 450.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-
-            AEGfxPrint(GameFontId, menuLabel,
-                -0.15f, (btn1Y - 10.0f) / 450.0f,
-                0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
-
-            AEGfxPrint(GameFontId, settingsLabel,
-                -0.08f, (btn2Y - 10.0f) / 450.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-
-            AEGfxPrint(GameFontId, restartLabel,
-                -0.07f, (btn4Y - 10.0f) / 450.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        }
+        AEGfxPrint(GameFontId, "PAUSED",
+            -0.13f, (titleBarCY - 14.f) / 450.f, 1.8f, 1.f, 1.f, 1.f, 1.f);
+        AEGfxPrint(smallFont, "Press ESC to Resume",
+            -0.10f, (titleBarCY - titleH * 0.5f - 30.f) / 450.f, 0.75f, 0.5f, 0.5f, 0.5f, 1.f);
+        AEGfxPrint(GameFontId, "Resume",
+            -0.07f, (btnResume.cy - 10.f) / 450.f, 1.f, 1.f, 1.f, 1.f, 1.f);
+        AEGfxPrint(GameFontId, "Restart",
+            -0.07f, (btnRestart.cy - 10.f) / 450.f, 1.f, 1.f, 1.f, 1.f, 1.f);
+        AEGfxPrint(GameFontId, "Back to Main Menu",
+            -0.15f, (btnMenu.cy - 10.f) / 450.f, 0.85f, 1.f, 1.f, 1.f, 1.f);
+        AEGfxPrint(GameFontId, "Settings",
+            -0.08f, (btnSettings.cy - 10.f) / 450.f, 1.f, 1.f, 1.f, 1.f, 1.f);
     }
 
     Settings_Draw(GameFontId, BGMesh, PlateMesh);
 }
 
-void Burger_Clear() {
-    currentBurger.clear();
-    burgerComplete = false;
-
-    // Clear all plate flags
-    lettuceOnPlate = false;
-    cheeseOnPlate = false;
-    pattieOnPlate = false;
-    tomatoOnPlate = false;
-    onionOnPlate = false;
-    cucumberOnPlate = false;
-    bunTopOnPlate = false;
-    bunBottomOnPlate = false;
-
-    //only clears soda if it was on the plate
-    if (sodaOnPlate) {
-        sodaOnPlate = false;
-        sodaMachineHasCup = false;
-        sodaIsFilled = false;
-        sodaFillTimer = 0.0f;
-        printf("Soda was served, clearing it.\n");
-    }
-    // Reset drag state
-    ResetDragState();
-
-    printf("Burger cleared. Ready to build new one.\n");
-}
+// ---------------------------------------------------------------------------
+// Cleanup
+// ---------------------------------------------------------------------------
 
 void Game_Free() {
-    printf("Game_Free called\n");
     Burger_Clear();
     Customer_Free();
-    // Free any dynamic memory here
     Points_Free();
     Level_Manager_Free();
     GarageDoor_Free();
     Sound_Free();
-
 }
 
 void Game_Unload() {
-    printf("Game_Unload called\n");
+    auto UnloadTex = [](AEGfxTexture*& tex) {
+        if (tex) { AEGfxTextureUnload(tex); tex = nullptr; }
+        };
+    auto FreeMesh = [](AEGfxVertexList*& m) {
+        if (m) { AEGfxMeshFree(m); m = nullptr; }
+        };
 
-    // Free texture
-    if (Ingredients) {
-        AEGfxTextureUnload(Ingredients);
-        Ingredients = nullptr;
-        printf("Ingredients texture freed\n");
-    }
+    UnloadTex(Ingredients);
+    UnloadTex(SodaTexture);
+    UnloadTex(LockTexture);
+    UnloadTex(PlateTexture);
+    UnloadTex(GameplayBG_back);
+    UnloadTex(GameplayBG_front);
+    for (auto& t : CustomerTexture) UnloadTex(t);
 
-    if (SodaTexture) {
-        AEGfxTextureUnload(SodaTexture);
-        SodaTexture = nullptr;
-        printf("Soda texture freed\n");
-    }
+    FreeMesh(SquareMesh);
+    FreeMesh(PlateMesh);
+    FreeMesh(IngredientsMesh);
+    FreeMesh(BGMesh);
+    FreeMesh(SodaMesh);
 
-    if (LockTexture) {
-        AEGfxTextureUnload(LockTexture);
-        LockTexture = nullptr;
-        printf("Lock texture freed\n");
-    }
-
-    // Free customer texture
-    for (int i = 0; i < 4; i++) {
-        if (CustomerTexture[i]) {
-            AEGfxTextureUnload(CustomerTexture[i]);
-            CustomerTexture[i] = nullptr;
-        }
-    }
-
-    if (PlateTexture) {
-        AEGfxTextureUnload(PlateTexture);
-        PlateTexture = nullptr;
-    }
-    if (GameplayBG_back) {
-        AEGfxTextureUnload(GameplayBG_back);
-        GameplayBG_back = nullptr;
-    }
-    if (GameplayBG_front) {
-        AEGfxTextureUnload(GameplayBG_front);
-        GameplayBG_front = nullptr;
-    }
-
-
-    // Clean up mesh
-    if (SquareMesh) {
-        AEGfxMeshFree(SquareMesh);
-        SquareMesh = nullptr;
-        printf("Table mesh freed\n");
-    }
-    if (PlateMesh) {
-        AEGfxMeshFree(PlateMesh);
-        PlateMesh = nullptr;
-        printf("Plate mesh freed\n");
-    }
-    if (IngredientsMesh) {
-        AEGfxMeshFree(IngredientsMesh);
-        IngredientsMesh = nullptr;
-        printf("Ingredient mesh freed\n");
-    }
-    if (BGMesh) {
-        AEGfxMeshFree(BGMesh);
-        BGMesh = nullptr;
-        printf("Ingredient mesh freed\n");
-    }
-    if (SodaMesh) {
-        AEGfxMeshFree(SodaMesh);
-        SodaMesh = nullptr;
-    } // (D)
-
-    if (GameFontId >= 0) {
-        AEGfxDestroyFont(GameFontId);
-        GameFontId = -1;
-    }
-    if (GameFontIdSmall >= 0) {
-        AEGfxDestroyFont(GameFontIdSmall);
-        GameFontIdSmall = -1;
-    }
+    if (GameFontId >= 0) { AEGfxDestroyFont(GameFontId);      GameFontId = -1; }
+    if (GameFontIdSmall >= 0) { AEGfxDestroyFont(GameFontIdSmall); GameFontIdSmall = -1; }
 
     GarageDoor_Unload();
     Points_Unload();
@@ -1246,4 +814,3 @@ void Game_Unload() {
     Sound_Unload();
     Settings_Unload();
 }
-

@@ -125,6 +125,12 @@
     <None Include="..\Assets\Data\Data.csv">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\bin\Debug-x64\Assets\Data\game_config.csv">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\bin\Debug-x64\Assets\Data\ingredients.csv">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
