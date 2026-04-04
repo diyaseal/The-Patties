@@ -125,10 +125,10 @@
     <None Include="..\Assets\Data\Data.csv">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\bin\Debug-x64\Assets\Data\Game_Config.csv">
+    <None Include="..\Assets\Data\Ingredients.csv">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\bin\Debug-x64\Assets\Data\Ingredients.csv">
+    <None Include="..\Assets\Data\GameConfig.csv">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

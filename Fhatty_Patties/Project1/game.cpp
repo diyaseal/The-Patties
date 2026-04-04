@@ -170,7 +170,7 @@ static const IngredientRenderInfo kRenderOrder[] = {
     { PATTY,      0.f,       0.f,        25.0f },
     { TOMATO,     1.f / 4.f, 0.f,        18.0f },
     { CUCUMBER,   2.f / 4.f, 1.f / 2.f,  8.0f },
-    { ONION,      1.f / 4.f, 1.f / 2.f,  8.0f },
+    { ONION,      1.f / 4.f, 1.f / 2.f,  10.0f },
     { TOP_BUN,    3.f / 4.f, 0.f,         0.0f }, // compression applied below
 };
 

@@ -140,8 +140,8 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Assets\Data\Data.csv" />
-    <None Include="..\bin\Debug-x64\Assets\Data\Game_Config.csv" />
-    <None Include="..\bin\Debug-x64\Assets\Data\Ingredients.csv" />
+    <None Include="..\Assets\Data\GameConfig.csv" />
+    <None Include="..\Assets\Data\Ingredients.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
