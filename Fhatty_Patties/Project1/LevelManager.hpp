@@ -26,8 +26,8 @@ extern const char* LEVEL_DATA_PATH;
 bool Level_Manager_LoadLevel(int level);
 
 // Setter Functions
-void Level_Manager_UpdateStarStatus(float currentPoints);
-void Level_Manager_UpdateHighestPoints(float currentPoints);
+void Level_Manager_UpdateStarStatus(float cPoints);
+void Level_Manager_UpdateHighestPoints(float cPoints);
 
 // Getter Functions
 LevelData Level_Manager_GetCurrentLevelData();

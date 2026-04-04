@@ -192,9 +192,9 @@ static void Level_Manager_SaveProgress() {
 // ---------------------------------------------------------------------------
 // Setter Functions
 // ---------------------------------------------------------------------------
-void Level_Manager_UpdateStarStatus(float currentPoints) {
+void Level_Manager_UpdateStarStatus(float cPoints) {
 
-    printf("Checking stars: points=%.0f\n", currentPoints);
+    printf("Checking stars: points=%.0f\n", cPoints);
 
     bool anyStarEarned = false;
 
@@ -204,7 +204,7 @@ void Level_Manager_UpdateStarStatus(float currentPoints) {
             currentLevelData.starPositions[i],
             currentLevelData.starStatus[i]);
 
-        if (currentPoints >= currentLevelData.starPositions[i]) {
+        if (cPoints >= currentLevelData.starPositions[i]) {
 
             if (currentLevelData.starStatus[i] == 0) {
 
@@ -221,17 +221,17 @@ void Level_Manager_UpdateStarStatus(float currentPoints) {
     }
 }
 
-void Level_Manager_UpdateHighestPoints(float currentPoints) {
+void Level_Manager_UpdateHighestPoints(float cPoints) {
 
-    if (currentPoints > Level_Manager_GetHighestPoints()) {
+    if (cPoints > Level_Manager_GetHighestPoints()) {
 
         printf("New record! %f (old: %f)\n",
-            currentPoints,
+            cPoints,
             Level_Manager_GetHighestPoints());
 
-        currentLevelData.highestPts = currentPoints;
+        currentLevelData.highestPts = cPoints;
 
-        Level_Manager_UpdateStarStatus(currentPoints);
+        Level_Manager_UpdateStarStatus(cPoints);
         Level_Manager_SaveProgress(); // save to CSV
     }
 }
