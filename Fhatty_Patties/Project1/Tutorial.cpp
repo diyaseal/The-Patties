@@ -28,8 +28,6 @@ static bool   typewriterDone = false;
 // Wrong-order flash state
 // ---------------------------------------------------------------------------
 static bool  showWrongOrderMsg = false;
-static float wrongOrderTimer = 0.0f;
-static const float WRONG_ORDER_DURATION = 2.5f;
 
 // Helper: start a new typewriter sequence
 static void TypewriterSet(const char* text) {
@@ -68,8 +66,9 @@ enum TutTextCond {
     TTC_ALWAYS,         // show whenever phase/step match
     TTC_TYPEWRITER,     // this is the typewriter line (print typewriterBuf, not text[])
     TTC_AFTER_TW,       // only show once typewriter has finished
-    TTC_WRONG_ORDER,    // only show while showWrongOrderMsg is true
-    TTC_SODA_NOT_PLACED // only show while soda is not yet on the plate
+    TTC_WRONG_ORDER,    // only show while showWrongOrderMsg is true (BUILD_BURGER only)
+    TTC_SODA_NOT_PLACED,// only show while soda is not yet on the plate
+    TTC_NO_WRONG_ORDER  // like TTC_TYPEWRITER but hidden when showWrongOrderMsg is true
 };
 
 struct TutorialText {
@@ -108,32 +107,29 @@ static const TutorialText TUT_TEXTS[] =
                 "Don't take too long or the customer will leave in anger!" },
 
                 // ---- BUILD BURGER ----------------------------------------------------
-                { TUTE_BUILD_BURGER, -1, TTC_TYPEWRITER,
-                    -0.1f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
+                // Normal instruction — hidden when a wrong ingredient has been placed
+                { TUTE_BUILD_BURGER, -1, TTC_NO_WRONG_ORDER,
+                    -0.1f, 0.45f, 1.0f,   1.0f, 1.0f, 1.0f,
                     "Build the order! Click the ingredients below." },
 
-                { TUTE_BUILD_BURGER, -1, TTC_SODA_NOT_PLACED,
-                    -0.14f, 0.4f, 0.8f,   0.4f, 0.9f, 1.0f,
-                    "Remember: you'll also need to fill a SODA alongside the burger!" },
+                    // Wrong-ingredient message — replaces the instruction at the same position
+                    { TUTE_BUILD_BURGER, -1, TTC_WRONG_ORDER,
+                        -0.17f, 0.45f, 1.0f,   1.0f, 0.3f, 0.3f,
+                        "WRONG INGREDIENT/ORDER! Drag to the TRASH to redo." },
 
-                    // ---- FILL SODA -------------------------------------------------------
-                    { TUTE_FILL_SODA, -1, TTC_TYPEWRITER,
-                        -0.12f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
-                        "Burger done! Now click the soda machine button." },
+                        // ---- FILL SODA -------------------------------------------------------
+                        { TUTE_FILL_SODA, -1, TTC_TYPEWRITER,
+                            -0.12f, 0.5f, 1.0f,   1.0f, 1.0f, 1.0f,
+                            "Burger done! Now click the soda machine button." },
 
-                    { TUTE_FILL_SODA, -1, TTC_AFTER_TW,
-                        -0.12f,  0.4f, 0.85f,  0.4f, 1.0f, 0.55f,
-                        "Wait for the cup to fill, then CLICK it to snap onto the plate." },
+                        { TUTE_FILL_SODA, -1, TTC_AFTER_TW,
+                            -0.09f,  0.4f, 0.85f,  0.4f, 1.0f, 0.55f,
+                            "Wait for the cup to fill, then CLICK it to snap onto the plate." },
 
-                        // ---- SERVE -----------------------------------------------------------
-                        { TUTE_SERVE, -1, TTC_TYPEWRITER,
-                            -0.18f, 0.45f, 1.0f,  1.0f, 1.0f, 1.0f,
-                            "Order complete! DRAG the plate to the customer to serve!" },
-
-                            // ---- WRONG INGREDIENT flash (shown over any phase) -------------------
-                            { -1, -1, TTC_WRONG_ORDER,
-                               -0.40f, 0.0f, 0.9f,  1.0f, 0.3f, 0.3f,
-                                "WRONG INGREDIENT! Drag to the TRASH BIN to redo." },
+                            // ---- SERVE -----------------------------------------------------------
+                            { TUTE_SERVE, -1, TTC_TYPEWRITER,
+                                -0.18f, 0.45f, 1.0f,  1.0f, 1.0f, 1.0f,
+                                "Order complete! DRAG the plate to the customer to serve!" },
 
                                 // ---- COMPLETE --------------------------------------------------------
                                 { TUTE_COMPLETE, -1, TTC_ALWAYS,
@@ -321,7 +317,6 @@ static void CheckLastIngredient()
         printf("[Tutorial] Wrong ingredient at slot %zu (got %d, want %d)\n",
             slot, placed[slot], expected[slot]);
         showWrongOrderMsg = true;
-        wrongOrderTimer = 0.0f;
     }
 }
 
@@ -343,7 +338,7 @@ static void SetPhase(TutorialPhase p) {
     const char* twText = nullptr;
     for (int i = 0; i < TUT_TEXTS_COUNT; ++i) {
         const TutorialText& e = TUT_TEXTS[i];
-        if (e.cond == TTC_TYPEWRITER &&
+        if ((e.cond == TTC_TYPEWRITER || e.cond == TTC_NO_WRONG_ORDER) &&
             e.phase == (int)p &&
             (e.orderStep == -1 || e.orderStep == 0))
         {
@@ -361,7 +356,6 @@ static void SetPhase(TutorialPhase p) {
 
 // ---------------------------------------------------------------------------
 // Helper: Reset burger to BUILD_BURGER WITHOUT restarting the typewriter.
-// The instruction is already fully typed on screen - no need to retype it.
 // Used by trash-drop and R-key reset.
 // ---------------------------------------------------------------------------
 static void ResetBurger()
@@ -421,7 +415,6 @@ void Tutorial_Init() {
 
     ClearBurger();
     showWrongOrderMsg = false;
-    wrongOrderTimer = 0.0f;
     SetPhase(TUTE_CUSTOMER_WALKING);
 
     currentLevelData.customerCount = 1;
@@ -523,11 +516,6 @@ void Tutorial_Update() {
         customers[0].patience = customers[0].maxPatience;
 
     TypewriterUpdate(static_cast<float>(dt));
-    if (showWrongOrderMsg) {
-        wrongOrderTimer += static_cast<float>(dt);
-        if (wrongOrderTimer >= WRONG_ORDER_DURATION)
-            showWrongOrderMsg = false;
-    }
 
     // -----------------------------------------------------------------------
     // PHASE: SHOW_ORDER
@@ -543,7 +531,7 @@ void Tutorial_Update() {
                 showOrderStep++;
                 for (int i = 0; i < TUT_TEXTS_COUNT; ++i) {
                     const TutorialText& e = TUT_TEXTS[i];
-                    if (e.cond == TTC_TYPEWRITER &&
+                    if ((e.cond == TTC_TYPEWRITER || e.cond == TTC_NO_WRONG_ORDER) &&
                         e.phase == (int)TUTE_SHOW_ORDER &&
                         e.orderStep == showOrderStep)
                     {
@@ -580,65 +568,60 @@ void Tutorial_Update() {
         // ==============================================================
         if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 
-            if (!bunBottomOnPlate &&
-                InBounds(wmx, wmy, BunBotX, BunBotY, BunBotW / 2, BunBotH / 2)) {
-                bunBottomOnPlate = true;
-                currentBurger.push_back(BOTTOM_BUN);
-                CheckLastIngredient();
-                printf("[Tutorial] Bottom bun added.\n");
-            }
-            if (!pattieOnPlate &&
-                InBounds(wmx, wmy, PattieX, PattieY, PattieW / 2, PattieH / 2)) {
-                pattieOnPlate = true;
-                currentBurger.push_back(PATTY);
-                CheckLastIngredient();
-                printf("[Tutorial] Patty added.\n");
-            }
-            if (!cheeseOnPlate &&
-                InBounds(wmx, wmy, CheeseX, CheeseY, CheeseW / 2, CheeseH / 2)) {
-                cheeseOnPlate = true;
-                currentBurger.push_back(CHEESE);
-                CheckLastIngredient();
-                printf("[Tutorial] Cheese added.\n");
-            }
-            if (!lettuceOnPlate &&
-                InBounds(wmx, wmy, LettuceX, LettuceY, LettuceW / 2, LettuceH / 2)) {
-                lettuceOnPlate = true;
-                currentBurger.push_back(LETTUCE);
-                CheckLastIngredient();
-                printf("[Tutorial] Lettuce added.\n");
-            }
-            if (!tomatoOnPlate &&
-                InBounds(wmx, wmy, TomatoX, TomatoY, TomatoW / 2, TomatoH / 2)) {
-                tomatoOnPlate = true;
-                currentBurger.push_back(TOMATO);
-                CheckLastIngredient();
-                printf("[Tutorial] Tomato added.\n");
-            }
-            if (!onionOnPlate &&
-                InBounds(wmx, wmy, OnionX, OnionY, OnionW / 2, OnionH / 2)) {
-                onionOnPlate = true;
-                currentBurger.push_back(ONION);
-                CheckLastIngredient();
-                printf("[Tutorial] Onion added.\n");
-            }
-            if (!cucumberOnPlate &&
-                InBounds(wmx, wmy, CucumbX, CucumbY, CucumbW / 2, CucumbH / 2)) {
-                cucumberOnPlate = true;
-                currentBurger.push_back(CUCUMBER);
-                CheckLastIngredient();
-                printf("[Tutorial] Cucumber added.\n");
-            }
-            if (!bunTopOnPlate &&
-                InBounds(wmx, wmy, BunTopX, BunTopY, BunTopW / 2, BunTopH / 2)) {
-                bunTopOnPlate = true;
-                burgerComplete = true;
-                currentBurger.push_back(TOP_BUN);
-                CheckLastIngredient();
-                printf("[Tutorial] Top bun added - burger body complete!\n");
-                if (tutorialPhase == TUTE_BUILD_BURGER && !showWrongOrderMsg)
-                    SetPhase(TUTE_FILL_SODA);
-            }
+            // ---- Ingredient clicks: only allowed during BUILD_BURGER ----
+            if (tutorialPhase == TUTE_BUILD_BURGER) {
+                if (InBounds(wmx, wmy, BunBotX, BunBotY, BunBotW / 2, BunBotH / 2)) {
+                    bunBottomOnPlate = true;
+                    currentBurger.push_back(BOTTOM_BUN);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Bottom bun added.\n");
+                }
+                if (InBounds(wmx, wmy, PattieX, PattieY, PattieW / 2, PattieH / 2)) {
+                    pattieOnPlate = true;
+                    currentBurger.push_back(PATTY);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Patty added.\n");
+                }
+                if (InBounds(wmx, wmy, CheeseX, CheeseY, CheeseW / 2, CheeseH / 2)) {
+                    cheeseOnPlate = true;
+                    currentBurger.push_back(CHEESE);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Cheese added.\n");
+                }
+                if (InBounds(wmx, wmy, LettuceX, LettuceY, LettuceW / 2, LettuceH / 2)) {
+                    lettuceOnPlate = true;
+                    currentBurger.push_back(LETTUCE);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Lettuce added.\n");
+                }
+                if (InBounds(wmx, wmy, TomatoX, TomatoY, TomatoW / 2, TomatoH / 2)) {
+                    tomatoOnPlate = true;
+                    currentBurger.push_back(TOMATO);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Tomato added.\n");
+                }
+                if (InBounds(wmx, wmy, OnionX, OnionY, OnionW / 2, OnionH / 2)) {
+                    onionOnPlate = true;
+                    currentBurger.push_back(ONION);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Onion added.\n");
+                }
+                if (InBounds(wmx, wmy, CucumbX, CucumbY, CucumbW / 2, CucumbH / 2)) {
+                    cucumberOnPlate = true;
+                    currentBurger.push_back(CUCUMBER);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Cucumber added.\n");
+                }
+                if (InBounds(wmx, wmy, BunTopX, BunTopY, BunTopW / 2, BunTopH / 2)) {
+                    bunTopOnPlate = true;
+                    burgerComplete = true;
+                    currentBurger.push_back(TOP_BUN);
+                    CheckLastIngredient();
+                    printf("[Tutorial] Top bun added - burger body complete!\n");
+                    if (!showWrongOrderMsg)
+                        SetPhase(TUTE_FILL_SODA);
+                }
+            } // end BUILD_BURGER-only ingredient block
 
             // ---- Soda machine: click to start filling ----
             if (tutorialPhase == TUTE_FILL_SODA &&
@@ -647,7 +630,6 @@ void Tutorial_Update() {
                 sodaMachineHasCup = true;
                 sodaIsFilled = false;
                 sodaFillTimer = 0.0f;
-                Sound_PlaySFX_Pour();
                 printf("[Tutorial] Started filling soda...\n");
             }
 
@@ -767,25 +749,7 @@ static void Tutorial_DrawText()
     if (tutEND && tutorialPhase != TUTE_COMPLETE) return;
 
     // -----------------------------------------------------------------------
-    // FIX: Banner background drawn FIRST so text is rendered on top of it.
-    // -----------------------------------------------------------------------
-    if (showWrongOrderMsg)
-    {
-        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-        AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.65f);
-        {
-            AEMtx33 s, t, m;
-            AEMtx33Scale(&s, 700.0f, 80.0f);
-            AEMtx33Trans(&t, 0.0f, 0.0f);
-            AEMtx33Concat(&m, &t, &s);
-            AEGfxSetTransform(m.m);
-            AEGfxMeshDraw(SquareMesh, AE_GFX_MDM_TRIANGLES);
-        }
-        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-
-    // -----------------------------------------------------------------------
-    // All text printed here, on top of any geometry drawn above.
+    // All text printed here.
     // -----------------------------------------------------------------------
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
@@ -804,6 +768,13 @@ static void Tutorial_DrawText()
         switch (e.cond)
         {
         case TTC_TYPEWRITER:
+            AEGfxPrint(FontId, typewriterBuf,
+                e.x, e.y, e.scale, e.r, e.g, e.b, 1.0f);
+            continue;
+
+        case TTC_NO_WRONG_ORDER:
+            // Like TTC_TYPEWRITER but suppressed when a wrong ingredient is active
+            if (showWrongOrderMsg) continue;
             AEGfxPrint(FontId, typewriterBuf,
                 e.x, e.y, e.scale, e.r, e.g, e.b, 1.0f);
             continue;
@@ -1082,13 +1053,13 @@ void Tutorial_Draw() {
                 -0.10f, (titleBarCY - 14.0f) / 450.0f,
                 1.8f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Resume",
-                -0.06f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
+                -0.07f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Back to Main Menu",
-                -0.12f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
+                -0.15f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
                 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Settings",
-                -0.065f, (TutPauseSettBtnY - 10.0f) / 450.0f,
+                -0.08f, (TutPauseSettBtnY - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
