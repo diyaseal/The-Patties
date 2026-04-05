@@ -47,7 +47,7 @@ static std::vector<std::string> SplitString(const std::string& str, char delimit
 bool Level_Manager_LoadLevel(int level) {
     std::ifstream file(LEVEL_DATA_PATH);
     if (!file.is_open()) {
-        printf("ERROR: Could not open Data.csv\n");
+        //printf("ERROR: Could not open Data.csv\n");
         return false;
     }
 
@@ -100,24 +100,24 @@ bool Level_Manager_LoadLevel(int level) {
 
             currentLevelData.highestPts = static_cast<float>(std::stoi(cells[6]));
 
-            printf("=== Level %d loaded from CSV ===\n", level);
-            printf("  Customer count: %d\n", currentLevelData.customerCount);
-            printf("  Ingredients (%zu): ", currentLevelData.ingredients.size());
-            for (const auto& ing : currentLevelData.ingredients) {
-                printf("%s ", ing.c_str());
-            }
-            printf("\n");
-            printf("  Duration multiplier: %.2f\n", currentLevelData.durationMultiplier);
-            printf("  Star positions: %.0f, %.0f, %.0f\n",
-                currentLevelData.starPositions[0],
-                currentLevelData.starPositions[1],
-                currentLevelData.starPositions[2]);
-            printf("  Star status: %d, %d, %d\n",
-                currentLevelData.starStatus[0],
-                currentLevelData.starStatus[1],
-                currentLevelData.starStatus[2]);
-            printf("  Current highest points: %f\n", currentLevelData.highestPts);
-            printf("================================\n");
+            //printf("=== Level %d loaded from CSV ===\n", level);
+            //printf("  Customer count: %d\n", currentLevelData.customerCount);
+            //printf("  Ingredients (%zu): ", currentLevelData.ingredients.size());
+            //for (const auto& ing : currentLevelData.ingredients) {
+            //    printf("%s ", ing.c_str());
+            //}
+            //printf("\n");
+            //printf("  Duration multiplier: %.2f\n", currentLevelData.durationMultiplier);
+            //printf("  Star positions: %.0f, %.0f, %.0f\n",
+            //    currentLevelData.starPositions[0],
+            //    currentLevelData.starPositions[1],
+            //    currentLevelData.starPositions[2]);
+            //printf("  Star status: %d, %d, %d\n",
+            //    currentLevelData.starStatus[0],
+            //    currentLevelData.starStatus[1],
+            //    currentLevelData.starStatus[2]);
+            //printf("  Current highest points: %f\n", currentLevelData.highestPts);
+            //printf("================================\n");
 
             currentLevel = level;
             file.close();
@@ -126,7 +126,7 @@ bool Level_Manager_LoadLevel(int level) {
     }
 
     file.close();
-    printf("ERROR: Level %d not found in Data.csv\n", level);
+    /*printf("ERROR: Level %d not found in Data.csv\n", level);*/
     return false;
 }
 
@@ -137,7 +137,7 @@ static void Level_Manager_SaveProgress() {
     // Read entire file
     std::ifstream inFile(LEVEL_DATA_PATH);
     if (!inFile.is_open()) {
-        printf("ERROR: Could not open Data.csv for reading\n");
+        //printf("ERROR: Could not open Data.csv for reading\n");
         return;
     }
 
@@ -184,7 +184,7 @@ static void Level_Manager_SaveProgress() {
     // Write back to file
     std::ofstream outFile(LEVEL_DATA_PATH);
     if (!outFile.is_open()) {
-        printf("ERROR: Could not open Data.csv for writing\n");
+        //printf("ERROR: Could not open Data.csv for writing\n");
         return;
     }
 
@@ -193,7 +193,7 @@ static void Level_Manager_SaveProgress() {
     }
     outFile.close();
 
-    printf("Star status saved to CSV\n");
+    //printf("Star status saved to CSV\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -201,29 +201,29 @@ static void Level_Manager_SaveProgress() {
 // ---------------------------------------------------------------------------
 void Level_Manager_UpdateStarStatus(float cPoints) {
 
-    printf("Checking stars: points=%.0f\n", cPoints);
+    //printf("Checking stars: points=%.0f\n", cPoints);
 
     bool anyStarEarned = false;
 
     for (int i = 0; i < 3; i++) {
 
-        printf("Threshold %.0f | status %d\n",
-            currentLevelData.starPositions[i],
-            currentLevelData.starStatus[i]);
+        //printf("Threshold %.0f | status %d\n",
+        //    currentLevelData.starPositions[i],
+        //    currentLevelData.starStatus[i]);
 
         if (cPoints >= currentLevelData.starPositions[i]) {
 
             if (currentLevelData.starStatus[i] == 0) {
 
                 currentLevelData.starStatus[i] = 1;
-                printf("Star %d earned!\n", i + 1);
+                //printf("Star %d earned!\n", i + 1);
                 anyStarEarned = true;
             }
         }
     }
 
     if (anyStarEarned) {
-        printf("Saving stars to CSV...\n");
+        //printf("Saving stars to CSV...\n");
         Level_Manager_SaveProgress();
     }
 }
@@ -232,9 +232,9 @@ void Level_Manager_UpdateHighestPoints(float cPoints) {
 
     if (cPoints > Level_Manager_GetHighestPoints()) {
 
-        printf("New record! %f (old: %f)\n",
-            cPoints,
-            Level_Manager_GetHighestPoints());
+        //printf("New record! %f (old: %f)\n",
+        //    cPoints,
+        //    Level_Manager_GetHighestPoints());
 
         currentLevelData.highestPts = cPoints;
 
@@ -294,11 +294,11 @@ void Level_Manager_Init() {
     else if (currentLevel >= 5) {
         Level_Manager_LoadLevel(5);
     }
-    printf("Level_Manager_Init called\n");
+    //printf("Level_Manager_Init called\n");
 }
 
 void Level_Manager_Load() {
-    printf("Level_Manager_Load called\n");
+    //printf("Level_Manager_Load called\n");
 }
 
 void Level_Manager_Update() {
@@ -310,10 +310,10 @@ void Level_Manager_Draw() {
 }
 
 void Level_Manager_Free() {
-    printf("Level_Manager_Free called\n");
+    //printf("Level_Manager_Free called\n");
 }
 
 void Level_Manager_Unload() {
-    printf("Level_Manager_Unload called\n");
+    //printf("Level_Manager_Unload called\n");
     currentLevelData.ingredients.clear();
 }

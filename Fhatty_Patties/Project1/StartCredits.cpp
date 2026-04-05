@@ -42,7 +42,7 @@ static s8               fontId2 = -1;
 // ---------------------------------------------------------------------------
 void Start_Credits_Load()
 {
-    printf("Credits Load\n");
+    //printf("Credits Load\n");
 
     // School assets
     fontId0 = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
@@ -58,7 +58,7 @@ void Start_Credits_Load()
 
 void Start_Credits_Init()
 {
-    printf("Credits Init called\n");
+    //printf("Credits Init called\n");
     totalElapsedTime = 0.0f;
     fade = 1.0f;
     currentScreen = SCREEN_SCHOOL; // starts with school
@@ -189,7 +189,7 @@ void Start_Credits_Free() {}
 
 void Start_Credits_Unload()
 {
-    printf("Credits Unload called\n");
+    //printf("Credits Unload called\n");
 
     if (pLogoMesh) { AEGfxMeshFree(pLogoMesh);        pLogoMesh = nullptr; }
     if (pSchoolLogo) { AEGfxTextureUnload(pSchoolLogo);  pSchoolLogo = nullptr; }

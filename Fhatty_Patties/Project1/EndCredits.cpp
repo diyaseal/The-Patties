@@ -169,7 +169,7 @@ static float GetSetFade(float startTime)
 // ---------------------------------------------------------------------------
 void End_Credits_Load()
 {
-    printf("School_Credits Load\n");
+    //printf("School_Credits Load\n");
 
     Particle_Load();
 
@@ -181,20 +181,20 @@ void End_Credits_Load()
     // LOAD FONT
     // -------------------------------------------------------------------
     fontId = AEGfxCreateFont("Assets/Font/Exo2-Regular.ttf", 40);
-    if (fontId < 0)
-        printf("ERROR: Failed to load font!\n");
-    else
-        printf("SUCCESS: Font loaded, ID = %d\n", fontId);
+    //if (fontId < 0)
+    //    printf("ERROR: Failed to load font!\n");
+    //else
+    //    printf("SUCCESS: Font loaded, ID = %d\n", fontId);
 
     // -------------------------------------------------------------------
     // LOAD GRASS
     // -------------------------------------------------------------------
     Grass = AEGfxTextureLoad("Assets/Assets/grass.png");
 
-    if (Grass)
-        printf("Truck texture loaded successfully\n");
-    else
-        printf("ERROR: Failed to load grass.png\n");
+    //if (Grass)
+    //    printf("Truck texture loaded successfully\n");
+    //else
+    //    printf("ERROR: Failed to load grass.png\n");
 
 
     // -------------------------------------------------------------------
@@ -203,10 +203,10 @@ void End_Credits_Load()
     Truck = AEGfxTextureLoad("Assets/Assets/Food_Truck.png");
     TruckMesh = CreateTruckMesh(0.5, 0.5);
 
-    if (Truck)
-        printf("Truck texture loaded successfully\n");
-    else
-        printf("ERROR: Failed to load Food_truck.png\n");
+    //if (Truck)
+    //    printf("Truck texture loaded successfully\n");
+    //else
+    //    printf("ERROR: Failed to load Food_truck.png\n");
 
     Sound_Load();
     Sound_PlayBGMCreds();   
@@ -214,7 +214,7 @@ void End_Credits_Load()
 
 void End_Credits_Init()
 {
-    printf("End Credits Init called\n");
+    //printf("End Credits Init called\n");
 
     fade = 1.0f;  // Reset fade when entering screen
 
@@ -430,13 +430,13 @@ void End_Credits_Draw()
 
 void End_Credits_Free()
 {
-    printf("End Credits Free called\n");
+    //printf("End Credits Free called\n");
     Particle_Free();
 }
 
 void End_Credits_Unload()
 {
-    printf("End Credits Unload called\n");
+    //printf("End Credits Unload called\n");
     Particle_Unload();
     if (fontId >= 0) { AEGfxDestroyFont(fontId); fontId = -1; }
     if (landMesh) { AEGfxMeshFree(landMesh);  landMesh = nullptr; }

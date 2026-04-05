@@ -56,7 +56,7 @@ void Points_AddPoints(bool cust) {
     // Update points + save CSV
     Level_Manager_UpdateHighestPoints(currentPoints);
 
-    printf("\nPoints added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
+    //printf("\nPoints added: %.0f | Total: %.0f\n", pointsEarnedH, currentPoints);
 }
 
 
@@ -64,7 +64,7 @@ void Points_AddPoints(bool cust) {
 // Points State Functions
 // ---------------------------------------------------------------------------
 void Points_Init() {
-    printf("Points_Init called\n");
+    //printf("Points_Init called\n");
 
     MAX_POINTS = 0.0f; // reset first
 
@@ -74,7 +74,7 @@ void Points_Init() {
     displayPoints = 0.0f;
     currentStars = 0;
 
-    printf("MAX_POINTS = %.0f\n", MAX_POINTS);
+    //printf("MAX_POINTS = %.0f\n", MAX_POINTS);
 }
 
 void Points_Load() {
@@ -172,12 +172,12 @@ void Points_Draw() {
 }
 
 void Points_Free() {
-    printf("Points_Free called\n");
+    //printf("Points_Free called\n");
     Particle_Free();
 }
 
 void Points_Unload() {
-    printf("Points_Unload called\n");
+    //printf("Points_Unload called\n");
 
     if (BarMesh) {
         AEGfxMeshFree(BarMesh);
