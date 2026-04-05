@@ -31,11 +31,12 @@ static float            transitionTimer = 0.0f;
 void GarageDoor_Load()
 {
     pDoorTexture = AEGfxTextureLoad("Assets/Assets/Transition_wall.png");
-
-    if (pDoorTexture)
-        printf("GarageDoor: texture loaded\n");
+/*
+     if (pDoorTexture)
+       printf("GarageDoor: texture loaded\n");
     else
-        printf("ERROR: GarageDoor failed to load texture!\n");
+       printf("ERROR: GarageDoor failed to load texture!\n");
+*/
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +48,7 @@ void GarageDoor_Init()
     isClosed = false;
     doorY = SCREEN_HEIGHT;   // fully off-screen above
     transitionTimer = 0.0f;
-    printf("GarageDoor: initialized\n");
+    //printf("GarageDoor: initialized\n");
     doorMesh = CreateSquareMesh(0.5f, 0.5f);
 }
 
@@ -59,7 +60,7 @@ void GarageDoor_Trigger()
     if (isTriggered) return;  // prevent double-trigger
     isTriggered = true;
     Sound_PlaySFX_doorClose();
-    printf("GarageDoor: triggered!\n");
+    //printf("GarageDoor: triggered!\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +79,7 @@ void GarageDoor_Update(float dt)
             doorY = 0.0f;
             isClosed = true;
             transitionTimer = 0.0f;
-            printf("GarageDoor: fully closed!\n");
+            //printf("GarageDoor: fully closed!\n");
         }
         return;
     }
@@ -86,7 +87,7 @@ void GarageDoor_Update(float dt)
     // Step 2: Wait briefly then transition to Level Complete
     transitionTimer += dt;
     if (transitionTimer >= LEVEL_COMPLETE_DELAY) {
-        printf("GarageDoor: transitioning to LevelComplete\n");
+        //printf("GarageDoor: transitioning to LevelComplete\n");
         next = GS_LVLCMP;
     }
 }
@@ -125,7 +126,7 @@ void GarageDoor_Free()
     isClosed = false;
     doorY = SCREEN_HEIGHT;
     transitionTimer = 0.0f;
-    printf("GarageDoor: freed\n");
+    //printf("GarageDoor: freed\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -136,7 +137,7 @@ void GarageDoor_Unload()
     if (pDoorTexture) {
         AEGfxTextureUnload(pDoorTexture);
         pDoorTexture = nullptr;
-        printf("GarageDoor: texture unloaded\n");
+        //printf("GarageDoor: texture unloaded\n");
     }
 
 }

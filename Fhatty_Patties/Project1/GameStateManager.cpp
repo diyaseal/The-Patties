@@ -26,7 +26,7 @@ fpDraw = nullptr, fpFree = nullptr, fpUnload = nullptr;
 // ----------------------------------------------------------------------------
 void GSM_Init(int startingState)
 {
-    printf("GSM:Initialize\n");
+    //printf("GSM:Initialize\n");
     // Set all state trackers to the starting state
     current = previous = next = startingState;
 }
@@ -37,7 +37,7 @@ void GSM_Init(int startingState)
 // ----------------------------------------------------------------------------
 void GSM_Update()
 {
-    printf("GSM:Update\n");
+    //printf("GSM:Update\n");
     // Set function pointers based on the current game state
     switch (current)
     {

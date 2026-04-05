@@ -41,7 +41,7 @@ static void LoadIngredientHitboxes() {
     std::ifstream file("Assets/Data/Ingredients.csv");
     if (!file.is_open()) {
         // ingredients.csv is required — place it at Assets/Data/Ingredients.csv
-        printf("[game] ERROR: Assets/Data/Ingredients.csv not found. No ingredients will be clickable.\n");
+        //printf("[game] ERROR: Assets/Data/Ingredients.csv not found. No ingredients will be clickable.\n");
         return;
     }
 
@@ -66,7 +66,7 @@ static void LoadIngredientHitboxes() {
         ingredientHitboxes.push_back(hb);
     }
 #ifdef _DEBUG
-    printf("[game] Loaded %zu ingredient hitboxes\n", ingredientHitboxes.size());
+    //printf("[game] Loaded %zu ingredient hitboxes\n", ingredientHitboxes.size());
 #endif
 }
 
@@ -100,7 +100,7 @@ static void LoadGameConfig() {
     std::ifstream file("Assets/Data/GameConfig.csv");
     if (!file.is_open()) {
         // game_config.csv is required — place it at Assets/Data/GameConfig.csv
-        printf("[game] ERROR: Assets/Data/GameConfig.csv not found. Using struct defaults.\n");
+        //printf("[game] ERROR: Assets/Data/GameConfig.csv not found. Using struct defaults.\n");
         return;
     }
 
@@ -132,7 +132,7 @@ static void LoadGameConfig() {
         else if (key == "ingredient_size") gCfg.ingredientSize = v;
     }
 #ifdef _DEBUG
-    printf("[game] game_config.csv loaded\n");
+    //printf("[game] game_config.csv loaded\n");
 #endif
 }
 
@@ -338,7 +338,7 @@ void Burger_Clear() {
     ResetDragState();
 
 #ifdef _DEBUG
-    printf("[game] Burger cleared\n");
+    //printf("[game] Burger cleared\n");
 #endif
 }
 
@@ -454,7 +454,7 @@ void Game_Update() {
     // -----------------------------------------------------------------------
     if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 #ifdef _DEBUG
-        printf("[game] Click at world (%.2f, %.2f)\n", worldX, worldY);
+        //printf("[game] Click at world (%.2f, %.2f)\n", worldX, worldY);
 #endif
         // Ingredient hitboxes — one loop replaces 8 separate if-blocks
         for (const auto& hb : ingredientHitboxes) {
@@ -468,7 +468,7 @@ void Game_Update() {
             if (hb.type == TOP_BUN) burgerComplete = true;
 
 #ifdef _DEBUG
-            printf("[game] Added ingredient %d — stack size %zu\n",
+            //printf("[game] Added ingredient %d — stack size %zu\n",
                 hb.type, currentBurger.size());
 #endif
             break; // only one ingredient per click
@@ -557,7 +557,7 @@ void Game_Update() {
             }
 
 #ifdef _DEBUG
-            if (!served) printf("[game] Burger returned to plate\n");
+           // if (!served) printf("[game] Burger returned to plate\n");
 #endif
         }
 
@@ -579,7 +579,7 @@ void Game_Update() {
     if (AEInputCheckTriggered(AEVK_G)) {
         levelEndTriggered = true;
         GarageDoor_Trigger();
-        printf("[game] DEBUG: garage door triggered\n");
+        //printf("[game] DEBUG: garage door triggered\n");
     }
 #endif
 }
