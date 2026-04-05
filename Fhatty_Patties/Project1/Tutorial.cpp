@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// tutorial.cpp
+// Tutorial.cpp
 // Tutorial game state - teaches the player how to build and serve a burger
 // Reuses all rendering and customer systems from game.cpp but adds a guided
 // state machine on top. No level CSV data is required.
@@ -123,7 +123,7 @@ static const TutorialText TUT_TEXTS[] =
                             "Burger done! Now click the soda machine button." },
 
                         { TUTE_FILL_SODA, -1, TTC_AFTER_TW,
-                            -0.09f,  0.4f, 0.85f,  0.4f, 1.0f, 0.55f,
+                            -0.14f,  0.4f, 0.85f,  0.4f, 1.0f, 0.55f,
                             "Wait for the cup to fill, then CLICK it to snap onto the plate." },
 
                             // ---- SERVE -----------------------------------------------------------
@@ -201,7 +201,7 @@ static const float TomatoX = -300.0f, TomatoY = -175.0f, TomatoW = 83.0f, Tomato
 static const float OnionX = 3.0f, OnionY = -175.0f, OnionW = 83.0f, OnionH = 83.0f;
 static const float CucumbX = -18.0f, CucumbY = -108.0f, CucumbW = 83.0f, CucumbH = 83.0f;
 static const float SodaX = 574.0f, SodaY = -88.0f, SodaW = 70.0f, SodaH = 70.0f;
-static const float TrashX = 629.0f, TrashY = -374.0f, TrashW = 100.0f, TrashH = 100.0f;
+static const float TrashX = 630.0f, TrashY = -350.0f, TrashW = 200.0f, TrashH = 200.0f;
 
 // ---------------------------------------------------------------------------
 // Burger / plate state
@@ -682,9 +682,9 @@ void Tutorial_Update() {
             if (isDragging && burgerIsBeingDragged) {
                 isDragging = false;
 
-                // -- Trash drop: reset burger WITHOUT retyping the instruction --
-                if (InBounds(burgerDragX, burgerDragY,
-                    TrashX, TrashY, TrashW / 2, TrashH / 2)) {
+                if (tutorialPhase == TUTE_BUILD_BURGER &&
+                    InBounds(burgerDragX, burgerDragY,
+                        TrashX, TrashY, TrashW / 2, TrashH / 2)) {
                     printf("[Tutorial] Burger trashed - rebuild!\n");
                     ResetBurger();
                 }
@@ -720,8 +720,7 @@ void Tutorial_Update() {
             }
         }
 
-        // R key resets burger without retyping the instruction
-        if (AEInputCheckTriggered(AEVK_R)) {
+        if (tutorialPhase == TUTE_BUILD_BURGER && AEInputCheckTriggered(AEVK_R)) {
             ResetBurger();
         }
 

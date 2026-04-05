@@ -1,5 +1,10 @@
 #pragma once
-
+// ---------------------------------------------------------------------------
+// Tutorial.hpp
+// Tutorial game state - teaches the player how to build and serve a burger
+// Reuses all rendering and customer systems from game.cpp but adds a guided
+// state machine on top. No level CSV data is required.
+// ---------------------------------------------------------------------------
 void Tutorial_Load();
 void Tutorial_Init();
 void Tutorial_Update();
