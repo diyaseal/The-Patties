@@ -1,7 +1,5 @@
 // ---------------------------------------------------------------------------
-// Utils.hpp
-// Description: Defines the Button struct and declares shared UI helper
-//              functions for hover and click detection.
+// Utils.hpp - Header File for Utils Functionality
 // ---------------------------------------------------------------------------
 // Button structure
 #include "MainMenu.hpp"
