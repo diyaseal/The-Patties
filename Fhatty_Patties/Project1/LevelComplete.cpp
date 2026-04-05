@@ -216,7 +216,7 @@ void LevelComplete_Update()
     }
 
     nextLevelButton.isHovered = IsButtonHovered(nextLevelButton);
-    if (currentPoints > Level_Manager_GetStarPosition(0)) {
+    if (currentPoints >= Level_Manager_GetStarPosition(0)) {
         if (IsButtonClicked(nextLevelButton) && Level_Manager_GetCurrentLevel() != 5) {
             currentLevel = Level_Manager_GetCurrentLevel() + 1;
             next = GS_LOADING;
