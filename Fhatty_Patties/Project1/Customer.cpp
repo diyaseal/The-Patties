@@ -1,4 +1,12 @@
-﻿#include "pch.hpp"
+﻿// ---------------------------------------------------------------------------
+// Customer.cpp
+// Description: Customer spawning, behavior, ordering system, patience bars,
+//              thought bubble rendering, and customer state machine.
+//              Customers walk to counter slots, wait for food, then leave.
+// ---------------------------------------------------------------------------
+
+
+#include "pch.hpp"
 #include <vector>
 #include <cstdlib>
 #include <ctime>

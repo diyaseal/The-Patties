@@ -193,7 +193,7 @@ static bool             burgerComplete = false;
 static bool ingredientOnPlate[9] = {};
 
 // ---------------------------------------------------------------------------
-// Drag-and-drop state  (Syakil)
+// Drag-and-drop state 
 // ---------------------------------------------------------------------------
 
 static bool  isDragging = false;
@@ -204,7 +204,7 @@ static float burgerDragY = 0.0f;
 static bool  burgerIsBeingDragged = false;
 
 // ---------------------------------------------------------------------------
-// Soda machine state  (Diya)
+// Soda machine state  
 // ---------------------------------------------------------------------------
 
 static bool  sodaMachineHasCup = false;
@@ -221,7 +221,7 @@ static float sodaDragY = 0.0f;
 static bool levelEndTriggered = false;
 
 // ---------------------------------------------------------------------------
-// Pause menu  (Teb)
+// Pause menu  
 // ---------------------------------------------------------------------------
 
 static s8   GameFontId = -1;
@@ -258,7 +258,7 @@ static void DrawQuad(AEGfxVertexList* mesh, AEGfxTexture* tex,
     AEGfxMeshDraw(mesh, AE_GFX_MDM_TRIANGLES);
 }
 
-// Draw lock icon over a locked ingredient slot  (Diya)
+// Draw lock icon over a locked ingredient slot  
 static void DrawLockOverlay(float x, float y, float w, float h) {
     if (!LockTexture || !SquareMesh) return;
     DrawQuad(SquareMesh, LockTexture, x, y, w, h);
@@ -278,14 +278,14 @@ static bool IsIngredientUnlocked(IngredientType type) {
     return false;
 }
 
-// Does an order contain soda?  (Diya)
+// Does an order contain soda?
 static bool OrderContainsSoda(const std::vector<int>& order) {
     for (int item : order)
         if (item == SODA) return true;
     return false;
 }
 
-// Reset drag/drop state back to resting positions  (Syakil)
+// Reset drag/drop state back to resting positions 
 static void ResetDragState() {
     isDragging = false;
     burgerIsBeingDragged = false;
@@ -321,13 +321,13 @@ void Burger_Clear() {
     currentBurger.clear();
     burgerComplete = false;
 
-    // (D) Remember whether soda was actually on the tray before clearing
+    //  Remember whether soda was actually on the tray before clearing
     bool sodaWasOnTray = ingredientOnPlate[SODA];
 
     // Clear only tray / plate ingredients
     std::fill(std::begin(ingredientOnPlate), std::end(ingredientOnPlate), false);
 
-    // (D) Only clear machine soda if soda had already been placed on the tray
+    // Only clear machine soda if soda had already been placed on the tray
     if (sodaWasOnTray) {
         sodaMachineHasCup = false;
         sodaIsFilled = false;
@@ -396,7 +396,7 @@ void Game_Update() {
         isPaused = !isPaused;
 
     // -----------------------------------------------------------------------
-    // Pause menu input — blocks all gameplay while paused  (Teb)
+    // Pause menu input — blocks all gameplay while paused 
     // -----------------------------------------------------------------------
     if (isPaused) {
         s32 mx, my;
@@ -430,7 +430,7 @@ void Game_Update() {
     Customer_Update(dt);
     Points_Update();
 
-    // Soda fill timer  (Diya)
+    // Soda fill timer  
     if (sodaMachineHasCup && !sodaIsFilled) {
         sodaFillTimer += dt;
         if (sodaFillTimer >= gCfg.sodaFillTime) {
@@ -473,7 +473,7 @@ void Game_Update() {
             break; // only one ingredient per click
         }
 
-        // Soda machine button  (Diya)
+        // Soda machine button  
         if (IsIngredientUnlocked(SODA)
             && !ingredientOnPlate[SODA]
             && !sodaMachineHasCup
@@ -488,7 +488,7 @@ void Game_Update() {
             Sound_PlaySFX_Pour();
         }
 
-        // Snap filled soda onto the plate  (Diya)
+        // Snap filled soda onto the plate 
         if (sodaMachineHasCup && sodaIsFilled
             && PointInRect(worldX, worldY, sodaDragX, sodaDragY, 70.0f, 90.0f)) {
 
@@ -500,7 +500,7 @@ void Game_Update() {
             currentBurger.push_back(SODA);
         }
 
-        // Start dragging the plate/burger  (Syakil)
+        // Start dragging the plate/burger  
         if (!currentBurger.empty()
             && PointInRect(worldX, worldY,
                 gCfg.plateCenterX, gCfg.plateCenterY,
@@ -522,7 +522,7 @@ void Game_Update() {
         burgerDragY = -(float)my + winH * 0.5f;
     }
 
-    // Mouse release  (Syakil)
+    // Mouse release  
     if (AEInputCheckReleased(AEVK_LBUTTON) && isDragging && burgerIsBeingDragged) {
         isDragging = false;
 
@@ -604,14 +604,14 @@ void Game_Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     Points_Draw();
 
-    // Lock overlays  (Diya)
+    // Lock overlays  
     for (const auto& hb : ingredientHitboxes)
         if (!IsIngredientUnlocked(hb.type))
             DrawLockOverlay(hb.x, hb.y, 8.f, 8.f);
     if (!IsIngredientUnlocked(SODA))
         DrawLockOverlay(gCfg.sodaX - 13.f, gCfg.sodaY + 28.f, 8.f, 8.f);
 
-    // Soda cup at the machine while filling or ready  (Diya)
+    // Soda cup at the machine while filling or ready  
     if (sodaMachineHasCup && SodaTexture) {
         float drawSodaX = sodaIsBeingDragged ? sodaDragX : gCfg.sodaX;
         float drawSodaY = sodaIsBeingDragged ? sodaDragY : gCfg.sodaY - 55.f;
@@ -651,7 +651,7 @@ void Game_Draw() {
         stackH += ri.stackHeight;
     }
 
-    // Soda beside the burger once placed on plate  (Diya)
+    // Soda beside the burger once placed on plate  
     if (ingredientOnPlate[SODA] && SodaTexture)
         DrawQuad(SodaMesh, SodaTexture,
             drawX + 90.f, drawY + 25.f, 70.f, 110.f, 0.5f, 0.f);
@@ -659,7 +659,7 @@ void Game_Draw() {
     GarageDoor_Draw();
 
     // -----------------------------------------------------------------------
-    // Pause menu overlay  (Teb)
+    // Pause menu overlay  
     // -----------------------------------------------------------------------
     if (!isPaused) {
         Settings_Draw(GameFontId, BGMesh, PlateMesh);

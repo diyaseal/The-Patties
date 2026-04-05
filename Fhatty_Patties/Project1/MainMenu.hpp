@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------------
+// MainMenu.hpp
+// Description: Header file for the main menu screen.
+//              Declares state management functions and data structures
+//              for displaying an animated burger-themed main menu with
+//              floating buttons for Play, Tutorial, Credits, Settings, and Quit.
+// ---------------------------------------------------------------------------
 #pragma once
 void MainMenu_Load();
 void MainMenu_Init();
