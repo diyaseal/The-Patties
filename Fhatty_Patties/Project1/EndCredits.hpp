@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------
-// EndCredits.hpp
-// Description: Credits all members of the game and school staff members
+// EndCredits.hpp - Credits all members of the game and school staff members
 // ---------------------------------------------------------------------------
 
 #pragma once
