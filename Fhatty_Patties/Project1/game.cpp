@@ -10,7 +10,7 @@
 extern std::vector<Customer> customers;
 
 // ---------------------------------------------------------------------------
-// Ingredient hitbox — loaded from Assets/Data/Ingredient.csv
+// Ingredient hitbox — loaded from Assets/Data/ingredients.csv
 // CSV format (header row):  name,x,y,width,height
 // Falls back to kDefaultHitboxes if the file cannot be opened.
 // ---------------------------------------------------------------------------
@@ -21,17 +21,6 @@ struct IngredientHitbox {
 };
 
 static std::vector<IngredientHitbox> ingredientHitboxes;
-
-static const IngredientHitbox kDefaultHitboxes[] = {
-    { TOP_BUN,    -523.0f,  -81.0f, 120.0f, 100.0f },
-    { BOTTOM_BUN, -560.0f, -180.0f, 120.0f, 100.0f },
-    { PATTY,      -275.0f, -110.0f,  83.0f,  83.0f },
-    { CHEESE,     -150.0f, -110.0f,  83.0f,  83.0f },
-    { LETTUCE,    -150.0f, -170.0f,  90.0f,  83.0f },
-    { TOMATO,     -300.0f, -175.0f,  83.0f,  83.0f },
-    { ONION,         3.0f, -175.0f,  83.0f,  83.0f },
-    { CUCUMBER,    -18.0f, -108.0f,  83.0f,  83.0f },
-};
 
 static IngredientType IngredientNameToType(const std::string& name) {
     if (name == "top_bun")    return TOP_BUN;
@@ -48,13 +37,10 @@ static IngredientType IngredientNameToType(const std::string& name) {
 static void LoadIngredientHitboxes() {
     ingredientHitboxes.clear();
 
-    std::ifstream file("Assets/Data/Ingredients.csv");
+    std::ifstream file("Assets/Data/ingredients.csv");
     if (!file.is_open()) {
-#ifdef _DEBUG
-        printf("[game] ingredients.csv not found — using defaults\n");
-#endif
-        for (const auto& hb : kDefaultHitboxes)
-            ingredientHitboxes.push_back(hb);
+        // ingredients.csv is required — place it at Assets/Data/ingredients.csv
+        printf("[game] ERROR: Assets/Data/ingredients.csv not found. No ingredients will be clickable.\n");
         return;
     }
 
@@ -84,7 +70,7 @@ static void LoadIngredientHitboxes() {
 }
 
 // ---------------------------------------------------------------------------
-// Game config — loaded from Assets/Data/GameConfig.csv
+// Game config — loaded from Assets/Data/game_config.csv
 // CSV format (header row):  key,value
 // ---------------------------------------------------------------------------
 
@@ -110,11 +96,10 @@ struct GameConfig {
 static GameConfig gCfg;
 
 static void LoadGameConfig() {
-    std::ifstream file("Assets/Data/GameConfig.csv");
+    std::ifstream file("Assets/Data/game_config.csv");
     if (!file.is_open()) {
-#ifdef _DEBUG
-        printf("[game] game_config.csv not found — using defaults\n");
-#endif
+        // game_config.csv is required — place it at Assets/Data/game_config.csv
+        printf("[game] ERROR: Assets/Data/game_config.csv not found. Using struct defaults.\n");
         return;
     }
 
@@ -171,8 +156,9 @@ static const IngredientRenderInfo kRenderOrder[] = {
     { TOMATO,     1.f / 4.f, 0.f,        18.0f },
     { CUCUMBER,   2.f / 4.f, 1.f / 2.f,  8.0f },
     { ONION,      1.f / 4.f, 1.f / 2.f,  8.0f },
-    { TOP_BUN,    3.f / 4.f, 0.f,         0.0f }, // compression applied below
+    { TOP_BUN,    3.f / 4.f, 0.f,         0.0f },
 };
+
 
 // ---------------------------------------------------------------------------
 // Meshes & textures
@@ -653,7 +639,9 @@ void Game_Draw() {
         AEGfxSetColorToMultiply(1.f, 1.f, 1.f, 1.f);
         AEGfxTextureSet(Ingredients, ri.texU, ri.texV);
 
-        const float yOffset = (ri.type == BOTTOM_BUN) ? -10.f : 0.f;
+        float yOffset = 0.f;
+        if (ri.type == BOTTOM_BUN) yOffset = -10.f;
+        if (ri.type == ONION) yOffset = -15.f;
         AEMtx33Scale(&IngScale, gCfg.ingredientSize, gCfg.ingredientSize);
         AEMtx33Trans(&IngTranslate, drawX, drawY + yOffset + stackH);
         AEMtx33Concat(&IngTransform, &IngTranslate, &IngScale);
