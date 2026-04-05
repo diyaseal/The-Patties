@@ -10,7 +10,7 @@
 extern std::vector<Customer> customers;
 
 // ---------------------------------------------------------------------------
-// Ingredient hitbox — loaded from Assets/Data/ingredients.csv
+// Ingredient hitbox — loaded from Assets/Data/Ingredients.csv
 // CSV format (header row):  name,x,y,width,height
 // Falls back to kDefaultHitboxes if the file cannot be opened.
 // ---------------------------------------------------------------------------
@@ -37,10 +37,10 @@ static IngredientType IngredientNameToType(const std::string& name) {
 static void LoadIngredientHitboxes() {
     ingredientHitboxes.clear();
 
-    std::ifstream file("Assets/Data/ingredients.csv");
+    std::ifstream file("Assets/Data/Ingredients.csv");
     if (!file.is_open()) {
-        // ingredients.csv is required — place it at Assets/Data/ingredients.csv
-        printf("[game] ERROR: Assets/Data/ingredients.csv not found. No ingredients will be clickable.\n");
+        // ingredients.csv is required — place it at Assets/Data/Ingredients.csv
+        printf("[game] ERROR: Assets/Data/Ingredients.csv not found. No ingredients will be clickable.\n");
         return;
     }
 
@@ -70,7 +70,7 @@ static void LoadIngredientHitboxes() {
 }
 
 // ---------------------------------------------------------------------------
-// Game config — loaded from Assets/Data/game_config.csv
+// Game config — loaded from Assets/Data/GameConfig.csv
 // CSV format (header row):  key,value
 // ---------------------------------------------------------------------------
 
@@ -96,10 +96,10 @@ struct GameConfig {
 static GameConfig gCfg;
 
 static void LoadGameConfig() {
-    std::ifstream file("Assets/Data/game_config.csv");
+    std::ifstream file("Assets/Data/GameConfig.csv");
     if (!file.is_open()) {
-        // game_config.csv is required — place it at Assets/Data/game_config.csv
-        printf("[game] ERROR: Assets/Data/game_config.csv not found. Using struct defaults.\n");
+        // game_config.csv is required — place it at Assets/Data/GameConfig.csv
+        printf("[game] ERROR: Assets/Data/GameConfig.csv not found. Using struct defaults.\n");
         return;
     }
 
@@ -633,7 +633,7 @@ void Game_Draw() {
     for (const auto& ri : kRenderOrder) {
         if (!ingredientOnPlate[ri.type]) continue;
 
-        if (ri.type == TOP_BUN) stackH -= 5.f; // slight burger compression
+        if (ri.type == TOP_BUN) stackH -= 2.f; // slight burger compression
 
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetColorToMultiply(1.f, 1.f, 1.f, 1.f);

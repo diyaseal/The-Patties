@@ -7,10 +7,10 @@
 // Customer System Variables
 // ---------------------------------------------------------------------------
 std::vector<Customer> customers;
-extern AEGfxTexture* Ingredients;  // for thought bubble ingredient icons (Diya's code)
-extern AEGfxTexture* SodaTexture; // (D) for soda icon in thought bubble
+extern AEGfxTexture* Ingredients;  // for thought bubble ingredient icons
+extern AEGfxTexture* SodaTexture; //  for soda icon in thought bubble
 static int totalCustomersSpawned = 0;  // tracks lifetime total
-static int CUSTOMERS_PER_LEVEL = 0;  // game ends after this many
+static int CUSTOMERS_PER_LEVEL = 0;  // game ends after this 
 static bool levelcompletelogged = false;
 
 // ---------------------------------------------------------------------------
@@ -34,7 +34,7 @@ const float COUNTER_Y = 100.0f;
 // ---------------------------------------------------------------------------
 static AEGfxVertexList* bubbleMesh = nullptr;
 static AEGfxVertexList* ingredientMesh = nullptr;
-static AEGfxVertexList* sodaMesh = nullptr; // (D) square mesh for soda icon
+static AEGfxVertexList* sodaMesh = nullptr; //  square mesh for soda icon
 static AEGfxVertexList* DurationMesh = nullptr;
 AEGfxVertexList* frameMesh = nullptr;
 // ---------------------------------------------------------------------------
@@ -55,7 +55,7 @@ static float spawnInterval = 4.0f;  // seconds between spawns
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// (D) Helper: Check if ingredient is unlocked for current level
+//  Helper: Check if ingredient is unlocked for current level
 // ---------------------------------------------------------------------------
 static bool IsIngredientUnlocked(IngredientType ingredient) {
     for (const std::string& ing : currentLevelData.ingredients) {
@@ -190,7 +190,7 @@ void RandomOrder(Customer* customer) {
     customer->hasOrder = true;
 }
 // ---------------------------------------------------------------------------
-// Draw Thought Bubble with Ingredients :Diya
+// Draw Thought Bubble with Ingredients
 // ---------------------------------------------------------------------------
 void DrawThoughtBubble(float customerX, float customerY, const std::vector<int>& order) {
     if (order.empty()) return; // (D) nothing to draw
@@ -381,9 +381,9 @@ void Customer_Update(float dt) {
                     case CHEESE:     printf("Cheese ");     break;
                     case LETTUCE:    printf("Lettuce ");    break;
                     case TOMATO:     printf("Tomato ");     break;
-                    case ONION:      printf("Onion ");      break; // (D)
-                    case CUCUMBER:   printf("Cucumber ");   break; // (D)
-                    case SODA:       printf("Soda ");       break; // (D)
+                    case ONION:      printf("Onion ");      break; 
+                    case CUCUMBER:   printf("Cucumber ");   break; 
+                    case SODA:       printf("Soda ");       break; 
                     }
                 }
                 printf("\nCustomer arrived at slot %d\n", c.slotIndex);
