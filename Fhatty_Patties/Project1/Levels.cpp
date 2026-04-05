@@ -1,6 +1,6 @@
 ﻿// ---------------------------------------------------------------------------
 // Levels.cpp
-// Description: Header file for the level selection screen.
+// Description: Main file for the level selection screen.
 //              Declares state management functions and data structures
 //              for displaying unlockable levels with star ratings.
 //              Allows players to choose which level to play.

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Tutorial.cpp
-// Description: Header file for the tutorial game state.
+// Description: Main file for the tutorial game state.
 //              Guides the player through basic gameplay mechanics:
 //              - Customer arrival and order checking
 //              - Building a burger with correct ingredient order

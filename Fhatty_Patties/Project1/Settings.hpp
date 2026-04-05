@@ -1,9 +1,5 @@
 // ---------------------------------------------------------------------------
-// Settings.hpp
-// Description: Header file for the settings/options menu system.
-//              Declares functions for managing game settings including
-//              master volume, music volume, and SFX volume controls.
-//              Settings persist between game sessions via file I/O.
+// Settings.hpp - Header file for the settings/options menu system.
 // ---------------------------------------------------------------------------
 
 #pragma once
