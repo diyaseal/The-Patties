@@ -1057,13 +1057,13 @@ void Tutorial_Draw() {
                 -0.10f, (titleBarCY - 14.0f) / 450.0f,
                 1.8f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Resume",
-                -0.07f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
+                -0.06f, (TutPauseResumeBtnY - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Back to Main Menu",
-                -0.15f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
+                -0.13f, (TutPauseMenuBtnY - 10.0f) / 450.0f,
                 0.85f, 1.0f, 1.0f, 1.0f, 1.0f);
             AEGfxPrint(FontId, "Settings",
-                -0.08f, (TutPauseSettBtnY - 10.0f) / 450.0f,
+                -0.07f, (TutPauseSettBtnY - 10.0f) / 450.0f,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
