@@ -1,4 +1,10 @@
 ﻿// ---------------------------------------------------------------------------
+// Levels.cpp
+// Description: Header file for the level selection screen.
+//              Declares state management functions and data structures
+//              for displaying unlockable levels with star ratings.
+//              Allows players to choose which level to play.
+// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
 
@@ -183,8 +189,6 @@ void Levels_Update()
 
     // Check each level button
     for (int i = 0; i < 5; i++) {
-        // ELI this line skips locked buttons so the click can only work for unlocked levels
-        // if u need to edit base on your code msg me I wanna understand what you do
         if (!levelButtons[i].Unlocked) continue;  // Skip locked levels
 
         // Check hover state
@@ -194,10 +198,8 @@ void Levels_Update()
         if (IsButtonClicked(levelButtons[i].button)) {
             Sound_PlaySFX_OnClick();
             levelButtons[i].button.isClicked = true;
-            // ELI also over here is the place to go to the next game state based on what is clicked when u wanna edit
-            // go through with me too I wanna understand
             currentLevel = i + 1;  // 1-based level number
-            pendingStateChange = true;      // ← don't switch immediately
+            pendingStateChange = true;      // don't switch immediately
             pendingNextState = GS_LOADING; 
         }
     }

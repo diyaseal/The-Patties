@@ -1,7 +1,13 @@
 ﻿// ---------------------------------------------------------------------------
+// MainMenu.cpp
+// Description: Header file for the main menu screen.
+//              Declares state management functions and data structures
+//              for displaying an animated burger-themed main menu with
+//              floating buttons for Play, Tutorial, Credits, Settings, and Quit.
+// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
-// SYAKIL "IM TIRED OF THIS GRANDPA" "I JUST CANT TAKE THE PRESSURE OF IT"
+
 // ---------------------------------------------------------------------------
 // Global variables for MainMenu
 
@@ -39,7 +45,7 @@ static const float DROP_DELAY[5] = { 0.0f, 0.15f, 0.30f, 0.45f, 0.60f };
 static const float DROP_START_Y = 1200.0f;  // well above screen top
 static const float GRAVITY = 3500.0f;  // px/s
 static const float BOUNCE_DAMPEN = 0.30f;    // fraction of velocity kept on bounce
-static const float LAND_THRESHOLD = 50.0f;     // px � snap to rest when this close
+static const float LAND_THRESHOLD = 50.0f;     // snap to rest when this close
 // ---------------------------------------------------------------------------
 static AEGfxTexture* BG = nullptr;
 static AEMtx33 BGTransform, BGTranslate, BGScale;
@@ -151,7 +157,6 @@ void MainMenu_Init()
         dropLanded[i] = false;
     }
 
-    /* Elizabeth - Set wall to reset upon calling page */
     WallPosY = 900.0f;
     wallTriggered = false;
     truckParked = false;
@@ -210,7 +215,7 @@ void MainMenu_Update()
     // Truck Drive-In
     if (!truckParked)
     {
-        //tebs: Play drive sound once when truck starts moving
+        //Play drive sound once when truck starts moving
         if (!truckDriveSoundPlayed) {
             Sound_PlaySFX_TruckMove();
             truckDriveSoundPlayed = true;
@@ -220,7 +225,7 @@ void MainMenu_Update()
 
         if (distToTarget > 0.0f)
         {
-            // Brake proportionally � ramp braking up as it gets close
+            // Brake proportionally ramp braking up as it gets close
             float brakeForce = TRUCK_DECEL * (1.0f - (distToTarget / (truckX - TRUCK_TARGET_X + 1.0f)));
             truckVelX += brakeForce * dt;  // velX is negative (leftward), brakeForce reduces magnitude
             if (truckVelX > 0.0f) truckVelX = 0.0f;  // don't overshoot backwards
@@ -235,10 +240,9 @@ void MainMenu_Update()
                 truckParked = true;
                 truckFrame = 0;
                 Sound_StopSFX_TruckMove();
-                Sound_PlaySFX_TruckBeep(); //tebs: truck beep beep wld played 
+                Sound_PlaySFX_TruckBeep(); //truck beep beep wld played 
             }
 
-            // for ELI
             // Animate wheels only while the truck is moving
             truckFrameTimer += dt;
             if (truckFrameTimer >= TRUCK_FRAME_DURATION)
@@ -392,7 +396,7 @@ void MainMenu_Draw()
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
-        // Top-left position � tweak these world-space values to taste
+        // Top-left position
         f32 titleX = -500.0f;   // left side
         f32 line1Y = 250.0f;   // "Fatty" upper line
         f32 line2Y = 150.0f;   // "Patty" lower line
@@ -447,7 +451,7 @@ void MainMenu_Draw()
         BurgerButton* btn = burgerButtons[i];
 
         // Calculate current Y position with float offset
-            // Use drop position while falling, targetY + float once landed
+        // Use drop position while falling, targetY + float once landed
         float currentY = dropLanded[i]
             ? btn->targetY + btn->floatOffset
             : dropCurrentY[i];

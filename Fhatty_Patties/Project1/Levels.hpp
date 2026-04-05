@@ -1,11 +1,7 @@
-// ---------------------------------------------------------------------------
-// Levels.hpp
-// Description: Header file for the level selection screen.
-//              Declares state management functions and data structures
-//              for displaying unlockable levels with star ratings.
-//              Allows players to choose which level to play.
-// ---------------------------------------------------------------------------
 #pragma once
+// ---------------------------------------------------------------------------
+// Levels.hpp - Header file for the level selection screen.
+// ---------------------------------------------------------------------------
 void Levels_Load();
 void Levels_Init();
 void Levels_Update();
