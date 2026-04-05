@@ -1,8 +1,10 @@
+// ---------------------------------------------------------------------------
+// pch.hpp
+// Description: Precompile all headers in this file
+// ---------------------------------------------------------------------------
 
 #ifndef PCH_H
 #define PCH_H
-
-// Add headers that you want to pre-compile here
 
 // ------------------------------------------------------------
 // LIBRARY
@@ -38,8 +40,7 @@
 #include "Settings.hpp"
 #include "Tutorial.hpp"
 
-//enum of ingredient type used in game.cpp 
-//on click order :Syakil / diya 
+// Enum of ingredient type used in game.cpp 
 enum IngredientType {
     BOTTOM_BUN,
     TOP_BUN,

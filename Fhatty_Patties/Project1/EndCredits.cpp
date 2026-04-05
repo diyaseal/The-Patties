@@ -1,4 +1,9 @@
 ﻿// ---------------------------------------------------------------------------
+// EndCredits.cpp
+// Description: Credits all members of the game and school staff members
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // Includes
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
@@ -6,11 +11,11 @@
 // ---------------------------------------------------------------------------
 // Globals
 // ---------------------------------------------------------------------------
-// TIMER
-static float totalElapsedTime = 0.0f;       // Timer for screen duration
-static float fade = 1.0f;                   // Start fully visible
+// ---TIMER---
+static float totalElapsedTime = 0.0f;   // Timer for screen duration
+static float fade = 1.0f;               // Start fully visible
 
-// STAR 
+// ---STAR---
 struct BackgroundStar {
     float x, y;           // position
     float baseSize;       // original size
@@ -22,29 +27,28 @@ struct BackgroundStar {
 static const int NUM_STARS = 15;
 static BackgroundStar bgStars[NUM_STARS];
 
-// TRUCK
+// ---TRUCK---
 // Wheel animation 2 frames side by side in spritesheet, each frame = 0.5 UV width
-static int   truckFrame = 0;        // current frame (0 or 1)
-static float truckFrameTimer = 0.0f;     // counts up to TRUCK_FRAME_DURATION
-static const float TRUCK_FRAME_DURATION = 1.0f / 8.0f;
-static const float TRUCK_FRAME_UV[2] = { 0.0f, 1.f / 2.f };
+static int   truckFrame = 0;                                // current frame (0 or 1)
+static float truckFrameTimer = 0.0f;                        // counts up to TRUCK_FRAME_DURATION
+static const float TRUCK_FRAME_DURATION = 1.0f / 8.0f;      // duration of each animation frame
+static const float TRUCK_FRAME_UV[2] = { 0.0f, 1.f / 2.f }; // coordinates of truck in spritesheet
 
-static float truckY = 600.0f;          // starts above screen
-static float truckVelY = 0.0f;
-static bool  truckLanded = false;
-static float truckBounceTimer = 0.0f;
-static const float TRUCK_TARGET_Y = -80.0f;  // resting Y at top middle
-static const float TRUCK_GRAVITY = 1200.0f;
-static const float TRUCK_BOUNCE_DAMPEN = 0.4f;
-static const float TRUCK_LAND_THRESHOLD = 30.0f;
+static float truckY = 600.0f;                               // starts above screen
+static float truckVelY = 0.0f;                              // velocity y
+static bool  truckLanded = false;                           // check if truck landed
+static const float TRUCK_TARGET_Y = -80.0f;                 // resting Y at top middle
+static const float TRUCK_GRAVITY = 1200.0f;                 // gravity for truck
+static const float TRUCK_BOUNCE_DAMPEN = 0.4f;              // dampen bounce
+static const float TRUCK_LAND_THRESHOLD = 30.0f;            // minimum velocity to stop bouncing and snap to rest
 
-static float truckBobOffset = 0.0f;   // current bob offset
-static float truckBobTimer = 0.0f;    // drives the sine wave
-static const float TRUCK_BOB_SPEED = 8.0f;   // how fast it bobs
-static const float TRUCK_BOB_AMOUNT = 5.0f;   // how many pixels up/down
+static float truckBobOffset = 0.0f;                         // current bob offset
+static float truckBobTimer = 0.0f;                          // drives the sine wave
+static const float TRUCK_BOB_SPEED = 8.0f;                  // how fast it bobs
+static const float TRUCK_BOB_AMOUNT = 5.0f;                 // how many pixels up/down
 
-// LAND
-static float landRotation = 0.0f;
+// ---LAND---
+static float landRotation = 0.0f;            // current rotation of land
 static const float LAND_ROTATE_SPEED = 5.0f; // degrees per second
 
 // ---------------------------------------------------------------------------
