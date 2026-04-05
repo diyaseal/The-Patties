@@ -27,7 +27,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     int gGameRunning = 1;
 
     // Using custom window procedure
-    AESysInit(hInstance, nCmdShow, 1600, 900, 1, 60, false, NULL);
+    AESysInit(hInstance, nCmdShow, 1600, 900, 0, 60, false, NULL);
 
     // Changing the window title
     AESysSetWindowTitle("The Fatty Patties");
