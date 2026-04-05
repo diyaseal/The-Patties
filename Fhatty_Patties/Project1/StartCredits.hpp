@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------
-// StartCredits.hpp
-// Description: Loads school logo and team logo upon running the game 
+// StartCredits.hpp - Loads school logo and team logo upon running the game 
 // ---------------------------------------------------------------------------
 
 #pragma once

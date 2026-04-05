@@ -1,7 +1,5 @@
 // ---------------------------------------------------------------------------
-// GameStateManager.hpp
-// Description: Updates all game state functions in files. Load, Init, Update, 
-// Draw, Free, Unload
+// GameStateManager.hpp - Updates all game state functions in files. Load, Init, Update, Draw, Free, Unload
 // ---------------------------------------------------------------------------
 
 #pragma once

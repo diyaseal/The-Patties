@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------------------
-// pch.hpp
-// Description: Precompile all headers in this file
+// pch.hpp - Precompile all headers in this file
 // ---------------------------------------------------------------------------
 
 #ifndef PCH_H

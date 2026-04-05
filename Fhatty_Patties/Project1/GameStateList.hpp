@@ -1,9 +1,9 @@
-#pragma once
-
 // ----------------------------------------------------------------------------
 // GameStateList.h - Game state enumeration definitions
 // Contains all possible game states used by the Game State Manager
 // ----------------------------------------------------------------------------
+
+#pragma once
 
 // Enumeration of all possible game states
 enum GS_STATES
