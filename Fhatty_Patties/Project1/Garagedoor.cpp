@@ -1,10 +1,9 @@
-﻿/* Start Header ************************************************************************/
-/*!
-\file       GarageDoor.cpp
-\brief      Garage door closing animation for level end sequence.
-            Slides down over the screen, then transitions to LevelComplete state.
-*/
-/* End Header **************************************************************************/
+﻿// ---------------------------------------------------------------------------
+// GarageDoor.cpp
+// Description:  Garage door closing animation for level end sequence.
+//               Slides down over the screen, then transitions to LevelComplete state.
+// ---------------------------------------------------------------------------
+
 #include "pch.hpp"
 
 // ---------------------------------------------------------------------------

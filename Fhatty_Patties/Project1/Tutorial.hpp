@@ -1,3 +1,15 @@
+// ---------------------------------------------------------------------------
+// Tutorial.hpp
+// Description: Header file for the tutorial game state.
+//              Guides the player through basic gameplay mechanics:
+//              - Customer arrival and order checking
+//              - Building a burger with correct ingredient order
+//              - Filling and serving soda
+//              - Serving the completed meal to the customer
+//              Reuses all rendering and customer systems from game.cpp
+//              but adds a guided state machine on top.
+// ---------------------------------------------------------------------------
+
 #pragma once
 // ---------------------------------------------------------------------------
 // Tutorial.hpp

@@ -1,4 +1,13 @@
 ﻿// ---------------------------------------------------------------------------
+// Points.cpp
+// Description: Points and star rating system for burger serving game.
+//              Tracks points earned from satisfied customers, displays
+//              a progress bar, and awards up to 3 stars based on thresholds.
+//              Includes particle effects when stars are earned.
+// ---------------------------------------------------------------------------
+
+
+// ---------------------------------------------------------------------------
 // Includes
 // ---------------------------------------------------------------------------
 #include "pch.hpp"

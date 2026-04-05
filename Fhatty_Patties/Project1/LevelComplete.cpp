@@ -1,4 +1,14 @@
-﻿#include "pch.hpp"
+﻿// ---------------------------------------------------------------------------
+// LevelComplete.cpp
+// Description: Level completion screen shown after serving all customers.
+//              Displays a popup with score, stars earned, and buttons for
+//              level select, restart, and next level (if unlocked).
+//              Features a smooth popup scale-in animation and confirmation
+//              dialogs for destructive actions.
+// ---------------------------------------------------------------------------
+
+
+#include "pch.hpp"
 
 // ---------------------------------------------------------------------------
 // Static variables — owns fonts AND its own meshes
