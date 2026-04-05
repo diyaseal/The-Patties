@@ -2,6 +2,7 @@
 // GraphicManager.cpp
 // Description: Implements mesh creation for all game objects and UI elements,
 //              and a rounded rectangle drawing utility used across all screens.
+// Author: YUE JUN, DIYA, SYAKIL, ELIZABETH
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
 #include <cmath> 

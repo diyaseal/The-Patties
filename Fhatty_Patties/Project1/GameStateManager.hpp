@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // GameStateManager.hpp - Updates all game state functions in files. Load, Init, Update, Draw, Free, Unload
+// Author: YUE JUN, DIYA, SYAKIL, ELIZABETH
 // ---------------------------------------------------------------------------
 
 #pragma once

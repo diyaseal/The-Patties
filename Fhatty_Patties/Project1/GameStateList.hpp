@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 // GameStateList.h - Game state enumeration definitions
 // Contains all possible game states used by the Game State Manager
+// Author: YUE JUN, DIYA, SYAKIL, ELIZABETH
 // ----------------------------------------------------------------------------
 
 #pragma once

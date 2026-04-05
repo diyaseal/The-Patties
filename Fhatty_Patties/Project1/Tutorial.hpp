@@ -1,6 +1,7 @@
 #pragma once
 // ---------------------------------------------------------------------------
 // Tutorial.hpp - Header file for the tutorial game state.
+// Author:  SYAKIL
 // ---------------------------------------------------------------------------
 
 void Tutorial_Load();

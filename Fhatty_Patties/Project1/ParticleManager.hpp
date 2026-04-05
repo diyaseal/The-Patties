@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // ParticleManager.hpp - Header File for ParticleManager Functionality
+// Author: ELIZABETH
 // ---------------------------------------------------------------------------
 #pragma once
 

@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // StartCredits.hpp - Loads school logo and team logo upon running the game 
+// Author: ELIZABETH
 // ---------------------------------------------------------------------------
 
 #pragma once

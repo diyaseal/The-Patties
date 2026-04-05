@@ -1,6 +1,7 @@
 #pragma once
 // ---------------------------------------------------------------------------
 // MainMenu.hpp - Header file for the main menu screen.
+// Author:  SYAKIL
 // ---------------------------------------------------------------------------
 
 void MainMenu_Load();

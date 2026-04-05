@@ -2,6 +2,7 @@
 // Main.cpp
 // Description: Define window parameters, set memory flags, and runs the game
 // loop
+// Author:  DIYA
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

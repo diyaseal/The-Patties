@@ -4,6 +4,7 @@
 //              Declares state management functions and data structures
 //              for displaying unlockable levels with star ratings.
 //              Allows players to choose which level to play.
+// Author: SYAKIL
 // ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"

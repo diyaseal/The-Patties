@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // GraphicManager.hpp - Header File for GraphicManager Functionality
+// Author: YUE JUN, DIYA, SYAKIL, ELIZABETH
 // ---------------------------------------------------------------------------
 #pragma once
 

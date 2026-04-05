@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // Utils.cpp
 // Description: Shared UI helper functions for button hover and click detection.
+// Author: YUE JUN, SYAKIL
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
 

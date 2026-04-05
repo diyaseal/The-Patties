@@ -2,6 +2,7 @@
 // ParticleManager.cpp
 // Description: Handles smoke and star burst particle effects. Smoke trails
 //              follow the truck, while star bursts trigger on star earned.
+// Author:ELIZABETH
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

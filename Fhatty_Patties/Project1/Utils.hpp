@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // Utils.hpp - Header File for Utils Functionality
+// Author: YUE JUN, SYAKIL
 // ---------------------------------------------------------------------------
 // Button structure
 #include "MainMenu.hpp"

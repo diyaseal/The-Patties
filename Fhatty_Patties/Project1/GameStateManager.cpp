@@ -2,6 +2,7 @@
 // GameStateManager.cpp
 // Description: Updates all game state functions in files. Load, Init, Update, 
 // Draw, Free, Unload
+// Author: DIYA
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

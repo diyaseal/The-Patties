@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // LevelComplete.hpp
 // Description: Header file for the level completion screen.
+// Author: YUE JUN, ELIZABETH
 // ---------------------------------------------------------------------------
 
 #pragma once

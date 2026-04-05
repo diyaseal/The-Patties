@@ -3,6 +3,7 @@
 // Description: Customer spawning, behavior, ordering system, patience bars,
 //              thought bubble rendering, and customer state machine.
 //              Customers walk to counter slots, wait for food, then leave.
+// Author: YUE JUN, DIYA
 // ---------------------------------------------------------------------------
 
 

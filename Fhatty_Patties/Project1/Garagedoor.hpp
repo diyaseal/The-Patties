@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // GarageDoor.hpp - Header file for the garage door animation system.
+// Author: YUE JUN
 // ---------------------------------------------------------------------------
 
 void GarageDoor_Load();

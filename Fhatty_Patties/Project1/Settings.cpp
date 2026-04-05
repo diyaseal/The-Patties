@@ -4,6 +4,7 @@
 //              Declares functions for managing game settings including
 //              master volume, music volume, and SFX volume controls.
 //              Settings persist between game sessions via file I/O.
+// Author: YUE JUN
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
 

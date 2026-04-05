@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // EndCredits.hpp - Credits all members of the game and school staff members
+// Author: ELIZABETH
 // ---------------------------------------------------------------------------
 
 #pragma once

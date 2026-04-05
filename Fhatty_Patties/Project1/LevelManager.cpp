@@ -2,6 +2,7 @@
 // LevelManager.cpp
 // Description: Loads and saves level data (ingredients, stars, high scores)
 //              from a CSV file, and provides getters/setters for level info.
+// Author:ELIZABETH
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

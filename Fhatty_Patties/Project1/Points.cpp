@@ -4,6 +4,7 @@
 //              Tracks points earned from satisfied customers, displays
 //              a progress bar, and awards up to 3 stars based on thresholds.
 //              Includes particle effects when stars are earned.
+// Author: ELIZABETH
 // ---------------------------------------------------------------------------
 
 

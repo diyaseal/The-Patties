@@ -9,6 +9,7 @@
 //              Reuses all rendering and customer systems from game.cpp
 //              but adds a guided state machine on top. 
 //              No level CSV data is required.
+// Author: SYAKIL
 // ---------------------------------------------------------------------------
 #include "pch.hpp"
 

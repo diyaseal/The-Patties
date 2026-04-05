@@ -5,6 +5,7 @@
 //              level select, restart, and next level (if unlocked).
 //              Features a smooth popup scale-in animation and confirmation
 //              dialogs for destructive actions.
+// Author: YUE JUN, ELIZABETH
 // ---------------------------------------------------------------------------
 
 

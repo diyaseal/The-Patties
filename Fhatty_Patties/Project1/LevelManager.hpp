@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
 // LevelManager.hpp - Header File for LevelManager Functionality
+// Author: ELIZABETH
 // ---------------------------------------------------------------------------
 
 #ifndef LEVEL_MANAGER_HPP

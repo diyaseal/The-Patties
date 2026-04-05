@@ -2,6 +2,7 @@
 // GarageDoor.cpp
 // Description:  Garage door closing animation for level end sequence.
 //               Slides down over the screen, then transitions to LevelComplete state.
+// Author: YUE JUN
 // ---------------------------------------------------------------------------
 
 #include "pch.hpp"

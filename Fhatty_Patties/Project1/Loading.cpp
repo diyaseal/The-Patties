@@ -4,6 +4,7 @@
 //              loaded asynchronously. Features a moving food truck with
 //              animated wheels, particle smoke effects, and a percentage
 //              counter. Transitions to the main game once all assets load.
+// Author: ELIZABETH
 // ---------------------------------------------------------------------------
 
 

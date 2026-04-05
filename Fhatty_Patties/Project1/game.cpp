@@ -2,6 +2,7 @@
 // game.cpp
 // Description: Core gameplay state — burger assembly, customer serving,
 //              drag-and-drop, soda machine, pause menu.
+// Author: YUE JUN, DIYA, SYAKIL, ELIZABETH
 // ---------------------------------------------------------------------------
 
 #include "pch.hpp"
