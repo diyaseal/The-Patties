@@ -1,7 +1,7 @@
 ﻿// ---------------------------------------------------------------------------
 // includes
 #include "pch.hpp"
-// SYAKIL TOUCH
+// SYAKIL "IM TIRED OF THIS GRANDPA" "I JUST CANT TAKE THE PRESSURE OF IT"
 // ---------------------------------------------------------------------------
 // Global variables for MainMenu
 
