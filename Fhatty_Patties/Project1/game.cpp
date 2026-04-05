@@ -56,7 +56,7 @@ static void LoadIngredientHitboxes() {
         if (!std::getline(ss, sw, ',')) continue;
         if (!std::getline(ss, sh, ',')) continue;
 
-        IngredientHitbox hb;
+        IngredientHitbox hb = {};
         hb.type = IngredientNameToType(name);
         hb.x = std::stof(sx);
         hb.y = std::stof(sy);
