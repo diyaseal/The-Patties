@@ -16,7 +16,6 @@ static AEAudio bgmLevel;
 
 //SFX
 static AEAudio sfxOnClick;
-static AEAudio sfxHover;
 
 static AEAudio sfxCorrect;
 static AEAudio sfxCompleteAll;
@@ -50,18 +49,15 @@ void Sound_Load() {
     bgmLevel = AEAudioLoadMusic("Assets/Audio/boukencut.mp3");
 
     sfxOnClick = AEAudioLoadMusic("Assets/Audio/onClick.mp3");
-    sfxHover = AEAudioLoadMusic("Assets/Audio/Hover.wav");
 
     sfxAngryMale = AEAudioLoadMusic("Assets/Audio/mAngry.mp3");
     sfxAngryFemale = AEAudioLoadMusic("Assets/Audio/wAngry.mp3");
-    sfxStack = AEAudioLoadSound("Assets/Audio/foodStacking.wav");
     sfxPour = AEAudioLoadMusic("Assets/Audio/pour2.mp3");
     sfxLose = AEAudioLoadMusic("Assets/Audio/lose.mp3");
 
     sfxCorrect = AEAudioLoadMusic("Assets/Audio/custHappy.mp3");
     sfxCompleteAll = AEAudioLoadMusic("Assets/Audio/CompleteAll.wav");
     sfxLevelComplete = AEAudioLoadMusic("Assets/Audio/levelComplete.wav");
-    sfxUnlock = AEAudioLoadSound("Assets/Audio/UnlockLevel.wav");
 
     sfxdoorClose = AEAudioLoadSound("Assets/Audio/doorClose.wav");
     sfxTruckMove = AEAudioLoadMusic("Assets/Audio/truckMove.mp3");
@@ -198,13 +194,10 @@ void Sound_Unload() {
 
     AEAudioUnloadAudio(sfxCorrect);
     AEAudioUnloadAudio(sfxCompleteAll);   
-    AEAudioUnloadAudio(sfxLevelComplete); 
-    AEAudioUnloadAudio(sfxUnlock);        
+    AEAudioUnloadAudio(sfxLevelComplete);         
     AEAudioUnloadAudio(sfxAngryMale);
     AEAudioUnloadAudio(sfxAngryFemale);
-    AEAudioUnloadAudio(sfxOnClick);
-    AEAudioUnloadAudio(sfxHover);     
-    AEAudioUnloadAudio(sfxStack);         
+    AEAudioUnloadAudio(sfxOnClick);          
     AEAudioUnloadAudio(sfxPour);
     AEAudioUnloadAudio(sfxLose);
 

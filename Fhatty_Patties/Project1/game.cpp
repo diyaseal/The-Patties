@@ -467,11 +467,11 @@ void Game_Update() {
             currentBurger.push_back(hb.type);
             if (hb.type == TOP_BUN) burgerComplete = true;
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
             //printf("[game] Added ingredient %d — stack size %zu\n",
-                hb.type, currentBurger.size());
-#endif
-            break; // only one ingredient per click
+               // hb.type, currentBurger.size();
+//#endif
+            //break; // only one ingredient per click
         }
 
         // Soda machine button  

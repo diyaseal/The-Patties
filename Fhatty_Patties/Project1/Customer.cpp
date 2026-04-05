@@ -134,7 +134,7 @@ void Customer_Init() {
     if (!sodaMesh)     sodaMesh = CreateSodaMesh(0.7f, 0.7f); // (D) soda icon uses full-square UVs
     if (!frameMesh)    frameMesh = CreateCustomerMesh(); 
 
-    printf("Customer system initialized\n");
+    //printf("Customer system initialized\n");
 
     Customer_Spawn();  // spawn first customer immediately
     levelcompletelogged = false;
@@ -173,7 +173,7 @@ void Customer_Spawn() {
     totalCustomersSpawned++;
     RandomOrder(&newCustomer);
     customers.push_back(newCustomer);
-    printf("Customer spawned in slot %d! Total: %zu\n", slot, customers.size());
+    //printf("Customer spawned in slot %d! Total: %zu\n", slot, customers.size());
 }
 // ---------------------------------------------------------------------------
 // Create a Random burger order from customer
