@@ -1,3 +1,8 @@
+// ---------------------------------------------------------------------------
+// LevelComplete.hpp
+// Description: Header file for the level completion screen.
+// ---------------------------------------------------------------------------
+
 #pragma once
 void LevelComplete_Load();
 void LevelComplete_Init();
