@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------------
+// GarageDoor.hpp
+// Description: Header file for the garage door animation system.
+// ---------------------------------------------------------------------------
 
 void GarageDoor_Load();
 void GarageDoor_Init();
