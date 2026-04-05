@@ -1,4 +1,8 @@
-﻿#include "pch.hpp"
+﻿// ---------------------------------------------------------------------------
+// Sounds.cpp
+// Description: Load, Play, Stop Sounds
+// ---------------------------------------------------------------------------
+#include "pch.hpp"
 
 // ---------------------------------------------------------------------------
 // Audio assets and groups
@@ -135,8 +139,6 @@ void Sound_PlaySFX_Pour() {
         AEAudioPlay(sfxPour, sfxGroup, 1.5f, 1.0f, 0);
 }
 void Sound_StopSFX_Pour() {
-    // Let it finish naturally since we can't stop individual sounds
-    // Or if your engine supports: AEAudioStop(sfxPour);
 }
 
 void Sound_PlaySFX_LevelComplete() {

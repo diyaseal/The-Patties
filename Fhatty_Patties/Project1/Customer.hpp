@@ -2,27 +2,6 @@
 // ---------------------------------------------------------------------------
 //	Customer Struct
 // ----------------------------------------------------------------------------
-//struct Customer {
-//    float x, y;                    // Position
-//    float targetX, targetY;        // Target position (where they walk to)
-//    float speed;                   // Walking speed
-//    bool isWalking;                // Is the customer currently walking?
-//
-//    // Order system
-//    std::vector<int> order;        // What the customer wants (list of ingredient IDs)
-//    bool hasOrder;                 // Does customer have an order?
-//    bool isWaitingForFood;         // Is customer waiting at counter for food?
-//    float patience;                // Current patience (0-100)
-//    float maxPatience;             // Maximum patience
-//
-//    int frameX;
-//    int frameY;
-//	bool flipHorizontal;         // For sprite flipping
-//
-//    AEGfxVertexList* mesh;         // The rectangle mesh
-//    AEMtx33 transform;             // Transformation matrix
-//};
-
 struct Customer {
     // Initialize all variables to default values
     float x{ 0.0f }, y{ 0.0f };                    // Position

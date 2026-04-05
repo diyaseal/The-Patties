@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------------
+// LevelManager.hpp - Header File for LevelManager Functionality
+// ---------------------------------------------------------------------------
+
 #ifndef LEVEL_MANAGER_HPP
 #define LEVEL_MANAGER_HPP
 

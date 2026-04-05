@@ -1,3 +1,8 @@
+// ---------------------------------------------------------------------------
+// Utils.hpp
+// Description: Defines the Button struct and declares shared UI helper
+//              functions for hover and click detection.
+// ---------------------------------------------------------------------------
 // Button structure
 #include "MainMenu.hpp"
 
@@ -13,8 +18,6 @@ struct Button
 bool IsButtonHovered(const BurgerButton& button);
 
 bool IsButtonHovered(const Button& button);
-
-bool IsButtonClicked(const BurgerButton& button);
 
 // Function to check if button is clicked
 bool IsButtonClicked(const Button& button);

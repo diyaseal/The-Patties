@@ -1,3 +1,6 @@
+// ---------------------------------------------------------------------------
+// ParticleManager.hpp - Header File for ParticleManager Functionality
+// ---------------------------------------------------------------------------
 #pragma once
 
 // Particle State Functions

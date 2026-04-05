@@ -1,3 +1,8 @@
+// ---------------------------------------------------------------------------
+// GraphicManager.cpp
+// Description: Implements mesh creation for all game objects and UI elements,
+//              and a rounded rectangle drawing utility used across all screens.
+// ---------------------------------------------------------------------------
 #include "pch.hpp"
 #include <cmath> 
  
@@ -23,6 +28,7 @@ AEGfxVertexList* CreateSquareMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
+// Soda mesh uses only the left half of the sprite sheet (U capped at 0.5)
 AEGfxVertexList* CreateSodaMesh(float x, float y) { // (D) soda asset mesh 
     AEGfxMeshStart();
 
@@ -41,8 +47,7 @@ AEGfxVertexList* CreateSodaMesh(float x, float y) { // (D) soda asset mesh
     return AEGfxMeshEnd();
 }
 
-
-// remove later if not needed, but this is a simple way to create a circle mesh using triangles
+// Builds a circle from triangles fanning out from the centre
 AEGfxVertexList* CreateCircleMesh(float radius, int segments)
 {
     AEGfxMeshStart();
@@ -77,6 +82,7 @@ AEGfxVertexList* CreateCircleMesh(float radius, int segments)
     return AEGfxMeshEnd();
 }
 
+// Same as CreateCircleMesh but maps UVs so textures render correctly on the circle
 AEGfxVertexList* CreateCircleMeshUV(float radius, int segments)
 {
     AEGfxMeshStart();
@@ -109,6 +115,7 @@ AEGfxVertexList* CreateCircleMeshUV(float radius, int segments)
     return AEGfxMeshEnd();
 }
 
+// Ingredient mesh samples one cell (1/4 width, 1/2 height) from the sprite sheet
 AEGfxVertexList* CreateIngredientMesh(float x, float y) {
     AEGfxMeshStart();
 
@@ -130,6 +137,7 @@ AEGfxVertexList* CreateIngredientMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
+// Truck mesh samples the left half of the sprite sheet (U capped at 0.5)
 AEGfxVertexList* CreateTruckMesh(float x, float y) {
     AEGfxMeshStart();
 
@@ -151,6 +159,7 @@ AEGfxVertexList* CreateTruckMesh(float x, float y) {
     return AEGfxMeshEnd();
 }
 
+// Customer mesh samples the top-left cell (0.5 x 0.5) of the sprite sheet
 AEGfxVertexList* CreateCustomerMesh() {
     AEGfxMeshStart();
     AEGfxTriAdd(
@@ -165,6 +174,8 @@ AEGfxVertexList* CreateCustomerMesh() {
     );
     return AEGfxMeshEnd();
 }
+
+// Builds a 5-pointed star from 10 triangles (2 per point) fanning from centre
 AEGfxVertexList* CreateStarMesh(float outerRadius, float innerRadius)
 {
     AEGfxMeshStart();
@@ -222,6 +233,7 @@ AEGfxVertexList* CreateStarMesh(float outerRadius, float innerRadius)
     return AEGfxMeshEnd();
 }
 
+// Draws a rectangle with rounded corners using two overlapping slabs + 4 corner circles
 void DrawRoundedRect(AEGfxVertexList* squareMesh, AEGfxVertexList* circleMesh,
     float cx, float cy, float w, float h, float r,
     float red, float green, float blue, float alpha)

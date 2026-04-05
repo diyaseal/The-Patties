@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------------
+// Utils.cpp
+// Description: Shared UI helper functions for button hover and click detection.
+// ---------------------------------------------------------------------------
 #include "pch.hpp"
 
 bool IsButtonHovered(const BurgerButton& button)
